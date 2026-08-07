@@ -36,16 +36,16 @@ def inspect_dw():
             count = conn.execute(text(f"SELECT COUNT(*) FROM marts.{row[0]}")).scalar()
             print(f"   - marts.{row[0]} ({count} rows)")
 
-    print("\n=======================================================")
-    print(" XEM THU NOI DUNG BANG FACT & DIM (Preview Top 5 rows)")
-    print("=======================================================\n")
+        print("\n=======================================================")
+        print(" XEM THU NOI DUNG BANG FACT & DIM (Preview Top 5 rows)")
+        print("=======================================================\n")
 
-    for row in marts_tables:
-        table_name = row[0]
-        print(f"--- Bang: marts.{table_name} ---")
-        df = pd.read_sql(f"SELECT * FROM marts.{table_name} LIMIT 5;", con=engine)
-        print(df.to_string(index=False))
-        print("\n")
+        for row in marts_tables:
+            table_name = row[0]
+            print(f"--- Bang: marts.{table_name} ---")
+            df = pd.read_sql(text(f"SELECT * FROM marts.{table_name} LIMIT 5;"), con=conn)
+            print(df.to_string(index=False))
+            print("\n")
 
 if __name__ == "__main__":
     inspect_dw()
