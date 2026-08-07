@@ -43,7 +43,11 @@ def inspect_dw():
         for row in marts_tables:
             table_name = row[0]
             print(f"--- Bang: marts.{table_name} ---")
-            df = pd.read_sql(text(f"SELECT * FROM marts.{table_name} LIMIT 5;"), con=conn)
+            query = text(f"SELECT * FROM marts.{table_name} LIMIT 5;")
+            result = conn.execute(query)
+            rows = result.fetchall()
+            cols = result.keys()
+            df = pd.DataFrame(rows, columns=cols)
             print(df.to_string(index=False))
             print("\n")
 
