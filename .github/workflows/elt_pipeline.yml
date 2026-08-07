@@ -1,4 +1,4 @@
-name: Automated E-Commerce ELT Pipeline
+name: Automated E-Commerce Prefect ELT Pipeline
 
 on:
   schedule:
@@ -42,9 +42,11 @@ jobs:
           [ -n "$DB_USER" ] && echo "✓ DB_USER secret found" || echo "❌ DB_USER secret MISSING!"
           [ -n "$DB_PASSWORD" ] && echo "✓ DB_PASSWORD secret found" || echo "❌ DB_PASSWORD secret MISSING!"
 
-      - name: 🚀 Execute ELT Pipeline (Extract -> Load -> Transform)
+      - name: 🚀 Execute Prefect ELT Pipeline (Extract -> Load -> Transform)
         env:
           PYTHONPATH: .
+          PREFECT_API_KEY: ${{ secrets.PREFECT_API_KEY }}
+          PREFECT_API_URL: ${{ secrets.PREFECT_API_URL }}
           DB_HOST: ${{ secrets.DB_HOST }}
           DB_PORT: ${{ secrets.DB_PORT }}
           DB_NAME: ${{ secrets.DB_NAME }}
@@ -92,9 +94,9 @@ jobs:
           fi
 
           if [ "$WORKFLOW_STATUS" = "success" ]; then
-            MESSAGE="🎉 *E-COMMERCE ELT PIPELINE SUCCESS* 🟢%0A%0A📌 *Repository:* \`${{ github.repository }}\`%0A🌿 *Branch:* \`${{ github.ref_name }}\`%0A💡 *Nguồn kích hoạt:* ${EVENT_DESC}%0A🗄️ *Data Warehouse:* \`PostgreSQL (Aiven Cloud)\`%0A%0A📋 *Tóm Tắt Các Bước Đã Chạy:*%0A1️⃣ *Extract:* Trích xuất 6 bảng thô (\`customers\`, \`orders\`, \`order_items\`, \`payments\`, \`products\`, \`reviews\`) ➔ Lưu Parquet.%0A2️⃣ *Load:* Nạp Parquet thô vào DW (\`staging.stg_raw_*\`).%0A3️⃣ *Transform:* Thực thi SQL models ➔ Xây dựng Star Schema Data Marts (\`marts.dim_*\`, \`marts.fct_*\`).%0A%0A✅ *Kết quả:* Dữ liệu sẵn sàng phục vụ Power BI / Metabase!%0A%0A🔗 [🌐 Xem Chi Tiết Log Execution Trên GitHub]($RUN_URL)"
+            MESSAGE="🎉 *PREFECT ELT PIPELINE SUCCESS* 🟢%0A%0A📌 *Repository:* \`${{ github.repository }}\`%0A🌿 *Branch:* \`${{ github.ref_name }}\`%0A💡 *Nguồn kích hoạt:* ${EVENT_DESC}%0A⚙️ *Orchestrator:* \`Prefect 3.x / 2.x\`%0A🗄️ *Data Warehouse:* \`PostgreSQL (Aiven Cloud)\`%0A%0A📋 *Tóm Tắt Các Bước Đã Chạy:*%0A1️⃣ *Extract Task:* Trích xuất 6 bảng thô (\`customers\`, \`orders\`, \`order_items\`, \`payments\`, \`products\`, \`reviews\`) ➔ Parquet.%0A2️⃣ *Load Task:* Nạp Parquet thô vào DW (\`staging.stg_raw_*\`).%0A3️⃣ *Transform Task:* Thực thi SQL models ➔ Star Schema Data Marts (\`marts.dim_*\`, \`marts.fct_*\`).%0A%0A✅ *Kết quả:* Dữ liệu sẵn sàng phục vụ Power BI / Metabase!%0A%0A🔗 [🌐 Xem Chi Tiết Log Execution Trên GitHub]($RUN_URL)"
           else
-            MESSAGE="🚨 *E-COMMERCE ELT PIPELINE FAILED* 🔴%0A%0A📌 *Repository:* \`${{ github.repository }}\`%0A🌿 *Branch:* \`${{ github.ref_name }}\`%0A💡 *Nguồn kích hoạt:* ${EVENT_DESC}%0A🗄️ *Data Warehouse:* \`PostgreSQL (Aiven Cloud)\`%0A%0A⚠️ *Trạng thái:* Phát sinh sự cố trong quá trình Extract, Load hoặc SQL Transform!%0A%0A🔗 [🔍 Kiểm Tra Nhật Ký Lỗi Trực Tiếp Trên GitHub]($RUN_URL)"
+            MESSAGE="🚨 *PREFECT ELT PIPELINE FAILED* 🔴%0A%0A📌 *Repository:* \`${{ github.repository }}\`%0A🌿 *Branch:* \`${{ github.ref_name }}\`%0A💡 *Nguồn kích hoạt:* ${EVENT_DESC}%0A⚙️ *Orchestrator:* \`Prefect 3.x / 2.x\`%0A🗄️ *Data Warehouse:* \`PostgreSQL (Aiven Cloud)\`%0A%0A⚠️ *Trạng thái:* Phát sinh sự cố trong quá trình Extract, Load hoặc SQL Transform!%0A%0A🔗 [🔍 Kiểm Tra Nhật Ký Lỗi Trực Tiếp Trên GitHub]($RUN_URL)"
           fi
 
           curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \

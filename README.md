@@ -1,12 +1,12 @@
-# 🚀 Automated E-Commerce ELT Data Pipeline & Data Warehouse
+# 🚀 Automated E-Commerce ELT Data Pipeline (Prefect & Cloud Native)
 
 [![Python](https://img.shields.io/badge/Python-3.10+-blue.svg)](https://www.python.org/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-14+-blue.svg)](https://www.postgresql.org/)
-[![Apache Airflow](https://img.shields.io/badge/Apache%20Airflow-2.8.1-green.svg)](https://airflow.apache.org/)
-[![Docker](https://img.shields.io/badge/Docker-Enabled-blue.svg)](https://www.docker.com/)
+[![Prefect](https://img.shields.io/badge/Prefect-3.x%20%2F%202.x-blueviolet.svg)](https://www.prefect.io/)
+[![GitHub Actions](https://img.shields.io/badge/GitHub%20Actions-24%2F7%20Cloud-blue.svg)](https://github.com/features/actions)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-An end-to-end, production-ready **ELT (Extract – Load – Transform)** Data Pipeline built for E-Commerce analytics. Dữ liệu được rút trích tự động từ PostgreSQL Server nguồn, lưu trữ dạng Parquet tại Landing Zone, nạp vào Data Warehouse Staging schema, và chuyển đổi thành mô hình **Star Schema (Fact & Dimension Tables)** phục vụ báo cáo Business Intelligence (Power BI, Metabase, Tableau).
+An end-to-end, modern **ELT (Extract – Load – Transform)** Data Pipeline built for E-Commerce analytics orchestrated by **Prefect**. Dữ liệu được rút trích tự động từ PostgreSQL Server nguồn, lưu trữ dạng Parquet tại Landing Zone, nạp vào Data Warehouse Staging schema, và chuyển đổi thành mô hình **Star Schema (Fact & Dimension Tables)** phục vụ báo cáo Business Intelligence (Power BI, Metabase, Tableau).
 
 ---
 
@@ -20,7 +20,7 @@ An end-to-end, production-ready **ELT (Extract – Load – Transform)** Data Pi
   - [1. Prerequisites](#1-prerequisites)
   - [2. Environment Configuration](#2-environment-configuration)
   - [3. Running Pipeline via Terminal](#3-running-pipeline-via-terminal)
-  - [4. Running Pipeline via Apache Airflow (Docker)](#4-running-pipeline-via-apache-airflow-docker)
+  - [4. Running Pipeline via Prefect & Cloud Actions](#4-running-pipeline-via-prefect--cloud-actions)
   - [5. Inspecting Data Warehouse Tables](#5-inspecting-data-warehouse-tables)
 - [Author & License](#-author--license)
 
@@ -28,7 +28,7 @@ An end-to-end, production-ready **ELT (Extract – Load – Transform)** Data Pi
 
 ## 📐 Architecture Diagram
 
-Pipeline tuân thủ nghiêm ngặt mô hình kiến trúc **ELT (Extract – Load – Transform)** với sự điều phối tự động bởi **Apache Airflow**:
+Pipeline tuân thủ nghiêm ngặt mô hình kiến trúc **ELT (Extract – Load – Transform)** với sự điều phối hiện đại bởi **Prefect**:
 
 ```mermaid
 flowchart TD
@@ -37,7 +37,7 @@ flowchart TD
     end
 
     subgraph Orchestration["ORCHESTRATION LAYER"]
-        AIRFLOW["Apache Airflow 2.8\n(Docker Standalone)\nCron: 0 2 * * *"]
+        PREFECT["Prefect Orchestrator\n(@flow & @task)\nSchedule: 45m / run"]
     end
 
     subgraph ExtractLayer["2. EXTRACT STEP"]
@@ -68,20 +68,20 @@ flowchart TD
     SQL_MODELS -->|Build Fact & Dim| MARTS_DB
     MARTS_DB -->|Connect Data Marts| POWERBI
 
-    %% Airflow Orchestration Triggers
-    AIRFLOW -.->|Trigger Extract| EXTRACT_SCRIPT
-    AIRFLOW -.->|Trigger Load| LOAD_SCRIPT
-    AIRFLOW -.->|Trigger Transform| SQL_MODELS
+    %% Prefect Orchestration Triggers
+    PREFECT -.->|@task Extract| EXTRACT_SCRIPT
+    PREFECT -.->|@task Load| LOAD_SCRIPT
+    PREFECT -.->|@task Transform| SQL_MODELS
 
     %% Styling
     classDef sourceStyle fill:#336791,stroke:#fff,stroke-width:2px,color:#fff
-    classDef airflowStyle fill:#00C7B7,stroke:#fff,stroke-width:2px,color:#fff
+    classDef prefectStyle fill:#27b5fc,stroke:#fff,stroke-width:2px,color:#fff
     classDef processStyle fill:#2b2b2b,stroke:#4CAF50,stroke-width:2px,color:#fff
     classDef dwStyle fill:#0277BD,stroke:#fff,stroke-width:2px,color:#fff
     classDef biStyle fill:#F2C811,stroke:#333,stroke-width:2px,color:#333
 
     class PG_SOURCE sourceStyle
-    class AIRFLOW airflowStyle
+    class PREFECT prefectStyle
     class EXTRACT_SCRIPT,LOAD_SCRIPT,SQL_MODELS processStyle
     class STAGING_DB,MARTS_DB dwStyle
     class POWERBI biStyle
@@ -91,11 +91,11 @@ flowchart TD
 
 ## 🛠 Tech Stack
 
-- **Orchestration:** Apache Airflow 2.8.1, Docker, Docker Compose
+- **Orchestration:** Prefect 3.x / 2.x, GitHub Actions (Cloud 24/7 Automation)
 - **Database / Data Warehouse:** PostgreSQL Cloud Server, Apache Parquet
-- **Language & Core Libraries:** Python 3.10+, Pandas, PyArrow, SQLAlchemy, psycopg2-binary, python-dotenv
+- **Language & Core Libraries:** Python 3.10+, Pandas, PyArrow, SQLAlchemy 2.0+, psycopg2-binary, python-dotenv
 - **Data Modeling:** Native In-Warehouse SQL, dbt (data build tool) ready
-- **Logging & Monitoring:** Custom ANSI Colored Terminal Logger
+- **Notifications:** Telegram Bot Instant Notifications
 
 ---
 
@@ -105,14 +105,14 @@ flowchart TD
 .
 ├── README.md                           # Documentation & Setup Guide
 ├── PROJECT_STRUCTURE.md                # Detailed project architecture description
-├── requirements.txt                    # Python dependencies
+├── requirements.txt                    # Python dependencies (Prefect, SQLAlchemy 2.0, Pandas,...)
 ├── .env                                # Database credentials & environment variables
 ├── .gitignore                          # Git ignore configuration
-├── docker-compose.yml                  # Docker setup for Apache Airflow WebUI & Scheduler
-├── main.py                             # CLI entry point to run full end-to-end ELT pipeline
+├── main.py                             # Prefect @flow & @task entry point for full ELT pipeline
 ├── view_dw_tables.py                   # Data Warehouse CLI inspector script
-├── dags/                               # Airflow DAGs folder
-│   └── elt_pipeline_dag.py             # Airflow DAG defining Extract -> Load -> Transform workflow
+├── .github/                            # GitHub Actions workflows
+│   └── workflows/
+│       └── elt_pipeline.yml            # 24/7 Cloud Automated Execution & Telegram Notifications
 ├── src/                                # Source code for ELT pipeline
 │   ├── extract/                        # Data extraction modules
 │   │   ├── extract_api.py
@@ -144,11 +144,10 @@ flowchart TD
 
 ## ✨ Key Features
 
-- **Batch Multi-Table Extraction:** Tự động trích xuất hàng loạt 6 bảng dữ liệu liên quan.
-- **Automated Deduplication:** Tự động dọn dẹp Landing Zone trước mỗi lượt chạy, ngăn ngừa tích tụ file trùng lặp.
-- **Version-Safe Database Transactions:** Sử dụng `engine.begin()` của SQLAlchemy đảm bảo chạy ổn định trên cả SQLAlchemy 1.4.x (Airflow) và 2.0.x.
-- **Airflow Web UI Orchestration:** Lập lịch tự động chạy lúc **02:00 AM** hàng ngày với giao diện trực quan tại `http://localhost:8080`.
-- **Colored Terminal Logging:** Custom logger hiển thị màu sắc trực quan (Cyan for time, Green for INFO, Red for ERROR).
+- **Prefect Modern Orchestration:** Tự động theo dõi các task `@task` với cơ chế `retries` và `retry_delay_seconds` khi xảy ra sự cố mạng.
+- **24/7 Cloud Execution:** Chạy tự động 45 phút / lần trên GitHub Actions hoàn toàn miễn phí.
+- **Telegram Bot Notifications:** Gửi thông báo chi tiết tức thì (thẻ Xanh 🟢 / Đỏ 🔴) về điện thoại của bạn.
+- **Self-Healing Data Warehouse:** Tự động tái tạo Schema `staging` và `marts` nếu dữ liệu bị xóa.
 
 ---
 
@@ -174,7 +173,6 @@ flowchart TD
 
 ### 1. Prerequisites
 - Python 3.10 or higher
-- Docker Desktop (for Airflow WebUI)
 - Access to a PostgreSQL instance
 
 ### 2. Environment Configuration
@@ -197,24 +195,15 @@ pip install -r requirements.txt
 ```
 
 ### 3. Running Pipeline via Terminal
-Kích hoạt toàn bộ luồng ELT trực tiếp từ Terminal:
+Kích hoạt Prefect Flow trực tiếp từ Terminal:
 
 ```bash
 python main.py
 ```
 
-### 4. Running Pipeline via Apache Airflow (Docker)
-Khởi chạy Airflow Web UI bằng Docker Compose:
-
-```bash
-docker compose up -d
-```
-
-1. Mở trình duyệt và truy cập: **`http://localhost:8080`**
-2. Đăng nhập với tài khoản:
-   - **Username:** `admin`
-   - **Password:** `admin` (hoặc lấy trong tệp `standalone_admin_password.txt`)
-3. Bật công tắc Unpause DAG `elt_ecommerce_pipeline` và bấm **Play ▶️** để xem biểu đồ chạy tự động.
+### 4. Running Pipeline via Prefect & Cloud Actions
+- Pipeline tự động được đẩy lên Cloud và thực thi định kỳ 45 phút / lần.
+- Kết quả được tự động báo cáo về **Telegram Bot**.
 
 ### 5. Inspecting Data Warehouse Tables
 Chạy script tra cứu số lượng bản ghi và xem thử nội dung dữ liệu trong các bảng Data Marts:
