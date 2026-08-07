@@ -40,14 +40,15 @@ def load_landing_to_dw(target_schema: str = "staging", archive_processed: bool =
         logger.info(f"Loading '{filename}' into '{target_schema}.{staging_table_name}'...")
         df = pd.read_parquet(file_path)
         
-        # Load raw data into staging table in DW without applying business transformations
-        df.to_sql(
-            name=staging_table_name,
-            con=engine,
-            schema=target_schema,
-            if_exists="replace",
-            index=False
-        )
+        # Load raw data into staging table in DW using active connection context
+        with engine.begin() as conn:
+            df.to_sql(
+                name=staging_table_name,
+                con=conn,
+                schema=target_schema,
+                if_exists="replace",
+                index=False
+            )
         
         loaded_summary[staging_table_name] = len(df)
         logger.info(f"Successfully loaded {len(df)} rows into '{target_schema}.{staging_table_name}'.")
