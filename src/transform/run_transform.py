@@ -7,10 +7,14 @@ from src.utils.logger import logger
 def run_in_warehouse_transformations(sql_dir: str = "src/transform/sql"):
     """
     Runs in-warehouse SQL transformation scripts to build Data Marts (Transform Step in ELT).
-    Compatible with both SQLAlchemy 1.4 and 2.0.
+    Compatible with both SQLAlchemy 1.4 and 2.0. Auto-creates 'marts' schema if missing.
     """
     connector = PostgresConnector()
     engine = connector.get_engine()
+    
+    # Ensure marts schema exists before running SQL models
+    with engine.begin() as conn:
+        conn.execute(text("CREATE SCHEMA IF NOT EXISTS marts;"))
     
     sql_files = glob.glob(os.path.join(sql_dir, "*.sql"))
     sql_files.sort()

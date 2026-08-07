@@ -3,6 +3,7 @@ import glob
 import pandas as pd
 from typing import List, Optional
 from datetime import datetime
+from sqlalchemy import text
 from src.utils.db_connector import PostgresConnector
 from src.utils.config import Config
 from src.utils.logger import logger
@@ -32,7 +33,8 @@ def extract_table_to_parquet(table_name: str, query: Optional[str] = None, times
     sql_query = query if query else f'SELECT * FROM "{Config.DB_SCHEMA}"."{table_name}"'
     
     logger.info(f"Executing extraction for table '{table_name}'...")
-    df = pd.read_sql(sql_query, con=engine)
+    with engine.connect() as conn:
+        df = pd.read_sql(text(sql_query), con=conn)
     logger.info(f"Extracted {len(df)} rows from table '{table_name}'.")
 
     os.makedirs(Config.LANDING_DIR, exist_ok=True)
@@ -78,6 +80,7 @@ def extract_all_tables(table_list: Optional[List[str]] = None, clean_landing: bo
             extracted_files.append(file_path)
         except Exception as e:
             logger.error(f"Error extracting table '{table_name}': {e}")
+            raise e
             
     logger.info(f"Batch extraction completed. {len(extracted_files)}/{len(table_list)} tables extracted successfully.")
     return extracted_files
