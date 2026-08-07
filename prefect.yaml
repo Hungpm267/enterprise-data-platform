@@ -1,0 +1,16 @@
+name: ecommerce-data-pipeline
+prefect-version: 3.0.0
+
+build:
+
+push:
+
+pull:
+  - prefect.deployments.steps.set_working_directory:
+      directory: .
+
+deployments:
+  - name: ecommerce-deployment
+    version: 1.0.0
+    entrypoint: main.py:run_elt_pipeline
+    description: "Automated E-Commerce ELT Pipeline deployment"
