@@ -11,7 +11,7 @@ An end-to-end, production-ready **ELT (Extract – Load – Transform)** Data Pi
 ---
 
 ## 📌 Table of Contents
-- [Architecture Overview](#-architecture-overview)
+- [Architecture Diagram](#-architecture-diagram)
 - [Tech Stack](#-tech-stack)
 - [Project Directory Structure](#-project-directory-structure)
 - [Key Features](#-key-features)
@@ -26,27 +26,66 @@ An end-to-end, production-ready **ELT (Extract – Load – Transform)** Data Pi
 
 ---
 
-## 📐 Architecture Overview
+## 📐 Architecture Diagram
 
-Pipeline tuân thủ nghiêm ngặt mô hình kiến trúc **ELT (Extract – Load – Transform)** hiện đại:
+Pipeline tuân thủ nghiêm ngặt mô hình kiến trúc **ELT (Extract – Load – Transform)** với sự điều phối tự động bởi **Apache Airflow**:
 
-```text
-+-------------------+      Extract (Python)      +--------------------+
-|  PostgreSQL Source | ------------------------> |    Landing Zone    |
-|   (6 Raw Tables)  |                            |   (Parquet Files)  |
-+-------------------+                            +--------------------+
-                                                           |
-                                                      Load | (pandas/sqlalchemy)
-                                                           v
-+-------------------+     Transform (SQL/dbt)    +--------------------+
-|   Data Marts DW   | <------------------------- |   Staging Schema   |
-|   (Fact & Dim)    |                            |  (stg_raw_tables)  |
-+-------------------+                            +--------------------+
+```mermaid
+flowchart TD
+    subgraph Sources["1. DATA SOURCES"]
+        PG_SOURCE[("PostgreSQL Source DB\n(6 Raw Tables)")]
+    end
+
+    subgraph Orchestration["ORCHESTRATION LAYER"]
+        AIRFLOW["Apache Airflow 2.8\n(Docker Standalone)\nCron: 0 2 * * *"]
+    end
+
+    subgraph ExtractLayer["2. EXTRACT STEP"]
+        EXTRACT_SCRIPT["Python Extractor\n(src/extract/extract_db.py)"]
+        LANDING["Landing Zone\n(data/landing/*.parquet)"]
+    end
+
+    subgraph LoadLayer["3. LOAD STEP"]
+        LOAD_SCRIPT["Python Loader\n(src/load/load_to_dw.py)"]
+        STAGING_DB[("PostgreSQL DW\nSchema: staging\n(stg_raw_* tables)")]
+    end
+
+    subgraph TransformLayer["4. TRANSFORM STEP"]
+        SQL_MODELS["In-Warehouse SQL Models\n(src/transform/sql/*.sql)"]
+        MARTS_DB[("PostgreSQL DW\nSchema: marts\n(Star Schema: Fact & Dim)")]
+    end
+
+    subgraph Analytics["5. CONSUMPTION & BI"]
+        POWERBI["Power BI / Metabase\nDashboards"]
+    end
+
+    %% Flow connections
+    PG_SOURCE -->|Batch Query| EXTRACT_SCRIPT
+    EXTRACT_SCRIPT -->|Write Parquet| LANDING
+    LANDING -->|Bulk Read| LOAD_SCRIPT
+    LOAD_SCRIPT -->|Load Raw| STAGING_DB
+    STAGING_DB -->|Query Staging| SQL_MODELS
+    SQL_MODELS -->|Build Fact & Dim| MARTS_DB
+    MARTS_DB -->|Connect Data Marts| POWERBI
+
+    %% Airflow Orchestration Triggers
+    AIRFLOW -.->|Trigger Extract| EXTRACT_SCRIPT
+    AIRFLOW -.->|Trigger Load| LOAD_SCRIPT
+    AIRFLOW -.->|Trigger Transform| SQL_MODELS
+
+    %% Styling
+    classDef sourceStyle fill:#336791,stroke:#fff,stroke-width:2px,color:#fff
+    classDef airflowStyle fill:#00C7B7,stroke:#fff,stroke-width:2px,color:#fff
+    classDef processStyle fill:#2b2b2b,stroke:#4CAF50,stroke-width:2px,color:#fff
+    classDef dwStyle fill:#0277BD,stroke:#fff,stroke-width:2px,color:#fff
+    classDef biStyle fill:#F2C811,stroke:#333,stroke-width:2px,color:#333
+
+    class PG_SOURCE sourceStyle
+    class AIRFLOW airflowStyle
+    class EXTRACT_SCRIPT,LOAD_SCRIPT,SQL_MODELS processStyle
+    class STAGING_DB,MARTS_DB dwStyle
+    class POWERBI biStyle
 ```
-
-1. **Extract (E):** Trích xuất tự động 6 bảng dữ liệu thô (`raw_customers`, `raw_orders`, `raw_order_items`, `raw_payments`, `raw_reviews`, `raw_products`) từ PostgreSQL Database sang định dạng nạp chuẩn **Apache Parquet**.
-2. **Load (L):** Nạp nguyên bản dữ liệu thô từ file Parquet vào schema `staging` của Data Warehouse (`staging.stg_raw_*`).
-3. **Transform (T):** Tận dụng sức mạnh tính toán của Data Warehouse để thực thi các SQL models, tổng hợp thành mô hình **Star Schema** tại schema `marts`.
 
 ---
 
