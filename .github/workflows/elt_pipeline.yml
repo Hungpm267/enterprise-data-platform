@@ -27,6 +27,21 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      - name: 🔑 Check Secrets Configuration
+        env:
+          DB_HOST: ${{ secrets.DB_HOST }}
+          DB_PORT: ${{ secrets.DB_PORT }}
+          DB_NAME: ${{ secrets.DB_NAME }}
+          DB_USER: ${{ secrets.DB_USER }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+        run: |
+          echo "Checking Secrets availability..."
+          [ -n "$DB_HOST" ] && echo "✓ DB_HOST secret found" || echo "❌ DB_HOST secret MISSING!"
+          [ -n "$DB_PORT" ] && echo "✓ DB_PORT secret found" || echo "❌ DB_PORT secret MISSING!"
+          [ -n "$DB_NAME" ] && echo "✓ DB_NAME secret found" || echo "❌ DB_NAME secret MISSING!"
+          [ -n "$DB_USER" ] && echo "✓ DB_USER secret found" || echo "❌ DB_USER secret MISSING!"
+          [ -n "$DB_PASSWORD" ] && echo "✓ DB_PASSWORD secret found" || echo "❌ DB_PASSWORD secret MISSING!"
+
       - name: 🚀 Execute ELT Pipeline (Extract -> Load -> Transform)
         env:
           PYTHONPATH: .
