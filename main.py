@@ -53,4 +53,8 @@ def run_elt_pipeline():
     logger.info("==================================================")
 
 if __name__ == "__main__":
-    run_elt_pipeline()
+    if len(sys.argv) > 1 and sys.argv[1] == "--serve":
+        logger.info("Registering deployment and serving flow on Prefect Cloud...")
+        run_elt_pipeline.serve(name="ecommerce-deployment")
+    else:
+        run_elt_pipeline()
