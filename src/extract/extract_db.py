@@ -26,6 +26,7 @@ def extract_table_to_parquet(table_name: str, query: Optional[str] = None, times
     """
     Extracts raw data from PostgreSQL table and saves it directly to Landing Zone as Parquet (EL Step).
     If timestamp_suffix is False, overwrites table_name.parquet to avoid duplicate files.
+    Uses pure SQLAlchemy result mapping to avoid pandas read_sql version conflicts.
     """
     connector = PostgresConnector()
     engine = connector.get_engine()
@@ -34,7 +35,11 @@ def extract_table_to_parquet(table_name: str, query: Optional[str] = None, times
     
     logger.info(f"Executing extraction for table '{table_name}'...")
     with engine.connect() as conn:
-        df = pd.read_sql(text(sql_query), con=conn)
+        result = conn.execute(text(sql_query))
+        rows = result.fetchall()
+        cols = result.keys()
+        df = pd.DataFrame(rows, columns=cols)
+
     logger.info(f"Extracted {len(df)} rows from table '{table_name}'.")
 
     os.makedirs(Config.LANDING_DIR, exist_ok=True)
