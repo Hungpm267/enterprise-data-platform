@@ -1,0 +1,21 @@
+services:
+  airflow-standalone:
+    image: apache/airflow:2.8.1-python3.10
+    container_name: airflow_elt_container
+    environment:
+      - AIRFLOW__CORE__EXECUTOR=SequentialExecutor
+      - AIRFLOW__CORE__DATABASE_SQL_ALCHEMY_CONN=sqlite:////opt/airflow/airflow.db
+      - AIRFLOW__CORE__LOAD_EXAMPLES=False
+      - AIRFLOW__CORE__FERNET_KEY=46ExZLic858AXGG2yBUA1Ww7xCzKOwIZwW2zgH1_cvL=
+      - _PIP_ADDITIONAL_REQUIREMENTS=psycopg2-binary>=2.9.0 pandas>=2.0.0 pyarrow>=14.0.0 python-dotenv>=1.0.0
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./src:/opt/airflow/src
+      - ./data:/opt/airflow/data
+      - ./.env:/opt/airflow/.env
+    ports:
+      - "8080:8080"
+    command: >
+      bash -c "airflow users create --username admin --firstname Admin --lastname User --role Admin --email admin@example.com --password admin || true &&
+               airflow standalone"
+

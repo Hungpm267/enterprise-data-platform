@@ -1,0 +1,27 @@
+# Environment & Credentials
+.env
+*.env
+
+# Python / Virtualenv
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+env/
+ENV/
+
+# Data Files & Logs
+data/landing/*.parquet
+!data/landing/.gitkeep
+logs/*.log
+!logs/.gitkeep
+*.db
+*.db-journal
+standalone_admin_password.txt
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
