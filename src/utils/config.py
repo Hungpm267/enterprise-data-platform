@@ -16,6 +16,13 @@ class Config:
     
     LANDING_DIR = os.getenv("LANDING_DIR") or "data/landing"
 
+    # GCP Settings
+    GCP_PROJECT_ID = os.getenv("GCP_PROJECT_ID") or "data-engineering-504901"
+    GCP_GCS_BUCKET = os.getenv("GCP_GCS_BUCKET") or "ecommerce-data-lake-504901"
+    GCP_STAGING_DATASET = os.getenv("GCP_STAGING_DATASET") or "staging"
+    GCP_MARTS_DATASET = os.getenv("GCP_MARTS_DATASET") or "marts"
+    GCP_KEY_FILE = os.getenv("GCP_KEY_FILE") or "gcp_key.json"
+
     @classmethod
     def get_db_url(cls) -> str:
         ssl_param = "?sslmode=require" if ("aivencloud.com" in cls.DB_HOST or "cockroachlabs.cloud" in cls.DB_HOST) else ""

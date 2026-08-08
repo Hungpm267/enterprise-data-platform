@@ -1,42 +1,52 @@
 import os
-import glob
-from sqlalchemy import text
-from src.utils.db_connector import PostgresConnector
+import subprocess
+from google.cloud import bigquery
+from src.utils.gcp_client import get_bigquery_client
+from src.utils.config import Config
 from src.utils.logger import logger
 
-def run_in_warehouse_transformations(sql_dir: str = "src/transform/sql"):
+def run_in_warehouse_transformations():
     """
-    Runs in-warehouse SQL transformation scripts to build Data Marts (Transform Step in ELT).
-    Compatible with both SQLAlchemy 1.4 and 2.0. Auto-creates 'marts' schema if missing.
+    Runs in-warehouse SQL transformations using dbt-bigquery against BigQuery DW.
+    Auto-creates the BigQuery 'marts' dataset if missing.
     """
-    connector = PostgresConnector()
-    engine = connector.get_engine()
-    
-    # Ensure marts schema exists before running SQL models
-    with engine.begin() as conn:
-        conn.execute(text("CREATE SCHEMA IF NOT EXISTS marts;"))
-    
-    sql_files = glob.glob(os.path.join(sql_dir, "*.sql"))
-    sql_files.sort()
+    client = get_bigquery_client()
+    project_id = Config.GCP_PROJECT_ID
+    marts_dataset_id = Config.GCP_MARTS_DATASET
 
-    logger.info(f"Starting In-Warehouse Transformations (T Step)... Found {len(sql_files)} SQL models.")
+    dataset_ref = bigquery.DatasetReference(project_id, marts_dataset_id)
+    try:
+        client.get_dataset(dataset_ref)
+        logger.info(f"BigQuery dataset '{marts_dataset_id}' found.")
+    except Exception:
+        logger.info(f"Creating BigQuery dataset '{marts_dataset_id}' in location 'asia-southeast1'...")
+        dataset = bigquery.Dataset(dataset_ref)
+        dataset.location = "asia-southeast1"
+        client.create_dataset(dataset)
+        logger.info(f"Created BigQuery dataset '{marts_dataset_id}' successfully.")
 
-    with engine.begin() as conn:
-        for file_path in sql_files:
-            model_name = os.path.basename(file_path)
-            
-            with open(file_path, "r", encoding="utf-8") as f:
-                sql_script = f.read()
-                
-            if not sql_script.strip():
-                logger.info(f"Skipping empty transform model: '{model_name}'.")
-                continue
+    dbt_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "dbt")
+    logger.info("Executing dbt-bigquery transformations...")
 
-            logger.info(f"Executing transform model: '{model_name}'...")
-            conn.execute(text(sql_script))
-            logger.info(f"Model '{model_name}' executed successfully.")
+    gcp_sa_key_json = os.getenv("GCP_SA_KEY")
+    if not gcp_sa_key_json and os.path.exists(Config.GCP_KEY_FILE):
+        with open(Config.GCP_KEY_FILE, "r", encoding="utf-8") as f:
+            gcp_sa_key_json = f.read()
 
-    logger.info("All In-Warehouse Transformations completed successfully!")
+    env = os.environ.copy()
+    if gcp_sa_key_json:
+        env["GCP_SA_KEY_JSON"] = gcp_sa_key_json
+    env["GCP_PROJECT_ID"] = Config.GCP_PROJECT_ID
+    env["GCP_STAGING_DATASET"] = Config.GCP_STAGING_DATASET
+
+    cmd = ["dbt", "run", "--project-dir", dbt_dir, "--profiles-dir", dbt_dir]
+    result = subprocess.run(cmd, env=env, capture_output=True, text=True)
+
+    if result.returncode != 0:
+        logger.error(f"dbt run failed: {result.stderr or result.stdout}")
+        raise RuntimeError(f"dbt transformation failed: {result.stderr or result.stdout}")
+
+    logger.info("dbt-bigquery transformations executed successfully!\n" + result.stdout)
 
 if __name__ == "__main__":
     run_in_warehouse_transformations()

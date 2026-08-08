@@ -1,4 +1,4 @@
-name: Automated E-Commerce Prefect ELT Pipeline
+name: Automated E-Commerce GCP ELT Pipeline
 
 on:
   schedule:
@@ -27,22 +27,21 @@ jobs:
         run: |
           pip install --prefer-binary -r requirements.txt
 
-      - name: 🔑 Check Secrets Configuration
+      - name: 🔑 Check Secrets & GCP Configuration
         env:
           DB_HOST: ${{ secrets.DB_HOST }}
           DB_PORT: ${{ secrets.DB_PORT }}
           DB_NAME: ${{ secrets.DB_NAME }}
           DB_USER: ${{ secrets.DB_USER }}
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
         run: |
           echo "Checking Secrets availability..."
           [ -n "$DB_HOST" ] && echo "✓ DB_HOST secret found" || echo "❌ DB_HOST secret MISSING!"
-          [ -n "$DB_PORT" ] && echo "✓ DB_PORT secret found" || echo "❌ DB_PORT secret MISSING!"
-          [ -n "$DB_NAME" ] && echo "✓ DB_NAME secret found" || echo "❌ DB_NAME secret MISSING!"
-          [ -n "$DB_USER" ] && echo "✓ DB_USER secret found" || echo "❌ DB_USER secret MISSING!"
           [ -n "$DB_PASSWORD" ] && echo "✓ DB_PASSWORD secret found" || echo "❌ DB_PASSWORD secret MISSING!"
+          [ -n "$GCP_SA_KEY" ] && echo "✓ GCP_SA_KEY secret found" || echo "❌ GCP_SA_KEY secret MISSING!"
 
-      - name: 🚀 Execute Prefect ELT Pipeline (Extract -> Load -> Transform)
+      - name: 🚀 Execute GCP Modern ELT Pipeline (Postgres -> GCS -> BigQuery -> dbt)
         env:
           PYTHONPATH: .
           PREFECT_API_KEY: ${{ secrets.PREFECT_API_KEY }}
@@ -53,21 +52,14 @@ jobs:
           DB_USER: ${{ secrets.DB_USER }}
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
           DB_SCHEMA: ${{ secrets.DB_SCHEMA }}
+          GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
+          GCP_PROJECT_ID: 'data-engineering-504901'
+          GCP_GCS_BUCKET: 'ecommerce-data-lake-504901'
+          GCP_STAGING_DATASET: 'staging'
+          GCP_MARTS_DATASET: 'marts'
           LANDING_DIR: 'data/landing'
         run: |
           python main.py
-
-      - name: 🔍 Inspect Data Warehouse Results
-        env:
-          PYTHONPATH: .
-          DB_HOST: ${{ secrets.DB_HOST }}
-          DB_PORT: ${{ secrets.DB_PORT }}
-          DB_NAME: ${{ secrets.DB_NAME }}
-          DB_USER: ${{ secrets.DB_USER }}
-          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-          DB_SCHEMA: ${{ secrets.DB_SCHEMA }}
-        run: |
-          python view_dw_tables.py
 
       - name: 📢 Send Detailed Telegram Notification
         if: always()
@@ -94,9 +86,9 @@ jobs:
           fi
 
           if [ "$WORKFLOW_STATUS" = "success" ]; then
-            MESSAGE="🎉 *PREFECT ELT PIPELINE SUCCESS* 🟢%0A%0A📌 *Repository:* \`${{ github.repository }}\`%0A🌿 *Branch:* \`${{ github.ref_name }}\`%0A💡 *Nguồn kích hoạt:* ${EVENT_DESC}%0A⚙️ *Orchestrator:* \`Prefect 3.x / 2.x\`%0A🗄️ *Data Warehouse:* \`PostgreSQL (Aiven Cloud)\`%0A%0A📋 *Tóm Tắt Các Bước Đã Chạy:*%0A1️⃣ *Extract Task:* Trích xuất 6 bảng thô (\`customers\`, \`orders\`, \`order_items\`, \`payments\`, \`products\`, \`reviews\`) ➔ Parquet.%0A2️⃣ *Load Task:* Nạp Parquet thô vào DW (\`staging.stg_raw_*\`).%0A3️⃣ *Transform Task:* Thực thi SQL models ➔ Star Schema Data Marts (\`marts.dim_*\`, \`marts.fct_*\`).%0A%0A✅ *Kết quả:* Dữ liệu sẵn sàng phục vụ Power BI / Metabase!%0A%0A🔗 [🌐 Xem Chi Tiết Log Execution Trên GitHub]($RUN_URL)"
+            MESSAGE="🎉 *GCP MODERN ELT PIPELINE SUCCESS* 🟢%0A%0A📌 *Repository:* \`${{ github.repository }}\`%0A🌿 *Branch:* \`${{ github.ref_name }}\`%0A💡 *Nguồn kích hoạt:* ${EVENT_DESC}%0A☁️ *Data Lake:* \`Google Cloud Storage (GCS)\`%0A⚡ *Data Warehouse:* \`Google BigQuery\`%0A🛠️ *Transform Engine:* \`dbt-bigquery\`%0A%0A📋 *Tóm Tắt Các Bước Đã Chạy:*%0A1️⃣ *Extract:* Trích xuất 6 bảng thô từ Postgres ➔ Parquet.%0A2️⃣ *Load GCS:* Nạp 6 file Parquet lên GCS Bucket \`gs://ecommerce-data-lake-504901/\`.%0A3️⃣ *Load BigQuery:* Nạp dữ liệu Parquet từ GCS vào BigQuery dataset \`staging.stg_raw_*\`.%0A4️⃣ *dbt Transform:* Thực thi SQL models dbt-bigquery ➔ Tạo Star Schema Data Marts (\`marts.dim_*\`, \`marts.fct_*\`).%0A%0A✅ *Kết quả:* Dữ liệu sẵn sàng phục vụ Looker Studio!%0A%0A🔗 [🌐 Xem Chi Tiết Log Execution Trên GitHub]($RUN_URL)"
           else
-            MESSAGE="🚨 *PREFECT ELT PIPELINE FAILED* 🔴%0A%0A📌 *Repository:* \`${{ github.repository }}\`%0A🌿 *Branch:* \`${{ github.ref_name }}\`%0A💡 *Nguồn kích hoạt:* ${EVENT_DESC}%0A⚙️ *Orchestrator:* \`Prefect 3.x / 2.x\`%0A🗄️ *Data Warehouse:* \`PostgreSQL (Aiven Cloud)\`%0A%0A⚠️ *Trạng thái:* Phát sinh sự cố trong quá trình Extract, Load hoặc SQL Transform!%0A%0A🔗 [🔍 Kiểm Tra Nhật Ký Lỗi Trực Tiếp Trên GitHub]($RUN_URL)"
+            MESSAGE="🚨 *GCP MODERN ELT PIPELINE FAILED* 🔴%0A%0A📌 *Repository:* \`${{ github.repository }}\`%0A🌿 *Branch:* \`${{ github.ref_name }}\`%0A💡 *Nguồn kích hoạt:* ${EVENT_DESC}%0A☁️ *Data Lake:* \`Google Cloud Storage (GCS)\`%0A⚡ *Data Warehouse:* \`Google BigQuery\`%0A%0A⚠️ *Trạng thái:* Phát sinh sự cố trong quá trình Extract, GCS Upload, BigQuery Load hoặc dbt Transform!%0A%0A🔗 [🔍 Kiểm Tra Nhật Ký Lỗi Trực Tiếp Trên GitHub]($RUN_URL)"
           fi
 
           curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \

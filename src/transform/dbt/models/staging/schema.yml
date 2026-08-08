@@ -1,0 +1,13 @@
+version: 2
+
+sources:
+  - name: staging
+    database: "{{ env_var('GCP_PROJECT_ID', 'data-engineering-504901') }}"
+    schema: "{{ env_var('GCP_STAGING_DATASET', 'staging') }}"
+    tables:
+      - name: stg_raw_customers
+      - name: stg_raw_orders
+      - name: stg_raw_order_items
+      - name: stg_raw_payments
+      - name: stg_raw_products
+      - name: stg_raw_reviews
