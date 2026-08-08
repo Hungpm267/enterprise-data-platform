@@ -26,76 +26,20 @@ An end-to-end, modern **ELT (Extract – Load – Transform)** Data Pipeline bui
 
 ---
 
-## 📐 Architecture Diagram
-
-Pipeline tuân thủ nghiêm ngặt mô hình kiến trúc **ELT (Extract – Load – Transform)** với sự điều phối hiện đại bởi **Prefect**:
-
-```mermaid
-flowchart TD
-    subgraph Sources["1. DATA SOURCES"]
-        PG_SOURCE[("PostgreSQL Source DB\n(6 Raw Tables)")]
-    end
-
-    subgraph Orchestration["ORCHESTRATION LAYER"]
-        PREFECT["Prefect Orchestrator\n(@flow & @task)\nSchedule: 45m / run"]
-    end
-
-    subgraph ExtractLayer["2. EXTRACT STEP"]
-        EXTRACT_SCRIPT["Python Extractor\n(src/extract/extract_db.py)"]
-        LANDING["Landing Zone\n(data/landing/*.parquet)"]
-    end
-
-    subgraph LoadLayer["3. LOAD STEP"]
-        LOAD_SCRIPT["Python Loader\n(src/load/load_to_dw.py)"]
-        STAGING_DB[("PostgreSQL DW\nSchema: staging\n(stg_raw_* tables)")]
-    end
-
-    subgraph TransformLayer["4. TRANSFORM STEP"]
-        SQL_MODELS["In-Warehouse SQL Models\n(src/transform/sql/*.sql)"]
-        MARTS_DB[("PostgreSQL DW\nSchema: marts\n(Star Schema: Fact & Dim)")]
-    end
-
-    subgraph Analytics["5. CONSUMPTION & BI"]
-        POWERBI["Power BI / Metabase\nDashboards"]
-    end
-
-    %% Flow connections
-    PG_SOURCE -->|Batch Query| EXTRACT_SCRIPT
-    EXTRACT_SCRIPT -->|Write Parquet| LANDING
-    LANDING -->|Bulk Read| LOAD_SCRIPT
-    LOAD_SCRIPT -->|Load Raw| STAGING_DB
-    STAGING_DB -->|Query Staging| SQL_MODELS
-    SQL_MODELS -->|Build Fact & Dim| MARTS_DB
-    MARTS_DB -->|Connect Data Marts| POWERBI
-
-    %% Prefect Orchestration Triggers
-    PREFECT -.->|@task Extract| EXTRACT_SCRIPT
-    PREFECT -.->|@task Load| LOAD_SCRIPT
-    PREFECT -.->|@task Transform| SQL_MODELS
-
-    %% Styling
-    classDef sourceStyle fill:#336791,stroke:#fff,stroke-width:2px,color:#fff
-    classDef prefectStyle fill:#27b5fc,stroke:#fff,stroke-width:2px,color:#fff
-    classDef processStyle fill:#2b2b2b,stroke:#4CAF50,stroke-width:2px,color:#fff
-    classDef dwStyle fill:#0277BD,stroke:#fff,stroke-width:2px,color:#fff
-    classDef biStyle fill:#F2C811,stroke:#333,stroke-width:2px,color:#333
-
-    class PG_SOURCE sourceStyle
-    class PREFECT prefectStyle
-    class EXTRACT_SCRIPT,LOAD_SCRIPT,SQL_MODELS processStyle
-    class STAGING_DB,MARTS_DB dwStyle
-    class POWERBI biStyle
-```
+![GCP Modern Data Stack Architecture Diagram](docs/architecture_diagram.png)
 
 ---
 
 ## 🛠 Tech Stack
 
-- **Orchestration:** Prefect 3.x / 2.x, GitHub Actions (Cloud 24/7 Automation)
-- **Database / Data Warehouse:** PostgreSQL Cloud Server, Apache Parquet
-- **Language & Core Libraries:** Python 3.10+, Pandas, PyArrow, SQLAlchemy 2.0+, psycopg2-binary, python-dotenv
-- **Data Modeling:** Native In-Warehouse SQL, dbt (data build tool) ready
-- **Notifications:** Telegram Bot Instant Notifications
+- **Orchestration:** Prefect 3.x / Cloud, GitHub Actions (24/7 Cloud Automation)
+- **Data Lake (Landing):** Google Cloud Storage (GCS Bucket `gs://ecommerce-data-lake-504901/`)
+- **Data Warehouse:** Google BigQuery (`staging` and `marts` datasets)
+- **Transform Engine:** `dbt-bigquery` (Star Schema Data Marts)
+- **Language & Core SDKs:** Python 3.11, Pandas, PyArrow, SQLAlchemy 2.0+, google-cloud-storage, google-cloud-bigquery
+- **BI & Analytics:** Google Looker Studio
+- **Notifications & Alerts:** Telegram Bot Instant Notifications
+
 
 ---
 
