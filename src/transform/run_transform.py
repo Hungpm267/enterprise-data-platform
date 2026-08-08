@@ -25,19 +25,21 @@ def run_in_warehouse_transformations():
         client.create_dataset(dataset)
         logger.info(f"Created BigQuery dataset '{marts_dataset_id}' successfully.")
 
+    # Ensure gcp_key.json exists for dbt service-account keyfile method
+    gcp_sa_key_json = os.getenv("GCP_SA_KEY")
+    key_file_path = Config.GCP_KEY_FILE
+    if gcp_sa_key_json and not os.path.exists(key_file_path):
+        logger.info(f"Writing temporary '{key_file_path}' from GCP_SA_KEY secret for dbt authentication...")
+        with open(key_file_path, "w", encoding="utf-8") as f:
+            f.write(gcp_sa_key_json)
+
     dbt_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "dbt")
     logger.info("Executing dbt-bigquery transformations...")
 
-    gcp_sa_key_json = os.getenv("GCP_SA_KEY")
-    if not gcp_sa_key_json and os.path.exists(Config.GCP_KEY_FILE):
-        with open(Config.GCP_KEY_FILE, "r", encoding="utf-8") as f:
-            gcp_sa_key_json = f.read()
-
     env = os.environ.copy()
-    if gcp_sa_key_json:
-        env["GCP_SA_KEY_JSON"] = gcp_sa_key_json
     env["GCP_PROJECT_ID"] = Config.GCP_PROJECT_ID
     env["GCP_STAGING_DATASET"] = Config.GCP_STAGING_DATASET
+    env["GCP_KEY_FILE"] = key_file_path
 
     cmd = ["dbt", "run", "--project-dir", dbt_dir, "--profiles-dir", dbt_dir]
     result = subprocess.run(cmd, env=env, capture_output=True, text=True)
