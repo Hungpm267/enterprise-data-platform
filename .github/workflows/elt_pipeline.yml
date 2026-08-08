@@ -2,8 +2,11 @@ name: Automated E-Commerce GCP ELT Pipeline
 
 on:
   schedule:
-    # Runs automatically every 45 minutes continuously
-    - cron: '*/45 * * * *'
+    # Runs automatically every 1 hour and 15 minutes (75 minutes)
+    - cron: '0 0,5,10,15,20 * * *'
+    - cron: '15 1,6,11,16,21 * * *'
+    - cron: '30 2,7,12,17,22 * * *'
+    - cron: '45 3,8,13,18,23 * * *'
   workflow_dispatch: # Allows manual trigger anytime from GitHub Web UI
   push:
     branches: [ main ]
@@ -78,7 +81,7 @@ jobs:
           TRIGGER_EVENT="${{ github.event_name }}"
           
           if [ "$TRIGGER_EVENT" = "schedule" ]; then
-            EVENT_DESC="⏰ Lập lịch tự động (45m/lần)"
+            EVENT_DESC="⏰ Lập lịch tự động (1h15m/lần)"
           elif [ "$TRIGGER_EVENT" = "workflow_dispatch" ]; then
             EVENT_DESC="👤 Kích hoạt thủ công (Web UI)"
           else
