@@ -1,4 +1,5 @@
 import os
+import sys
 import subprocess
 from google.cloud import bigquery
 from src.utils.gcp_client import get_bigquery_client
@@ -41,8 +42,8 @@ def run_in_warehouse_transformations():
     env["GCP_STAGING_DATASET"] = Config.GCP_STAGING_DATASET
     env["GCP_KEY_FILE"] = key_file_path
 
-    cmd = ["dbt", "run", "--project-dir", dbt_dir, "--profiles-dir", dbt_dir]
-    result = subprocess.run(cmd, env=env, capture_output=True, text=True)
+    cmd = [sys.executable, "-m", "dbt.cli.main", "run", "--project-dir", dbt_dir, "--profiles-dir", dbt_dir]
+    result = subprocess.run(cmd, env=env, capture_output=True, text=True, shell=(os.name == 'nt'))
 
     full_output = f"STDOUT:\n{result.stdout}\nSTDERR:\n{result.stderr}"
 
