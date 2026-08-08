@@ -44,9 +44,11 @@ def run_in_warehouse_transformations():
     cmd = ["dbt", "run", "--project-dir", dbt_dir, "--profiles-dir", dbt_dir]
     result = subprocess.run(cmd, env=env, capture_output=True, text=True)
 
+    full_output = f"STDOUT:\n{result.stdout}\nSTDERR:\n{result.stderr}"
+
     if result.returncode != 0:
-        logger.error(f"dbt run failed: {result.stderr or result.stdout}")
-        raise RuntimeError(f"dbt transformation failed: {result.stderr or result.stdout}")
+        logger.error(f"dbt run failed:\n{full_output}")
+        raise RuntimeError(f"dbt transformation failed:\n{full_output}")
 
     logger.info("dbt-bigquery transformations executed successfully!\n" + result.stdout)
 
