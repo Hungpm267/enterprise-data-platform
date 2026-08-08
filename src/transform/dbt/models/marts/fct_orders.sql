@@ -1,15 +1,15 @@
-{{ config(materialized='table') }}
+{{ config(materialized='table', schema='marts') }}
 
 WITH orders AS (
-    SELECT * FROM {{ source('staging', 'stg_raw_orders') }}
+    SELECT * FROM {{ ref('stg_orders') }}
 ),
 items AS (
     SELECT
         order_id,
-        COUNT(item_id) AS total_items,
-        SUM(SAFE_CAST(price AS NUMERIC)) AS total_order_value,
-        SUM(SAFE_CAST(freight_value AS NUMERIC)) AS total_freight_value
-    FROM {{ source('staging', 'stg_raw_order_items') }}
+        COUNT(order_item_id) AS total_items,
+        SUM(price) AS total_order_value,
+        SUM(freight_value) AS total_freight_value
+    FROM {{ ref('stg_order_items') }}
     GROUP BY order_id
 )
 

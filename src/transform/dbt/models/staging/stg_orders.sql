@@ -1,7 +1,7 @@
 SELECT
     order_id,
     customer_id,
-    order_estimated_delivery_date,
+    order_status,
     order_purchase_timestamp,
-    order_status
+    order_estimated_delivery_date
 FROM {{ source('staging', 'stg_raw_orders') }}
