@@ -1,6 +1,8 @@
 # Environment & Credentials
 .env
 *.env
+gcp_key.json
+*.json
 
 # Python / Virtualenv
 __pycache__/
