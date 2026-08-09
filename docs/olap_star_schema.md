@@ -6,8 +6,6 @@ Tài liệu này mô tả chi tiết sơ đồ kiến trúc **Mô hình hình Sa
 
 ## 📐 Sơ Đồ Quan Hệ Bảng OLAP (Entity-Relationship Diagram)
 
-![OLAP Star Schema ERD Diagram](olap_star_schema.png)
-
 ```mermaid
 erDiagram
     dim_customers ||--o{ fct_orders : "places (1:N)"
@@ -85,6 +83,6 @@ erDiagram
 ## 🚀 Ứng Dụng Nối Bảng Trên Looker Studio / Power BI
 
 Tất cả các bảng báo cáo **CHỈ NẰM TRONG SCHEMA `marts`**:
-1. **Phân tích Doanh số Sản phẩm:** Blend `fct_order_items` với `dim_products` qua `product_id`.
-2. **Phân tích Địa lý:** Blend `fct_orders` (hoặc `fct_order_items`) với `dim_customers` qua `customer_id`.
-3. **Phân tích Thanh toán:** Blend `fct_orders` với `fct_payments` qua `order_id`.
+1. **Phân tích Doanh số Sản phẩm:** Connect `wide_orders_analytics` view (hoặc blend `fct_order_items` với `dim_products` qua `product_id`).
+2. **Phân tích Địa lý:** Connect `wide_orders_analytics` view (hoặc blend `fct_orders` với `dim_customers` qua `customer_id`).
+3. **Phân tích Thanh toán:** Connect `wide_orders_analytics` view (hoặc blend `fct_orders` với `fct_payments` qua `order_id`).
