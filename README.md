@@ -44,13 +44,15 @@ An end-to-end, modern **GCP Cloud Native ELT (Extract – Load – Transform)** 
 
 Project bao gồm trang báo cáo **E-Commerce Executive Performance Dashboard** trên Google Looker Studio kết nối trực tiếp với BigQuery View `marts.wide_orders_analytics`:
 
+![Looker Studio E-Commerce Executive Dashboard](docs/looker_dashboard.png)
+
 👉 **[🔗 Click vào đây để mở Báo cáo Tương Tác Trực Tiếp (Live Looker Studio Dashboard)](https://datastudio.google.com/reporting/7d592d8e-bc9e-464f-adeb-008de9c7b35f)**
 
 - **Top KPI Cards:** Total Revenue, Total Orders, Average Order Value (AOV), Total Freight.
 - **Revenue Trend:** Xu hướng doanh thu & đơn hàng theo thời gian.
 - **Regional Sales:** Phân bố doanh số theo Bang / Tỉnh thành.
 - **Product Category:** Top 5 danh mục sản phẩm bán chạy nhất.
-- **Payment Method:** Phân tích tỷ trọng các phương thức thanh toán.
+- **Payment Method & Order Status:** Phân tích cơ cấu trạng thái đơn hàng & phương thức thanh toán.
 
 ---
 
@@ -70,6 +72,7 @@ Project bao gồm trang báo cáo **E-Commerce Executive Performance Dashboard**
 │       └── elt_pipeline.yml            # 24/7 Cloud Automated Execution & Telegram Notifications
 ├── docs/                               # Architecture diagrams & Documentation
 │   ├── architecture_diagram.png        # 3D GCP Architecture Diagram
+│   ├── looker_dashboard.png            # Looker Studio Executive Dashboard Screenshot
 │   ├── olap_star_schema.md             # OLAP Star Schema Documentation & ERD
 │   ├── source_code_guide.md            # Developer Source Code Reading Guide
 │   └── dashboard_business_requirements.md # Looker Studio BRD Specification
