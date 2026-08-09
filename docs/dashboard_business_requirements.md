@@ -1,6 +1,6 @@
 # 📊 Business Requirement Document (BRD) — Looker Studio Dashboard
 
-Tài liệu này quy định đầy đủ các **Yêu cầu Nghiệp vụ (Business Requirements)** và **Thiết kế Báo cáo (Dashboard Layout)** để xây dựng trang Dashboard phân tích kinh doanh **E-Commerce Executive Performance** trên **Looker Studio** kết nối trực tiếp với BigQuery Data Marts.
+Tài liệu này quy định đầy đủ các **Yêu cầu Nghiệp vụ (Business Requirements)** và **Thiết kế Báo cáo (Dashboard Layout)** để xây dựng trang Dashboard phân tích kinh doanh **E-Commerce Executive Performance** trên **Looker Studio** kết nối 100% trực tiếp với BigQuery Data Marts (`marts`).
 
 ---
 
@@ -35,7 +35,7 @@ Tài liệu này quy định đầy đủ các **Yêu cầu Nghiệp vụ (Busin
 
 ### 🗺️ Biểu đồ 2: Phân Bố Doanh Số Theo Tỉnh / Thành Phố (Geo Map / Bar Chart)
 - **Mục đích:** Xác định khu vực địa lý mang lại nguồn thu lớn nhất để tối ưu hóa chiến lược Marketing & Kho vận.
-- **Bảng nguồn:** Join `marts.fct_orders` ➔ `marts.dim_customers` qua `customer_id`.
+- **Bảng nguồn:** Blend `marts.fct_orders` ➔ `marts.dim_customers` qua `customer_id`.
 - **Dimension:** `customer_state` (hoặc `customer_city`).
 - **Metric:** `total_order_value` (Sắp xếp giảm dần).
 
@@ -47,16 +47,16 @@ Tài liệu này quy định đầy đủ các **Yêu cầu Nghiệp vụ (Busin
 
 ### 📦 Biểu đồ 4: Top 5 Danh Mục Sản Phẩm Bán Chạy Nhất (Horizontal Bar Chart)
 - **Mục đích:** Xác định các dòng sản phẩm đóng góp doanh số chủ lực.
-- **Bảng nguồn:** Join `marts.fct_orders` ➔ `marts.dim_products` qua `product_id`.
+- **Bảng nguồn:** Blend `marts.fct_order_items` ➔ `marts.dim_products` qua `product_id`.
 - **Dimension:** `product_category_name`.
-- **Metric:** `total_items` (Số lượng bán out) hoặc `total_order_value`.
+- **Metric:** `COUNT(order_item_id)` (Số lượng bán out) hoặc `SUM(price)`.
 
 ---
 
 ## 🎛️ 4. Bộ Lọc Tương Tác (Control Filters)
 *Vị trí: Đặt ở góc trên bên phải trang báo cáo.*
 
-1. **Date Range Filter:** Lọc khoảng thời gian theo `order_purchase_timestamp` (Mặc định: 30 ngày gần nhất hoặc All Time).
+1. **Date Range Filter:** Lọc khoảng thời gian theo `order_purchase_timestamp` từ `fct_orders`.
 2. **State Dropdown Filter:** Lọc theo khu vực `customer_state` từ `dim_customers`.
 3. **Payment Type Filter:** Lọc theo loại hình `payment_type` từ `fct_payments`.
 
@@ -65,10 +65,11 @@ Tài liệu này quy định đầy đủ các **Yêu cầu Nghiệp vụ (Busin
 ## 🛠️ 5. Hướng Dẫn Kết Nối Looker Studio Với BigQuery Data Marts
 
 1. Truy cập **[Looker Studio](https://lookerstudio.google.com/)** ➔ Nhấn **Blank Report**.
-2. Chọn **BigQuery** làm Data Source ➔ Chọn GCP Project `data-engineering-504901` ➔ Dataset `marts`.
+2. Chọn **BigQuery** làm Data Source ➔ Chọn GCP Project `data-engineering-504901` ➔ Dataset **`marts`** (Chỉ lấy các bảng trong schema `marts`).
 3. Lần lượt kết nối các bảng:
    - `fct_orders`
-   - `dim_customers`
+   - `fct_order_items`
    - `fct_payments`
+   - `dim_customers`
    - `dim_products`
-4. Thực hiện blend data hoặc thiết lập mối quan hệ theo sơ đồ ERD tại [olap_star_schema.md](olap_star_schema.md).
+4. Thực hiện Blend data hoàn toàn trong schema `marts` theo hướng dẫn tại [olap_star_schema.md](olap_star_schema.md).
