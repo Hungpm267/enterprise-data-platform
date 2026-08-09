@@ -1,0 +1,715 @@
+[0m00:14:54.430276 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'start', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001DD27064AD0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001DD2493D6D0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001DD29A3FB10>]}
+
+
+============================== 00:14:54.498344 | e5231d8a-9c1a-4f8f-b461-046da1c8a64a ==============================
+[0m00:14:54.498344 [info ] [MainThread]: Running with dbt=1.12.0
+[0m00:14:54.510249 [debug] [MainThread]: running dbt with arguments {'static_parser': 'True', 'no_print': 'None', 'version_check': 'True', 'target_path': 'None', 'maximum_seed_size_mib': '1', 'warn_error_options': 'WarnErrorOptionsV2(error=[], warn=[], silence=[])', 'printer_width': '80', 'write_json': 'True', 'introspect': 'True', 'log_cache_events': 'False', 'empty': 'False', 'cache_selected_only': 'False', 'fail_fast': 'False', 'debug': 'False', 'log_format': 'default', 'profiles_dir': 'C:\\Users\\hungm\\OneDrive\\Máy tính\\data-pipeline-airflow-api-postgres-dbt-powerbi-main\\src\\transform\\dbt', 'send_anonymous_usage_stats': 'True', 'quiet': 'False', 'warn_error': 'None', 'partial_parse': 'True', 'invocation_command': 'dbt run --project-dir C:\\Users\\hungm\\OneDrive\\Máy tính\\data-pipeline-airflow-api-postgres-dbt-powerbi-main\\src\\transform\\dbt --profiles-dir C:\\Users\\hungm\\OneDrive\\Máy tính\\data-pipeline-airflow-api-postgres-dbt-powerbi-main\\src\\transform\\dbt', 'hints_enabled': 'True', 'indirect_selection': 'eager', 'use_experimental_parser': 'False', 'use_colors': 'True', 'log_path': 'C:\\Users\\hungm\\OneDrive\\Máy tính\\data-pipeline-airflow-api-postgres-dbt-powerbi-main\\src\\transform\\dbt\\logs'}
+[0m00:15:07.727509 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'project_id', 'label': 'e5231d8a-9c1a-4f8f-b461-046da1c8a64a', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001DD3AA7EEA0>]}
+[0m00:15:08.949100 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'adapter_info', 'label': 'e5231d8a-9c1a-4f8f-b461-046da1c8a64a', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001DD296F39B0>]}
+[0m00:15:08.955411 [info ] [MainThread]: Registered adapter: bigquery=1.12.0
+[0m00:15:15.680670 [debug] [MainThread]: checksum: cff5fb19b15097277b8a235441a9d9babfa9de5b496ba2e27e26e44f8287daaf, vars: {}, profile: ecommerce_bigquery, target: dev, version: 1.12.0
+[0m00:15:15.700509 [info ] [MainThread]: Unable to do partial parsing because saved manifest not found. Starting full parse.
+[0m00:15:15.707084 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'partial_parser', 'label': 'e5231d8a-9c1a-4f8f-b461-046da1c8a64a', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001DD3D7CA150>]}
+[0m00:15:28.868894 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'load_project', 'label': 'e5231d8a-9c1a-4f8f-b461-046da1c8a64a', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001DD3EF32990>]}
+[0m00:15:29.837347 [debug] [MainThread]: Wrote artifact WritableManifest to C:\Users\hungm\OneDrive\Máy tính\data-pipeline-airflow-api-postgres-dbt-powerbi-main\src\transform\dbt\target\manifest.json
+[0m00:15:29.897433 [debug] [MainThread]: Wrote artifact SemanticManifest to C:\Users\hungm\OneDrive\Máy tính\data-pipeline-airflow-api-postgres-dbt-powerbi-main\src\transform\dbt\target\semantic_manifest.json
+[0m00:15:30.285014 [debug] [MainThread]: Wrote artifact OsiDocument to C:\Users\hungm\OneDrive\Máy tính\data-pipeline-airflow-api-postgres-dbt-powerbi-main\src\transform\dbt\target\osi_document.json
+[0m00:15:30.438266 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'resource_counts', 'label': 'e5231d8a-9c1a-4f8f-b461-046da1c8a64a', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001DD3F7918D0>]}
+[0m00:15:30.442240 [info ] [MainThread]: Found 11 models, 6 sources, 562 macros
+[0m00:15:30.449199 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'runnable_timing', 'label': 'e5231d8a-9c1a-4f8f-b461-046da1c8a64a', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001DD3EF46C30>]}
+[0m00:15:30.484072 [info ] [MainThread]: 
+[0m00:15:30.489361 [info ] [MainThread]: Concurrency: 4 threads (target='dev')
+[0m00:15:30.495214 [info ] [MainThread]: 
+[0m00:15:30.504586 [debug] [MainThread]: Acquiring new bigquery connection 'master'
+[0m00:15:30.555059 [debug] [ThreadPool]: Acquiring new bigquery connection 'list_data-engineering-504901'
+[0m00:15:30.559661 [debug] [ThreadPool]: Opening a new connection, currently in state init
+[0m00:15:30.564078 [debug] [ThreadPool]: Acquiring new bigquery connection 'list_data-engineering-504901'
+[0m00:15:30.568449 [debug] [ThreadPool]: Opening a new connection, currently in state init
+[0m00:15:36.174959 [debug] [ThreadPool]: Acquiring new bigquery connection 'list_data-engineering-504901_marts'
+[0m00:15:36.176431 [debug] [ThreadPool]: Opening a new connection, currently in state init
+[0m00:15:36.177996 [debug] [ThreadPool]: Acquiring new bigquery connection 'list_data-engineering-504901_staging'
+[0m00:15:36.179380 [debug] [ThreadPool]: Opening a new connection, currently in state init
+[0m00:15:40.515658 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'runnable_timing', 'label': 'e5231d8a-9c1a-4f8f-b461-046da1c8a64a', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001DD3F7A4A10>]}
+[0m00:15:40.519551 [debug] [MainThread]: Opening a new connection, currently in state init
+[0m00:15:40.819933 [debug] [Thread-7 (]: Began running node model.ecommerce_elt.stg_orders
+[0m00:15:40.823609 [debug] [Thread-6 (]: Began running node model.ecommerce_elt.stg_order_items
+[0m00:15:40.826593 [debug] [Thread-8 (]: Began running node model.ecommerce_elt.stg_payments
+[0m00:15:40.830037 [debug] [Thread-5 (]: Began running node model.ecommerce_elt.stg_customers
+[0m00:15:40.833636 [info ] [Thread-7 (]: 3 of 10 START sql view model staging.stg_orders ................................ [RUN]
+[0m00:15:40.837868 [info ] [Thread-6 (]: 2 of 10 START sql view model staging.stg_order_items ........................... [RUN]
+[0m00:15:40.841826 [info ] [Thread-8 (]: 4 of 10 START sql view model staging.stg_payments .............................. [RUN]
+[0m00:15:40.846516 [info ] [Thread-5 (]: 1 of 10 START sql view model staging.stg_customers ............................. [RUN]
+[0m00:15:40.850078 [debug] [Thread-7 (]: Acquiring new bigquery connection 'model.ecommerce_elt.stg_orders'
+[0m00:15:40.853110 [debug] [Thread-6 (]: Acquiring new bigquery connection 'model.ecommerce_elt.stg_order_items'
+[0m00:15:40.856138 [debug] [Thread-8 (]: Acquiring new bigquery connection 'model.ecommerce_elt.stg_payments'
+[0m00:15:40.858737 [debug] [Thread-5 (]: Acquiring new bigquery connection 'model.ecommerce_elt.stg_customers'
+[0m00:15:40.860927 [debug] [Thread-7 (]: Began compiling node model.ecommerce_elt.stg_orders
+[0m00:15:40.863690 [debug] [Thread-6 (]: Began compiling node model.ecommerce_elt.stg_order_items
+[0m00:15:40.865905 [debug] [Thread-8 (]: Began compiling node model.ecommerce_elt.stg_payments
+[0m00:15:40.868404 [debug] [Thread-5 (]: Began compiling node model.ecommerce_elt.stg_customers
+[0m00:15:40.906297 [debug] [Thread-6 (]: Writing injected SQL for node "model.ecommerce_elt.stg_order_items"
+[0m00:15:40.922435 [debug] [Thread-8 (]: Writing injected SQL for node "model.ecommerce_elt.stg_payments"
+[0m00:15:40.912286 [debug] [Thread-7 (]: Writing injected SQL for node "model.ecommerce_elt.stg_orders"
+[0m00:15:40.931779 [debug] [Thread-5 (]: Writing injected SQL for node "model.ecommerce_elt.stg_customers"
+[0m00:15:40.949268 [debug] [Thread-5 (]: Began executing node model.ecommerce_elt.stg_customers
+[0m00:15:40.999579 [debug] [Thread-6 (]: Began executing node model.ecommerce_elt.stg_order_items
+[0m00:15:41.015249 [debug] [Thread-8 (]: Began executing node model.ecommerce_elt.stg_payments
+[0m00:15:41.007568 [debug] [Thread-7 (]: Began executing node model.ecommerce_elt.stg_orders
+[0m00:15:41.499507 [debug] [Thread-6 (]: Writing runtime sql for node "model.ecommerce_elt.stg_order_items"
+[0m00:15:41.503268 [debug] [Thread-8 (]: Writing runtime sql for node "model.ecommerce_elt.stg_payments"
+[0m00:15:41.510947 [debug] [Thread-7 (]: Writing runtime sql for node "model.ecommerce_elt.stg_orders"
+[0m00:15:41.523534 [debug] [Thread-5 (]: Writing runtime sql for node "model.ecommerce_elt.stg_customers"
+[0m00:15:41.540337 [debug] [Thread-5 (]: On model.ecommerce_elt.stg_customers: /* {"app": "dbt", "dbt_version": "1.12.0", "profile_name": "ecommerce_bigquery", "target_name": "dev", "node_id": "model.ecommerce_elt.stg_customers"} */
+
+
+  create or replace view `data-engineering-504901`.`staging`.`stg_customers`
+  OPTIONS()
+  as SELECT
+    customer_id,
+    customer_city,
+    customer_state
+FROM `data-engineering-504901`.`staging`.`stg_raw_customers`;
+
+
+[0m00:15:41.544229 [debug] [Thread-5 (]: Opening a new connection, currently in state init
+[0m00:15:41.734749 [debug] [Thread-7 (]: On model.ecommerce_elt.stg_orders: /* {"app": "dbt", "dbt_version": "1.12.0", "profile_name": "ecommerce_bigquery", "target_name": "dev", "node_id": "model.ecommerce_elt.stg_orders"} */
+
+
+  create or replace view `data-engineering-504901`.`staging`.`stg_orders`
+  OPTIONS()
+  as SELECT
+    order_id,
+    customer_id,
+    order_status,
+    order_purchase_timestamp,
+    order_estimated_delivery_date
+FROM `data-engineering-504901`.`staging`.`stg_raw_orders`;
+
+
+[0m00:15:41.737779 [debug] [Thread-8 (]: On model.ecommerce_elt.stg_payments: /* {"app": "dbt", "dbt_version": "1.12.0", "profile_name": "ecommerce_bigquery", "target_name": "dev", "node_id": "model.ecommerce_elt.stg_payments"} */
+
+
+  create or replace view `data-engineering-504901`.`staging`.`stg_payments`
+  OPTIONS()
+  as SELECT
+    payment_id,
+    order_id,
+    payment_type,
+    payment_installments,
+    SAFE_CAST(payment_value AS NUMERIC) AS payment_value
+FROM `data-engineering-504901`.`staging`.`stg_raw_payments`;
+
+
+[0m00:15:41.740509 [debug] [Thread-6 (]: On model.ecommerce_elt.stg_order_items: /* {"app": "dbt", "dbt_version": "1.12.0", "profile_name": "ecommerce_bigquery", "target_name": "dev", "node_id": "model.ecommerce_elt.stg_order_items"} */
+
+
+  create or replace view `data-engineering-504901`.`staging`.`stg_order_items`
+  OPTIONS()
+  as SELECT
+    order_item_id,
+    order_id,
+    product_id,
+    SAFE_CAST(price AS NUMERIC) AS price,
+    SAFE_CAST(freight_value AS NUMERIC) AS freight_value
+FROM `data-engineering-504901`.`staging`.`stg_raw_order_items`;
+
+
+[0m00:15:41.743527 [debug] [Thread-7 (]: Opening a new connection, currently in state init
+[0m00:15:41.749411 [debug] [Thread-8 (]: Opening a new connection, currently in state init
+[0m00:15:41.752211 [debug] [Thread-6 (]: Opening a new connection, currently in state init
+[0m00:15:50.521534 [debug] [Thread-8 (]: BigQuery adapter: https://console.cloud.google.com/bigquery?project=data-engineering-504901&j=bq:asia-southeast1:601d06e2-5e0c-4bf6-8188-d42efaefef32&page=queryresults
+[0m00:15:50.540293 [debug] [Thread-7 (]: BigQuery adapter: https://console.cloud.google.com/bigquery?project=data-engineering-504901&j=bq:asia-southeast1:4ddc604f-9d7a-4ba6-946b-26face0de587&page=queryresults
+[0m00:15:50.877165 [debug] [Thread-8 (]: SQL status: OK in 0.350 seconds
+[0m00:15:50.947734 [debug] [Thread-7 (]: SQL status: OK in 0.403 seconds
+[0m00:15:52.802365 [debug] [Thread-8 (]: Sending event: {'category': 'dbt', 'action': 'run_model', 'label': 'e5231d8a-9c1a-4f8f-b461-046da1c8a64a', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001DD40E33E30>]}
+[0m00:15:52.806500 [debug] [Thread-7 (]: Sending event: {'category': 'dbt', 'action': 'run_model', 'label': 'e5231d8a-9c1a-4f8f-b461-046da1c8a64a', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001DD40E0C190>]}
+[0m00:15:52.814455 [info ] [Thread-8 (]: 4 of 10 OK created sql view model staging.stg_payments ......................... [[32mCREATE VIEW (0 processed)[0m in 11.92s]
+[0m00:15:52.831708 [debug] [Thread-8 (]: Finished running node model.ecommerce_elt.stg_payments
+[0m00:15:52.837169 [debug] [Thread-8 (]: Began running node model.ecommerce_elt.stg_products
+[0m00:15:52.822195 [info ] [Thread-7 (]: 3 of 10 OK created sql view model staging.stg_orders ........................... [[32mCREATE VIEW (0 processed)[0m in 11.95s]
+[0m00:15:52.849483 [debug] [Thread-7 (]: Finished running node model.ecommerce_elt.stg_orders
+[0m00:15:52.842778 [info ] [Thread-8 (]: 5 of 10 START sql view model staging.stg_products .............................. [RUN]
+[0m00:15:52.858324 [debug] [Thread-8 (]: Re-using an available connection from the pool (formerly model.ecommerce_elt.stg_payments, now model.ecommerce_elt.stg_products)
+[0m00:15:52.853566 [debug] [Thread-7 (]: Began running node model.ecommerce_elt.stg_reviews
+[0m00:15:52.862964 [debug] [Thread-8 (]: Began compiling node model.ecommerce_elt.stg_products
+[0m00:15:52.867727 [info ] [Thread-7 (]: 6 of 10 START sql view model staging.stg_reviews ............................... [RUN]
+[0m00:15:52.890364 [debug] [Thread-7 (]: Re-using an available connection from the pool (formerly model.ecommerce_elt.stg_orders, now model.ecommerce_elt.stg_reviews)
+[0m00:15:52.885517 [debug] [Thread-8 (]: Writing injected SQL for node "model.ecommerce_elt.stg_products"
+[0m00:15:52.893955 [debug] [Thread-7 (]: Began compiling node model.ecommerce_elt.stg_reviews
+[0m00:15:52.911363 [debug] [Thread-7 (]: Writing injected SQL for node "model.ecommerce_elt.stg_reviews"
+[0m00:15:52.917425 [debug] [Thread-8 (]: Began executing node model.ecommerce_elt.stg_products
+[0m00:15:52.935803 [debug] [Thread-8 (]: Writing runtime sql for node "model.ecommerce_elt.stg_products"
+[0m00:15:52.939545 [debug] [Thread-7 (]: Began executing node model.ecommerce_elt.stg_reviews
+[0m00:15:52.957170 [debug] [Thread-7 (]: Writing runtime sql for node "model.ecommerce_elt.stg_reviews"
+[0m00:15:52.966131 [debug] [Thread-8 (]: On model.ecommerce_elt.stg_products: /* {"app": "dbt", "dbt_version": "1.12.0", "profile_name": "ecommerce_bigquery", "target_name": "dev", "node_id": "model.ecommerce_elt.stg_products"} */
+
+
+  create or replace view `data-engineering-504901`.`staging`.`stg_products`
+  OPTIONS()
+  as SELECT
+    product_id,
+    product_category_name
+FROM `data-engineering-504901`.`staging`.`stg_raw_products`;
+
+
+[0m00:15:52.970328 [debug] [Thread-8 (]: Opening a new connection, currently in state closed
+[0m00:15:52.976566 [debug] [Thread-7 (]: On model.ecommerce_elt.stg_reviews: /* {"app": "dbt", "dbt_version": "1.12.0", "profile_name": "ecommerce_bigquery", "target_name": "dev", "node_id": "model.ecommerce_elt.stg_reviews"} */
+
+
+  create or replace view `data-engineering-504901`.`staging`.`stg_reviews`
+  OPTIONS()
+  as SELECT
+    review_id,
+    order_id,
+    SAFE_CAST(review_score AS INT64) AS review_score
+FROM `data-engineering-504901`.`staging`.`stg_raw_reviews`;
+
+
+[0m00:15:52.983506 [debug] [Thread-7 (]: Opening a new connection, currently in state closed
+[0m00:15:59.280368 [debug] [Thread-5 (]: BigQuery adapter: Unhandled error while running:
+/* {"app": "dbt", "dbt_version": "1.12.0", "profile_name": "ecommerce_bigquery", "target_name": "dev", "node_id": "model.ecommerce_elt.stg_customers"} */
+
+
+  create or replace view `data-engineering-504901`.`staging`.`stg_customers`
+  OPTIONS()
+  as SELECT
+    customer_id,
+    customer_city,
+    customer_state
+FROM `data-engineering-504901`.`staging`.`stg_raw_customers`;
+
+
+[0m00:15:59.299147 [debug] [Thread-5 (]: BigQuery adapter: HTTPSConnectionPool(host='bigquery.googleapis.com', port=443): Max retries exceeded with url: /bigquery/v2/projects/data-engineering-504901/jobs?prettyPrint=false (Caused by SSLError(SSLEOFError(8, '[SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1081)')))
+[0m00:15:59.662939 [debug] [Thread-5 (]: Database Error in model stg_customers (models\staging\stg_customers.sql)
+  HTTPSConnectionPool(host='bigquery.googleapis.com', port=443): Max retries exceeded with url: /bigquery/v2/projects/data-engineering-504901/jobs?prettyPrint=false (Caused by SSLError(SSLEOFError(8, '[SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1081)')))
+  compiled code at target\run\ecommerce_elt\models\staging\stg_customers.sql
+[0m00:15:59.682596 [debug] [Thread-5 (]: Sending event: {'category': 'dbt', 'action': 'run_model', 'label': 'e5231d8a-9c1a-4f8f-b461-046da1c8a64a', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001DD40EAB050>]}
+[0m00:15:59.704669 [error] [Thread-5 (]: 1 of 10 ERROR creating sql view model staging.stg_customers .................... [[31mERROR[0m in 18.82s]
+[0m00:15:59.749733 [debug] [Thread-5 (]: Finished running node model.ecommerce_elt.stg_customers
+[0m00:15:59.756168 [debug] [Thread-5 (]: Began running node model.ecommerce_elt.fct_payments
+[0m00:15:59.763877 [debug] [Thread-11 ]: Marking all children of 'model.ecommerce_elt.stg_customers' to be skipped because of status 'error'.  Reason: Database Error in model stg_customers (models\staging\stg_customers.sql)
+  HTTPSConnectionPool(host='bigquery.googleapis.com', port=443): Max retries exceeded with url: /bigquery/v2/projects/data-engineering-504901/jobs?prettyPrint=false (Caused by SSLError(SSLEOFError(8, '[SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1081)')))
+  compiled code at target\run\ecommerce_elt\models\staging\stg_customers.sql.
+[0m00:15:59.782629 [info ] [Thread-5 (]: 7 of 10 START sql table model marts.fct_payments ............................... [RUN]
+[0m00:15:59.824397 [debug] [Thread-5 (]: Re-using an available connection from the pool (formerly model.ecommerce_elt.stg_customers, now model.ecommerce_elt.fct_payments)
+[0m00:15:59.832747 [debug] [Thread-5 (]: Began compiling node model.ecommerce_elt.fct_payments
+[0m00:15:59.870929 [debug] [Thread-5 (]: Writing injected SQL for node "model.ecommerce_elt.fct_payments"
+[0m00:15:59.913431 [debug] [Thread-5 (]: Began executing node model.ecommerce_elt.fct_payments
+[0m00:16:00.407822 [debug] [Thread-5 (]: Opening a new connection, currently in state closed
+[0m00:16:01.066293 [debug] [Thread-6 (]: BigQuery adapter: Unhandled error while running:
+/* {"app": "dbt", "dbt_version": "1.12.0", "profile_name": "ecommerce_bigquery", "target_name": "dev", "node_id": "model.ecommerce_elt.stg_order_items"} */
+
+
+  create or replace view `data-engineering-504901`.`staging`.`stg_order_items`
+  OPTIONS()
+  as SELECT
+    order_item_id,
+    order_id,
+    product_id,
+    SAFE_CAST(price AS NUMERIC) AS price,
+    SAFE_CAST(freight_value AS NUMERIC) AS freight_value
+FROM `data-engineering-504901`.`staging`.`stg_raw_order_items`;
+
+
+[0m00:16:01.074141 [debug] [Thread-6 (]: BigQuery adapter: HTTPSConnectionPool(host='bigquery.googleapis.com', port=443): Max retries exceeded with url: /bigquery/v2/projects/data-engineering-504901/jobs?prettyPrint=false (Caused by SSLError(SSLEOFError(8, '[SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1081)')))
+[0m00:16:01.642087 [debug] [Thread-6 (]: Database Error in model stg_order_items (models\staging\stg_order_items.sql)
+  HTTPSConnectionPool(host='bigquery.googleapis.com', port=443): Max retries exceeded with url: /bigquery/v2/projects/data-engineering-504901/jobs?prettyPrint=false (Caused by SSLError(SSLEOFError(8, '[SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1081)')))
+  compiled code at target\run\ecommerce_elt\models\staging\stg_order_items.sql
+[0m00:16:01.690131 [debug] [Thread-6 (]: Sending event: {'category': 'dbt', 'action': 'run_model', 'label': 'e5231d8a-9c1a-4f8f-b461-046da1c8a64a', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001DD40BBA190>]}
+[0m00:16:01.711642 [error] [Thread-6 (]: 2 of 10 ERROR creating sql view model staging.stg_order_items .................. [[31mERROR[0m in 20.84s]
+[0m00:16:01.742693 [debug] [Thread-6 (]: Finished running node model.ecommerce_elt.stg_order_items
+[0m00:16:01.763800 [debug] [Thread-11 ]: Marking all children of 'model.ecommerce_elt.stg_order_items' to be skipped because of status 'error'.  Reason: Database Error in model stg_order_items (models\staging\stg_order_items.sql)
+  HTTPSConnectionPool(host='bigquery.googleapis.com', port=443): Max retries exceeded with url: /bigquery/v2/projects/data-engineering-504901/jobs?prettyPrint=false (Caused by SSLError(SSLEOFError(8, '[SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1081)')))
+  compiled code at target\run\ecommerce_elt\models\staging\stg_order_items.sql.
+[0m00:16:01.758905 [debug] [Thread-6 (]: Began running node model.ecommerce_elt.dim_customers
+[0m00:16:01.776902 [info ] [Thread-6 (]: 8 of 10 SKIP relation marts.dim_customers ...................................... [[33mSKIP[0m]
+[0m00:16:01.809688 [debug] [Thread-6 (]: Finished running node model.ecommerce_elt.dim_customers
+[0m00:16:01.834576 [debug] [Thread-6 (]: Began running node model.ecommerce_elt.fct_orders
+[0m00:16:01.855434 [info ] [Thread-6 (]: 9 of 10 SKIP relation marts.fct_orders ......................................... [[33mSKIP[0m]
+[0m00:16:01.875829 [debug] [Thread-6 (]: Finished running node model.ecommerce_elt.fct_orders
+[0m00:16:02.896420 [debug] [Thread-8 (]: BigQuery adapter: https://console.cloud.google.com/bigquery?project=data-engineering-504901&j=bq:asia-southeast1:9f01d643-e980-4e6d-808d-a44264c19f05&page=queryresults
+[0m00:16:03.029458 [debug] [Thread-7 (]: BigQuery adapter: https://console.cloud.google.com/bigquery?project=data-engineering-504901&j=bq:asia-southeast1:79cac004-7eff-4613-a3db-92388c48a54b&page=queryresults
+[0m00:16:03.252381 [debug] [Thread-8 (]: SQL status: OK in 0.349 seconds
+[0m00:16:03.303306 [debug] [Thread-8 (]: Sending event: {'category': 'dbt', 'action': 'run_model', 'label': 'e5231d8a-9c1a-4f8f-b461-046da1c8a64a', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001DD40F289B0>]}
+[0m00:16:03.310871 [info ] [Thread-8 (]: 5 of 10 OK created sql view model staging.stg_products ......................... [[32mCREATE VIEW (0 processed)[0m in 10.45s]
+[0m00:16:03.321413 [debug] [Thread-8 (]: Finished running node model.ecommerce_elt.stg_products
+[0m00:16:03.330891 [debug] [Thread-6 (]: Began running node model.ecommerce_elt.dim_products
+[0m00:16:03.338184 [info ] [Thread-6 (]: 10 of 10 START sql table model marts.dim_products .............................. [RUN]
+[0m00:16:03.347125 [debug] [Thread-6 (]: Re-using an available connection from the pool (formerly model.ecommerce_elt.stg_order_items, now model.ecommerce_elt.dim_products)
+[0m00:16:03.353967 [debug] [Thread-6 (]: Began compiling node model.ecommerce_elt.dim_products
+[0m00:16:03.393018 [debug] [Thread-6 (]: Writing injected SQL for node "model.ecommerce_elt.dim_products"
+[0m00:16:03.428194 [debug] [Thread-6 (]: Began executing node model.ecommerce_elt.dim_products
+[0m00:16:03.507700 [debug] [Thread-7 (]: SQL status: OK in 0.470 seconds
+[0m00:16:03.504772 [debug] [Thread-6 (]: Opening a new connection, currently in state closed
+[0m00:16:03.557656 [debug] [Thread-7 (]: Sending event: {'category': 'dbt', 'action': 'run_model', 'label': 'e5231d8a-9c1a-4f8f-b461-046da1c8a64a', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001DD40F29670>]}
+[0m00:16:03.566965 [info ] [Thread-7 (]: 6 of 10 OK created sql view model staging.stg_reviews .......................... [[32mCREATE VIEW (0 processed)[0m in 10.67s]
+[0m00:16:03.577383 [debug] [Thread-7 (]: Finished running node model.ecommerce_elt.stg_reviews
+[0m00:16:11.974226 [debug] [Thread-5 (]: Writing runtime sql for node "model.ecommerce_elt.fct_payments"
+[0m00:16:11.991671 [debug] [Thread-5 (]: On model.ecommerce_elt.fct_payments: /* {"app": "dbt", "dbt_version": "1.12.0", "profile_name": "ecommerce_bigquery", "target_name": "dev", "node_id": "model.ecommerce_elt.fct_payments"} */
+
+  
+    
+
+    create or replace table `data-engineering-504901`.`marts`.`fct_payments`
+      
+    
+    
+
+    
+    OPTIONS()
+    as (
+      
+
+SELECT
+    payment_id,
+    order_id,
+    payment_type,
+    payment_installments,
+    payment_value
+FROM `data-engineering-504901`.`staging`.`stg_payments`
+    );
+  
+[0m00:16:12.391254 [debug] [Thread-6 (]: Writing runtime sql for node "model.ecommerce_elt.dim_products"
+[0m00:16:12.410679 [debug] [Thread-6 (]: On model.ecommerce_elt.dim_products: /* {"app": "dbt", "dbt_version": "1.12.0", "profile_name": "ecommerce_bigquery", "target_name": "dev", "node_id": "model.ecommerce_elt.dim_products"} */
+
+  
+    
+
+    create or replace table `data-engineering-504901`.`marts`.`dim_products`
+      
+    
+    
+
+    
+    OPTIONS()
+    as (
+      
+
+SELECT
+    product_id,
+    product_category_name
+FROM `data-engineering-504901`.`staging`.`stg_products`
+    );
+  
+[0m00:16:12.903898 [debug] [Thread-5 (]: BigQuery adapter: https://console.cloud.google.com/bigquery?project=data-engineering-504901&j=bq:asia-southeast1:eb3a6180-e131-4ac0-8bdb-048624145e2d&page=queryresults
+[0m00:16:13.243378 [debug] [Thread-6 (]: BigQuery adapter: https://console.cloud.google.com/bigquery?project=data-engineering-504901&j=bq:asia-southeast1:89d2db77-9a81-4757-9913-e4cdf5808ece&page=queryresults
+[0m00:16:14.339439 [debug] [Thread-5 (]: SQL status: OK in 1.432 seconds
+[0m00:16:14.375781 [debug] [Thread-6 (]: SQL status: OK in 1.126 seconds
+[0m00:16:14.561257 [debug] [Thread-5 (]: Sending event: {'category': 'dbt', 'action': 'run_model', 'label': 'e5231d8a-9c1a-4f8f-b461-046da1c8a64a', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001DD41024170>]}
+[0m00:16:14.567637 [info ] [Thread-5 (]: 7 of 10 OK created sql table model marts.fct_payments .......................... [[32mCREATE TABLE (50.0 rows, 2.5 KiB processed)[0m in 14.74s]
+[0m00:16:14.610093 [debug] [Thread-5 (]: Finished running node model.ecommerce_elt.fct_payments
+[0m00:16:14.648563 [debug] [Thread-6 (]: Sending event: {'category': 'dbt', 'action': 'run_model', 'label': 'e5231d8a-9c1a-4f8f-b461-046da1c8a64a', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001DD41141A30>]}
+[0m00:16:14.683214 [info ] [Thread-6 (]: 10 of 10 OK created sql table model marts.dim_products ......................... [[32mCREATE TABLE (12.0 rows, 246.0 Bytes processed)[0m in 11.29s]
+[0m00:16:14.713873 [debug] [Thread-6 (]: Finished running node model.ecommerce_elt.dim_products
+[0m00:16:14.738270 [debug] [MainThread]: Opening a new connection, currently in state closed
+[0m00:16:15.027759 [debug] [MainThread]: Connection 'master' was properly closed.
+[0m00:16:15.031672 [debug] [MainThread]: Connection 'list_data-engineering-504901' was properly closed.
+[0m00:16:15.034352 [debug] [MainThread]: Connection 'list_data-engineering-504901' was properly closed.
+[0m00:16:15.037030 [debug] [MainThread]: Connection 'list_data-engineering-504901_marts' was properly closed.
+[0m00:16:15.040083 [debug] [MainThread]: Connection 'list_data-engineering-504901_staging' was properly closed.
+[0m00:16:15.043510 [debug] [MainThread]: Connection 'model.ecommerce_elt.stg_reviews' was properly closed.
+[0m00:16:15.046283 [debug] [MainThread]: Connection 'model.ecommerce_elt.dim_products' was properly closed.
+[0m00:16:15.049493 [debug] [MainThread]: Connection 'model.ecommerce_elt.stg_products' was properly closed.
+[0m00:16:15.052582 [debug] [MainThread]: Connection 'model.ecommerce_elt.fct_payments' was properly closed.
+[0m00:16:15.057365 [info ] [MainThread]: 
+[0m00:16:15.063698 [info ] [MainThread]: Finished running 4 table models, 6 view models in 0 hours 0 minutes and 44.55 seconds (44.55s).
+[0m00:16:15.088862 [debug] [MainThread]: Command end result
+[0m00:16:15.522162 [debug] [MainThread]: Wrote artifact WritableManifest to C:\Users\hungm\OneDrive\Máy tính\data-pipeline-airflow-api-postgres-dbt-powerbi-main\src\transform\dbt\target\manifest.json
+[0m00:16:15.557307 [debug] [MainThread]: Wrote artifact SemanticManifest to C:\Users\hungm\OneDrive\Máy tính\data-pipeline-airflow-api-postgres-dbt-powerbi-main\src\transform\dbt\target\semantic_manifest.json
+[0m00:16:15.614486 [debug] [MainThread]: Wrote artifact OsiDocument to C:\Users\hungm\OneDrive\Máy tính\data-pipeline-airflow-api-postgres-dbt-powerbi-main\src\transform\dbt\target\osi_document.json
+[0m00:16:15.766788 [debug] [MainThread]: Wrote artifact RunExecutionResult to C:\Users\hungm\OneDrive\Máy tính\data-pipeline-airflow-api-postgres-dbt-powerbi-main\src\transform\dbt\target\run_results.json
+[0m00:16:15.771763 [info ] [MainThread]: 
+[0m00:16:15.778922 [info ] [MainThread]: [31mCompleted with 2 errors, 0 partial successes, and 0 warnings:[0m
+[0m00:16:15.787399 [info ] [MainThread]: 
+[0m00:16:15.797533 [error] [MainThread]: [[31mERROR[0m]: in model stg_customers (models\staging\stg_customers.sql)
+[0m00:16:15.803905 [error] [MainThread]:   Database Error in model stg_customers (models\staging\stg_customers.sql)
+  HTTPSConnectionPool(host='bigquery.googleapis.com', port=443): Max retries exceeded with url: /bigquery/v2/projects/data-engineering-504901/jobs?prettyPrint=false (Caused by SSLError(SSLEOFError(8, '[SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1081)')))
+  compiled code at target\run\ecommerce_elt\models\staging\stg_customers.sql
+[0m00:16:15.813471 [info ] [MainThread]: 
+[0m00:16:15.827749 [info ] [MainThread]:   compiled code at target\compiled\ecommerce_elt\models\staging\stg_customers.sql
+[0m00:16:15.841489 [info ] [MainThread]: 
+[0m00:16:15.851960 [error] [MainThread]: [[31mERROR[0m]: in model stg_order_items (models\staging\stg_order_items.sql)
+[0m00:16:15.866680 [error] [MainThread]:   Database Error in model stg_order_items (models\staging\stg_order_items.sql)
+  HTTPSConnectionPool(host='bigquery.googleapis.com', port=443): Max retries exceeded with url: /bigquery/v2/projects/data-engineering-504901/jobs?prettyPrint=false (Caused by SSLError(SSLEOFError(8, '[SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1081)')))
+  compiled code at target\run\ecommerce_elt\models\staging\stg_order_items.sql
+[0m00:16:15.872334 [info ] [MainThread]: 
+[0m00:16:15.877716 [info ] [MainThread]:   compiled code at target\compiled\ecommerce_elt\models\staging\stg_order_items.sql
+[0m00:16:15.883902 [info ] [MainThread]: 
+[0m00:16:15.892816 [info ] [MainThread]: Done. PASS=6 WARN=0 ERROR=2 SKIP=2 NO-OP=0 REUSED=0 TOTAL=10
+[0m00:16:15.912172 [debug] [MainThread]: Command `python -m dbt.cli.main run` failed at 00:16:15.910524 after 83.95 seconds
+[0m00:16:15.916031 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'end', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001DD25273B90>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001DD3F3078F0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001DD41143710>]}
+[0m00:16:15.919901 [debug] [MainThread]: Flushing usage events
+[0m00:16:20.776670 [debug] [MainThread]: An error was encountered while trying to flush usage events
+[0m00:17:04.183538 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'start', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000013C3A324AD0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000013C37C0D6D0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000013C3CCFFB10>]}
+
+
+============================== 00:17:04.216708 | 74a1f17d-1205-4805-b821-cdede6909415 ==============================
+[0m00:17:04.216708 [info ] [MainThread]: Running with dbt=1.12.0
+[0m00:17:04.225956 [debug] [MainThread]: running dbt with arguments {'maximum_seed_size_mib': '1', 'no_print': 'None', 'version_check': 'True', 'warn_error_options': 'WarnErrorOptionsV2(error=[], warn=[], silence=[])', 'target_path': 'None', 'static_parser': 'True', 'printer_width': '80', 'write_json': 'True', 'introspect': 'True', 'log_cache_events': 'False', 'empty': 'False', 'cache_selected_only': 'False', 'fail_fast': 'False', 'debug': 'False', 'log_format': 'default', 'partial_parse': 'True', 'send_anonymous_usage_stats': 'True', 'quiet': 'False', 'warn_error': 'None', 'profiles_dir': 'C:\\Users\\hungm\\OneDrive\\Máy tính\\data-pipeline-airflow-api-postgres-dbt-powerbi-main\\src\\transform\\dbt', 'use_colors': 'True', 'hints_enabled': 'True', 'invocation_command': 'dbt run --project-dir C:\\Users\\hungm\\OneDrive\\Máy tính\\data-pipeline-airflow-api-postgres-dbt-powerbi-main\\src\\transform\\dbt --profiles-dir C:\\Users\\hungm\\OneDrive\\Máy tính\\data-pipeline-airflow-api-postgres-dbt-powerbi-main\\src\\transform\\dbt', 'use_experimental_parser': 'False', 'indirect_selection': 'eager', 'log_path': 'C:\\Users\\hungm\\OneDrive\\Máy tính\\data-pipeline-airflow-api-postgres-dbt-powerbi-main\\src\\transform\\dbt\\logs'}
+[0m00:17:18.296821 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'project_id', 'label': '74a1f17d-1205-4805-b821-cdede6909415', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000013C4DD5EEA0>]}
+[0m00:17:19.540336 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'adapter_info', 'label': '74a1f17d-1205-4805-b821-cdede6909415', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000013C3C9B39B0>]}
+[0m00:17:19.547380 [info ] [MainThread]: Registered adapter: bigquery=1.12.0
+[0m00:17:23.833916 [debug] [MainThread]: checksum: cff5fb19b15097277b8a235441a9d9babfa9de5b496ba2e27e26e44f8287daaf, vars: {}, profile: ecommerce_bigquery, target: dev, version: 1.12.0
+[0m00:17:24.513139 [debug] [MainThread]: Partial parsing enabled: 0 files deleted, 0 files added, 0 files changed.
+[0m00:17:24.514680 [debug] [MainThread]: Nothing changed, skipping partial parsing.
+[0m00:17:24.516107 [debug] [MainThread]: Partial parsing enabled, no changes found, skipping parsing
+[0m00:17:24.571700 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'load_project', 'label': '74a1f17d-1205-4805-b821-cdede6909415', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000013C52027950>]}
+[0m00:17:25.215655 [debug] [MainThread]: Wrote artifact WritableManifest to C:\Users\hungm\OneDrive\Máy tính\data-pipeline-airflow-api-postgres-dbt-powerbi-main\src\transform\dbt\target\manifest.json
+[0m00:17:25.238029 [debug] [MainThread]: Wrote artifact SemanticManifest to C:\Users\hungm\OneDrive\Máy tính\data-pipeline-airflow-api-postgres-dbt-powerbi-main\src\transform\dbt\target\semantic_manifest.json
+[0m00:17:25.363871 [debug] [MainThread]: Wrote artifact OsiDocument to C:\Users\hungm\OneDrive\Máy tính\data-pipeline-airflow-api-postgres-dbt-powerbi-main\src\transform\dbt\target\osi_document.json
+[0m00:17:25.443498 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'resource_counts', 'label': '74a1f17d-1205-4805-b821-cdede6909415', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000013C520EBB60>]}
+[0m00:17:25.446802 [info ] [MainThread]: Found 11 models, 6 sources, 562 macros
+[0m00:17:25.449998 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'runnable_timing', 'label': '74a1f17d-1205-4805-b821-cdede6909415', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000013C5228BE70>]}
+[0m00:17:25.463924 [info ] [MainThread]: 
+[0m00:17:25.465962 [info ] [MainThread]: Concurrency: 4 threads (target='dev')
+[0m00:17:25.467812 [info ] [MainThread]: 
+[0m00:17:25.470400 [debug] [MainThread]: Acquiring new bigquery connection 'master'
+[0m00:17:25.524921 [debug] [ThreadPool]: Acquiring new bigquery connection 'list_data-engineering-504901'
+[0m00:17:25.528655 [debug] [ThreadPool]: Opening a new connection, currently in state init
+[0m00:17:25.532210 [debug] [ThreadPool]: Acquiring new bigquery connection 'list_data-engineering-504901'
+[0m00:17:25.535529 [debug] [ThreadPool]: Opening a new connection, currently in state init
+[0m00:17:30.690085 [debug] [ThreadPool]: Acquiring new bigquery connection 'list_data-engineering-504901_staging'
+[0m00:17:30.693387 [debug] [ThreadPool]: Opening a new connection, currently in state init
+[0m00:17:30.697013 [debug] [ThreadPool]: Acquiring new bigquery connection 'list_data-engineering-504901_marts'
+[0m00:17:30.700322 [debug] [ThreadPool]: Opening a new connection, currently in state init
+[0m00:17:35.618615 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'runnable_timing', 'label': '74a1f17d-1205-4805-b821-cdede6909415', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000013C522825B0>]}
+[0m00:17:35.621958 [debug] [MainThread]: Opening a new connection, currently in state init
+[0m00:17:35.932181 [debug] [Thread-7 (]: Began running node model.ecommerce_elt.stg_orders
+[0m00:17:35.935221 [debug] [Thread-5 (]: Began running node model.ecommerce_elt.stg_customers
+[0m00:17:35.938180 [debug] [Thread-8 (]: Began running node model.ecommerce_elt.stg_payments
+[0m00:17:35.940949 [debug] [Thread-6 (]: Began running node model.ecommerce_elt.stg_order_items
+[0m00:17:35.944538 [info ] [Thread-7 (]: 3 of 10 START sql view model staging.stg_orders ................................ [RUN]
+[0m00:17:35.949205 [info ] [Thread-5 (]: 1 of 10 START sql view model staging.stg_customers ............................. [RUN]
+[0m00:17:35.953563 [info ] [Thread-8 (]: 4 of 10 START sql view model staging.stg_payments .............................. [RUN]
+[0m00:17:35.958192 [info ] [Thread-6 (]: 2 of 10 START sql view model staging.stg_order_items ........................... [RUN]
+[0m00:17:35.963004 [debug] [Thread-7 (]: Acquiring new bigquery connection 'model.ecommerce_elt.stg_orders'
+[0m00:17:35.967388 [debug] [Thread-5 (]: Acquiring new bigquery connection 'model.ecommerce_elt.stg_customers'
+[0m00:17:35.971552 [debug] [Thread-8 (]: Acquiring new bigquery connection 'model.ecommerce_elt.stg_payments'
+[0m00:17:35.975794 [debug] [Thread-6 (]: Acquiring new bigquery connection 'model.ecommerce_elt.stg_order_items'
+[0m00:17:35.979194 [debug] [Thread-7 (]: Began compiling node model.ecommerce_elt.stg_orders
+[0m00:17:35.982573 [debug] [Thread-5 (]: Began compiling node model.ecommerce_elt.stg_customers
+[0m00:17:35.986050 [debug] [Thread-8 (]: Began compiling node model.ecommerce_elt.stg_payments
+[0m00:17:35.989574 [debug] [Thread-6 (]: Began compiling node model.ecommerce_elt.stg_order_items
+[0m00:17:36.071760 [debug] [Thread-7 (]: Writing injected SQL for node "model.ecommerce_elt.stg_orders"
+[0m00:17:36.090886 [debug] [Thread-5 (]: Writing injected SQL for node "model.ecommerce_elt.stg_customers"
+[0m00:17:36.094132 [debug] [Thread-8 (]: Writing injected SQL for node "model.ecommerce_elt.stg_payments"
+[0m00:17:36.106992 [debug] [Thread-6 (]: Writing injected SQL for node "model.ecommerce_elt.stg_order_items"
+[0m00:17:36.115665 [debug] [Thread-7 (]: Began executing node model.ecommerce_elt.stg_orders
+[0m00:17:36.118864 [debug] [Thread-5 (]: Began executing node model.ecommerce_elt.stg_customers
+[0m00:17:36.231725 [debug] [Thread-6 (]: Began executing node model.ecommerce_elt.stg_order_items
+[0m00:17:36.273928 [debug] [Thread-8 (]: Began executing node model.ecommerce_elt.stg_payments
+[0m00:17:36.768986 [debug] [Thread-7 (]: Writing runtime sql for node "model.ecommerce_elt.stg_orders"
+[0m00:17:36.772141 [debug] [Thread-8 (]: Writing runtime sql for node "model.ecommerce_elt.stg_payments"
+[0m00:17:36.774382 [debug] [Thread-6 (]: Writing runtime sql for node "model.ecommerce_elt.stg_order_items"
+[0m00:17:36.776878 [debug] [Thread-5 (]: Writing runtime sql for node "model.ecommerce_elt.stg_customers"
+[0m00:17:36.783827 [debug] [Thread-7 (]: On model.ecommerce_elt.stg_orders: /* {"app": "dbt", "dbt_version": "1.12.0", "profile_name": "ecommerce_bigquery", "target_name": "dev", "node_id": "model.ecommerce_elt.stg_orders"} */
+
+
+  create or replace view `data-engineering-504901`.`staging`.`stg_orders`
+  OPTIONS()
+  as SELECT
+    order_id,
+    customer_id,
+    order_status,
+    order_purchase_timestamp,
+    order_estimated_delivery_date
+FROM `data-engineering-504901`.`staging`.`stg_raw_orders`;
+
+
+[0m00:17:36.788043 [debug] [Thread-7 (]: Opening a new connection, currently in state init
+[0m00:17:36.791810 [debug] [Thread-6 (]: On model.ecommerce_elt.stg_order_items: /* {"app": "dbt", "dbt_version": "1.12.0", "profile_name": "ecommerce_bigquery", "target_name": "dev", "node_id": "model.ecommerce_elt.stg_order_items"} */
+
+
+  create or replace view `data-engineering-504901`.`staging`.`stg_order_items`
+  OPTIONS()
+  as SELECT
+    order_item_id,
+    order_id,
+    product_id,
+    SAFE_CAST(price AS NUMERIC) AS price,
+    SAFE_CAST(freight_value AS NUMERIC) AS freight_value
+FROM `data-engineering-504901`.`staging`.`stg_raw_order_items`;
+
+
+[0m00:17:36.795180 [debug] [Thread-6 (]: Opening a new connection, currently in state init
+[0m00:17:36.798559 [debug] [Thread-5 (]: On model.ecommerce_elt.stg_customers: /* {"app": "dbt", "dbt_version": "1.12.0", "profile_name": "ecommerce_bigquery", "target_name": "dev", "node_id": "model.ecommerce_elt.stg_customers"} */
+
+
+  create or replace view `data-engineering-504901`.`staging`.`stg_customers`
+  OPTIONS()
+  as SELECT
+    customer_id,
+    customer_city,
+    customer_state
+FROM `data-engineering-504901`.`staging`.`stg_raw_customers`;
+
+
+[0m00:17:37.083853 [debug] [Thread-8 (]: On model.ecommerce_elt.stg_payments: /* {"app": "dbt", "dbt_version": "1.12.0", "profile_name": "ecommerce_bigquery", "target_name": "dev", "node_id": "model.ecommerce_elt.stg_payments"} */
+
+
+  create or replace view `data-engineering-504901`.`staging`.`stg_payments`
+  OPTIONS()
+  as SELECT
+    payment_id,
+    order_id,
+    payment_type,
+    payment_installments,
+    SAFE_CAST(payment_value AS NUMERIC) AS payment_value
+FROM `data-engineering-504901`.`staging`.`stg_raw_payments`;
+
+
+[0m00:17:37.090126 [debug] [Thread-5 (]: Opening a new connection, currently in state init
+[0m00:17:37.307612 [debug] [Thread-8 (]: Opening a new connection, currently in state init
+[0m00:17:42.302418 [debug] [Thread-7 (]: BigQuery adapter: https://console.cloud.google.com/bigquery?project=data-engineering-504901&j=bq:asia-southeast1:842ec21c-6600-4208-a84c-897e04e79594&page=queryresults
+[0m00:17:42.382795 [debug] [Thread-8 (]: BigQuery adapter: https://console.cloud.google.com/bigquery?project=data-engineering-504901&j=bq:asia-southeast1:2b339619-0856-4255-b420-c7a883b4bf02&page=queryresults
+[0m00:17:42.612507 [debug] [Thread-7 (]: SQL status: OK in 0.307 seconds
+[0m00:17:42.683494 [debug] [Thread-8 (]: SQL status: OK in 0.298 seconds
+[0m00:17:42.717772 [debug] [Thread-6 (]: BigQuery adapter: https://console.cloud.google.com/bigquery?project=data-engineering-504901&j=bq:asia-southeast1:44bd361d-13b0-4d82-9b58-15e41f4f6c1f&page=queryresults
+[0m00:17:42.805719 [debug] [Thread-5 (]: BigQuery adapter: https://console.cloud.google.com/bigquery?project=data-engineering-504901&j=bq:asia-southeast1:ca1a010b-2aea-4ffd-bf65-4b0c4437dda9&page=queryresults
+[0m00:17:43.077600 [debug] [Thread-6 (]: SQL status: OK in 0.357 seconds
+[0m00:17:43.109593 [debug] [Thread-5 (]: SQL status: OK in 0.300 seconds
+[0m00:17:43.574697 [debug] [Thread-5 (]: Sending event: {'category': 'dbt', 'action': 'run_model', 'label': '74a1f17d-1205-4805-b821-cdede6909415', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000013C520E34D0>]}
+[0m00:17:43.576511 [debug] [Thread-7 (]: Sending event: {'category': 'dbt', 'action': 'run_model', 'label': '74a1f17d-1205-4805-b821-cdede6909415', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000013C52690730>]}
+[0m00:17:43.579301 [info ] [Thread-5 (]: 1 of 10 OK created sql view model staging.stg_customers ........................ [[32mCREATE VIEW (0 processed)[0m in 7.57s]
+[0m00:17:43.581311 [debug] [Thread-8 (]: Sending event: {'category': 'dbt', 'action': 'run_model', 'label': '74a1f17d-1205-4805-b821-cdede6909415', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000013C52313250>]}
+[0m00:17:43.585175 [debug] [Thread-6 (]: Sending event: {'category': 'dbt', 'action': 'run_model', 'label': '74a1f17d-1205-4805-b821-cdede6909415', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000013C52706960>]}
+[0m00:17:43.583817 [info ] [Thread-7 (]: 3 of 10 OK created sql view model staging.stg_orders ........................... [[32mCREATE VIEW (0 processed)[0m in 7.59s]
+[0m00:17:43.589122 [debug] [Thread-5 (]: Finished running node model.ecommerce_elt.stg_customers
+[0m00:17:43.592506 [info ] [Thread-8 (]: 4 of 10 OK created sql view model staging.stg_payments ......................... [[32mCREATE VIEW (0 processed)[0m in 7.60s]
+[0m00:17:43.597576 [info ] [Thread-6 (]: 2 of 10 OK created sql view model staging.stg_order_items ...................... [[32mCREATE VIEW (0 processed)[0m in 7.60s]
+[0m00:17:43.602964 [debug] [Thread-7 (]: Finished running node model.ecommerce_elt.stg_orders
+[0m00:17:43.607079 [debug] [Thread-5 (]: Began running node model.ecommerce_elt.stg_products
+[0m00:17:43.612468 [debug] [Thread-8 (]: Finished running node model.ecommerce_elt.stg_payments
+[0m00:17:43.618046 [debug] [Thread-6 (]: Finished running node model.ecommerce_elt.stg_order_items
+[0m00:17:43.630715 [info ] [Thread-5 (]: 5 of 10 START sql view model staging.stg_products .............................. [RUN]
+[0m00:17:43.624130 [debug] [Thread-7 (]: Began running node model.ecommerce_elt.stg_reviews
+[0m00:17:43.638708 [debug] [Thread-8 (]: Began running node model.ecommerce_elt.dim_customers
+[0m00:17:43.643666 [debug] [Thread-6 (]: Began running node model.ecommerce_elt.fct_orders
+[0m00:17:43.647522 [debug] [Thread-5 (]: Re-using an available connection from the pool (formerly model.ecommerce_elt.stg_customers, now model.ecommerce_elt.stg_products)
+[0m00:17:43.651953 [info ] [Thread-7 (]: 6 of 10 START sql view model staging.stg_reviews ............................... [RUN]
+[0m00:17:43.658745 [info ] [Thread-8 (]: 7 of 10 START sql table model marts.dim_customers .............................. [RUN]
+[0m00:17:43.667495 [debug] [Thread-5 (]: Began compiling node model.ecommerce_elt.stg_products
+[0m00:17:43.662984 [info ] [Thread-6 (]: 8 of 10 START sql table model marts.fct_orders ................................. [RUN]
+[0m00:17:43.671551 [debug] [Thread-7 (]: Re-using an available connection from the pool (formerly model.ecommerce_elt.stg_orders, now model.ecommerce_elt.stg_reviews)
+[0m00:17:43.675642 [debug] [Thread-8 (]: Re-using an available connection from the pool (formerly model.ecommerce_elt.stg_payments, now model.ecommerce_elt.dim_customers)
+[0m00:17:43.695858 [debug] [Thread-6 (]: Re-using an available connection from the pool (formerly model.ecommerce_elt.stg_order_items, now model.ecommerce_elt.fct_orders)
+[0m00:17:43.752433 [debug] [Thread-7 (]: Began compiling node model.ecommerce_elt.stg_reviews
+[0m00:17:43.756735 [debug] [Thread-8 (]: Began compiling node model.ecommerce_elt.dim_customers
+[0m00:17:43.701662 [debug] [Thread-5 (]: Writing injected SQL for node "model.ecommerce_elt.stg_products"
+[0m00:17:43.761205 [debug] [Thread-6 (]: Began compiling node model.ecommerce_elt.fct_orders
+[0m00:17:43.782534 [debug] [Thread-7 (]: Writing injected SQL for node "model.ecommerce_elt.stg_reviews"
+[0m00:17:43.825802 [debug] [Thread-8 (]: Writing injected SQL for node "model.ecommerce_elt.dim_customers"
+[0m00:17:43.867705 [debug] [Thread-6 (]: Writing injected SQL for node "model.ecommerce_elt.fct_orders"
+[0m00:17:43.878188 [debug] [Thread-7 (]: Began executing node model.ecommerce_elt.stg_reviews
+[0m00:17:43.904112 [debug] [Thread-8 (]: Began executing node model.ecommerce_elt.dim_customers
+[0m00:17:43.913022 [debug] [Thread-5 (]: Began executing node model.ecommerce_elt.stg_products
+[0m00:17:43.938934 [debug] [Thread-7 (]: Writing runtime sql for node "model.ecommerce_elt.stg_reviews"
+[0m00:17:44.036663 [debug] [Thread-6 (]: Began executing node model.ecommerce_elt.fct_orders
+[0m00:17:44.050005 [debug] [Thread-5 (]: Writing runtime sql for node "model.ecommerce_elt.stg_products"
+[0m00:17:44.283248 [debug] [Thread-8 (]: Opening a new connection, currently in state closed
+[0m00:17:44.292870 [debug] [Thread-7 (]: On model.ecommerce_elt.stg_reviews: /* {"app": "dbt", "dbt_version": "1.12.0", "profile_name": "ecommerce_bigquery", "target_name": "dev", "node_id": "model.ecommerce_elt.stg_reviews"} */
+
+
+  create or replace view `data-engineering-504901`.`staging`.`stg_reviews`
+  OPTIONS()
+  as SELECT
+    review_id,
+    order_id,
+    SAFE_CAST(review_score AS INT64) AS review_score
+FROM `data-engineering-504901`.`staging`.`stg_raw_reviews`;
+
+
+[0m00:17:44.298422 [debug] [Thread-5 (]: On model.ecommerce_elt.stg_products: /* {"app": "dbt", "dbt_version": "1.12.0", "profile_name": "ecommerce_bigquery", "target_name": "dev", "node_id": "model.ecommerce_elt.stg_products"} */
+
+
+  create or replace view `data-engineering-504901`.`staging`.`stg_products`
+  OPTIONS()
+  as SELECT
+    product_id,
+    product_category_name
+FROM `data-engineering-504901`.`staging`.`stg_raw_products`;
+
+
+[0m00:17:44.349571 [debug] [Thread-7 (]: Opening a new connection, currently in state closed
+[0m00:17:44.819868 [debug] [Thread-6 (]: Opening a new connection, currently in state closed
+[0m00:17:44.825790 [debug] [Thread-5 (]: Opening a new connection, currently in state closed
+[0m00:17:54.875610 [debug] [Thread-7 (]: BigQuery adapter: https://console.cloud.google.com/bigquery?project=data-engineering-504901&j=bq:asia-southeast1:eb687041-29e2-4b95-9783-afd8d4f07f44&page=queryresults
+[0m00:17:54.940121 [debug] [Thread-8 (]: Writing runtime sql for node "model.ecommerce_elt.dim_customers"
+[0m00:17:54.951107 [debug] [Thread-8 (]: On model.ecommerce_elt.dim_customers: /* {"app": "dbt", "dbt_version": "1.12.0", "profile_name": "ecommerce_bigquery", "target_name": "dev", "node_id": "model.ecommerce_elt.dim_customers"} */
+
+  
+    
+
+    create or replace table `data-engineering-504901`.`marts`.`dim_customers`
+      
+    
+    
+
+    
+    OPTIONS()
+    as (
+      
+
+SELECT
+    customer_id,
+    customer_city,
+    customer_state
+FROM `data-engineering-504901`.`staging`.`stg_customers`
+    );
+  
+[0m00:17:55.195063 [debug] [Thread-7 (]: SQL status: OK in 0.302 seconds
+[0m00:17:55.233179 [debug] [Thread-7 (]: Sending event: {'category': 'dbt', 'action': 'run_model', 'label': '74a1f17d-1205-4805-b821-cdede6909415', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000013C522F2660>]}
+[0m00:17:55.239386 [info ] [Thread-7 (]: 6 of 10 OK created sql view model staging.stg_reviews .......................... [[32mCREATE VIEW (0 processed)[0m in 11.56s]
+[0m00:17:55.249488 [debug] [Thread-7 (]: Finished running node model.ecommerce_elt.stg_reviews
+[0m00:17:55.253733 [debug] [Thread-7 (]: Began running node model.ecommerce_elt.fct_payments
+[0m00:17:55.260395 [info ] [Thread-7 (]: 9 of 10 START sql table model marts.fct_payments ............................... [RUN]
+[0m00:17:55.265220 [debug] [Thread-7 (]: Re-using an available connection from the pool (formerly model.ecommerce_elt.stg_reviews, now model.ecommerce_elt.fct_payments)
+[0m00:17:55.268975 [debug] [Thread-7 (]: Began compiling node model.ecommerce_elt.fct_payments
+[0m00:17:55.283852 [debug] [Thread-7 (]: Writing injected SQL for node "model.ecommerce_elt.fct_payments"
+[0m00:17:55.293666 [debug] [Thread-7 (]: Began executing node model.ecommerce_elt.fct_payments
+[0m00:17:55.315969 [debug] [Thread-7 (]: Opening a new connection, currently in state closed
+[0m00:17:55.766830 [debug] [Thread-8 (]: BigQuery adapter: https://console.cloud.google.com/bigquery?project=data-engineering-504901&j=bq:asia-southeast1:09eeff30-4fd2-4cdc-a9bd-efc79a251869&page=queryresults
+[0m00:17:56.928914 [debug] [Thread-8 (]: SQL status: OK in 1.158 seconds
+[0m00:17:57.166714 [debug] [Thread-8 (]: Sending event: {'category': 'dbt', 'action': 'run_model', 'label': '74a1f17d-1205-4805-b821-cdede6909415', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000013C53949AF0>]}
+[0m00:17:57.173311 [info ] [Thread-8 (]: 7 of 10 OK created sql table model marts.dim_customers ......................... [[32mCREATE TABLE (25.0 rows, 571.0 Bytes processed)[0m in 13.49s]
+[0m00:17:57.181924 [debug] [Thread-8 (]: Finished running node model.ecommerce_elt.dim_customers
+[0m00:17:59.006362 [debug] [Thread-6 (]: Writing runtime sql for node "model.ecommerce_elt.fct_orders"
+[0m00:17:59.030004 [debug] [Thread-6 (]: On model.ecommerce_elt.fct_orders: /* {"app": "dbt", "dbt_version": "1.12.0", "profile_name": "ecommerce_bigquery", "target_name": "dev", "node_id": "model.ecommerce_elt.fct_orders"} */
+
+  
+    
+
+    create or replace table `data-engineering-504901`.`marts`.`fct_orders`
+      
+    
+    
+
+    
+    OPTIONS()
+    as (
+      
+
+WITH orders AS (
+    SELECT * FROM `data-engineering-504901`.`staging`.`stg_orders`
+),
+items AS (
+    SELECT
+        order_id,
+        COUNT(order_item_id) AS total_items,
+        SUM(price) AS total_order_value,
+        SUM(freight_value) AS total_freight_value
+    FROM `data-engineering-504901`.`staging`.`stg_order_items`
+    GROUP BY order_id
+)
+
+SELECT
+    o.order_id,
+    o.customer_id,
+    o.order_status,
+    o.order_purchase_timestamp,
+    COALESCE(i.total_items, 0) AS total_items,
+    COALESCE(i.total_order_value, 0.0) AS total_order_value,
+    COALESCE(i.total_freight_value, 0.0) AS total_freight_value
+FROM orders o
+LEFT JOIN items i ON o.order_id = i.order_id
+    );
+  
+[0m00:17:59.464316 [debug] [Thread-5 (]: BigQuery adapter: https://console.cloud.google.com/bigquery?project=data-engineering-504901&j=bq:asia-southeast1:8a6e304c-9479-4ac2-8d4d-feb3cbd10ef7&page=queryresults
+[0m00:17:59.788848 [debug] [Thread-5 (]: SQL status: OK in 0.320 seconds
+[0m00:17:59.824423 [debug] [Thread-6 (]: BigQuery adapter: https://console.cloud.google.com/bigquery?project=data-engineering-504901&j=bq:asia-southeast1:e5631d27-cf23-489e-b1dc-fcc9f5e9611e&page=queryresults
+[0m00:17:59.836185 [debug] [Thread-5 (]: Sending event: {'category': 'dbt', 'action': 'run_model', 'label': '74a1f17d-1205-4805-b821-cdede6909415', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000013C539CE030>]}
+[0m00:17:59.845646 [info ] [Thread-5 (]: 5 of 10 OK created sql view model staging.stg_products ......................... [[32mCREATE VIEW (0 processed)[0m in 16.19s]
+[0m00:17:59.856481 [debug] [Thread-5 (]: Finished running node model.ecommerce_elt.stg_products
+[0m00:17:59.863379 [debug] [Thread-8 (]: Began running node model.ecommerce_elt.dim_products
+[0m00:17:59.869287 [info ] [Thread-8 (]: 10 of 10 START sql table model marts.dim_products .............................. [RUN]
+[0m00:17:59.879187 [debug] [Thread-8 (]: Re-using an available connection from the pool (formerly model.ecommerce_elt.dim_customers, now model.ecommerce_elt.dim_products)
+[0m00:17:59.883936 [debug] [Thread-8 (]: Began compiling node model.ecommerce_elt.dim_products
+[0m00:17:59.912637 [debug] [Thread-8 (]: Writing injected SQL for node "model.ecommerce_elt.dim_products"
+[0m00:17:59.928623 [debug] [Thread-8 (]: Began executing node model.ecommerce_elt.dim_products
+[0m00:17:59.949463 [debug] [Thread-8 (]: Opening a new connection, currently in state closed
+[0m00:18:01.227237 [debug] [Thread-6 (]: SQL status: OK in 1.387 seconds
+[0m00:18:01.487078 [debug] [Thread-6 (]: Sending event: {'category': 'dbt', 'action': 'run_model', 'label': '74a1f17d-1205-4805-b821-cdede6909415', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000013C539CC3B0>]}
+[0m00:18:01.496685 [info ] [Thread-6 (]: 8 of 10 OK created sql table model marts.fct_orders ............................ [[32mCREATE TABLE (50.0 rows, 4.2 KiB processed)[0m in 17.79s]
+[0m00:18:01.503629 [debug] [Thread-6 (]: Finished running node model.ecommerce_elt.fct_orders
+[0m00:18:01.989469 [debug] [Thread-7 (]: Writing runtime sql for node "model.ecommerce_elt.fct_payments"
+[0m00:18:01.998251 [debug] [Thread-7 (]: On model.ecommerce_elt.fct_payments: /* {"app": "dbt", "dbt_version": "1.12.0", "profile_name": "ecommerce_bigquery", "target_name": "dev", "node_id": "model.ecommerce_elt.fct_payments"} */
+
+  
+    
+
+    create or replace table `data-engineering-504901`.`marts`.`fct_payments`
+      
+    
+    
+
+    
+    OPTIONS()
+    as (
+      
+
+SELECT
+    payment_id,
+    order_id,
+    payment_type,
+    payment_installments,
+    payment_value
+FROM `data-engineering-504901`.`staging`.`stg_payments`
+    );
+  
+[0m00:18:02.712416 [debug] [Thread-7 (]: BigQuery adapter: https://console.cloud.google.com/bigquery?project=data-engineering-504901&j=bq:asia-southeast1:bb119f70-0a57-4d43-b357-c81f50bd1319&page=queryresults
+[0m00:18:03.918907 [debug] [Thread-7 (]: SQL status: OK in 1.203 seconds
+[0m00:18:04.248510 [debug] [Thread-7 (]: Sending event: {'category': 'dbt', 'action': 'run_model', 'label': '74a1f17d-1205-4805-b821-cdede6909415', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000013C5394B7D0>]}
+[0m00:18:04.260176 [info ] [Thread-7 (]: 9 of 10 OK created sql table model marts.fct_payments .......................... [[32mCREATE TABLE (50.0 rows, 2.5 KiB processed)[0m in 8.98s]
+[0m00:18:04.267899 [debug] [Thread-7 (]: Finished running node model.ecommerce_elt.fct_payments
+[0m00:18:07.216887 [debug] [Thread-8 (]: Writing runtime sql for node "model.ecommerce_elt.dim_products"
+[0m00:18:07.228574 [debug] [Thread-8 (]: On model.ecommerce_elt.dim_products: /* {"app": "dbt", "dbt_version": "1.12.0", "profile_name": "ecommerce_bigquery", "target_name": "dev", "node_id": "model.ecommerce_elt.dim_products"} */
+
+  
+    
+
+    create or replace table `data-engineering-504901`.`marts`.`dim_products`
+      
+    
+    
+
+    
+    OPTIONS()
+    as (
+      
+
+SELECT
+    product_id,
+    product_category_name
+FROM `data-engineering-504901`.`staging`.`stg_products`
+    );
+  
+[0m00:18:08.063168 [debug] [Thread-8 (]: BigQuery adapter: https://console.cloud.google.com/bigquery?project=data-engineering-504901&j=bq:asia-southeast1:6d6de7e9-7383-42fa-be9f-43ca36145026&page=queryresults
+[0m00:18:09.217124 [debug] [Thread-8 (]: SQL status: OK in 1.151 seconds
+[0m00:18:09.524161 [debug] [Thread-8 (]: Sending event: {'category': 'dbt', 'action': 'run_model', 'label': '74a1f17d-1205-4805-b821-cdede6909415', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000013C539CD6D0>]}
+[0m00:18:09.533005 [info ] [Thread-8 (]: 10 of 10 OK created sql table model marts.dim_products ......................... [[32mCREATE TABLE (12.0 rows, 246.0 Bytes processed)[0m in 9.65s]
+[0m00:18:09.541690 [debug] [Thread-8 (]: Finished running node model.ecommerce_elt.dim_products
+[0m00:18:09.572201 [debug] [MainThread]: Opening a new connection, currently in state closed
+[0m00:18:09.939971 [debug] [MainThread]: Connection 'master' was properly closed.
+[0m00:18:09.945351 [debug] [MainThread]: Connection 'list_data-engineering-504901' was properly closed.
+[0m00:18:09.949123 [debug] [MainThread]: Connection 'list_data-engineering-504901' was properly closed.
+[0m00:18:09.951635 [debug] [MainThread]: Connection 'list_data-engineering-504901_staging' was properly closed.
+[0m00:18:09.954256 [debug] [MainThread]: Connection 'list_data-engineering-504901_marts' was properly closed.
+[0m00:18:09.957418 [debug] [MainThread]: Connection 'model.ecommerce_elt.fct_payments' was properly closed.
+[0m00:18:09.962108 [debug] [MainThread]: Connection 'model.ecommerce_elt.stg_products' was properly closed.
+[0m00:18:09.966387 [debug] [MainThread]: Connection 'model.ecommerce_elt.dim_products' was properly closed.
+[0m00:18:09.969347 [debug] [MainThread]: Connection 'model.ecommerce_elt.fct_orders' was properly closed.
+[0m00:18:09.974014 [info ] [MainThread]: 
+[0m00:18:09.982000 [info ] [MainThread]: Finished running 4 table models, 6 view models in 0 hours 0 minutes and 44.50 seconds (44.50s).
+[0m00:18:10.022556 [debug] [MainThread]: Command end result
+[0m00:18:10.656411 [debug] [MainThread]: Wrote artifact WritableManifest to C:\Users\hungm\OneDrive\Máy tính\data-pipeline-airflow-api-postgres-dbt-powerbi-main\src\transform\dbt\target\manifest.json
+[0m00:18:10.696292 [debug] [MainThread]: Wrote artifact SemanticManifest to C:\Users\hungm\OneDrive\Máy tính\data-pipeline-airflow-api-postgres-dbt-powerbi-main\src\transform\dbt\target\semantic_manifest.json
+[0m00:18:10.725757 [debug] [MainThread]: Wrote artifact OsiDocument to C:\Users\hungm\OneDrive\Máy tính\data-pipeline-airflow-api-postgres-dbt-powerbi-main\src\transform\dbt\target\osi_document.json
+[0m00:18:10.819407 [debug] [MainThread]: Wrote artifact RunExecutionResult to C:\Users\hungm\OneDrive\Máy tính\data-pipeline-airflow-api-postgres-dbt-powerbi-main\src\transform\dbt\target\run_results.json
+[0m00:18:10.839645 [info ] [MainThread]: 
+[0m00:18:10.855334 [info ] [MainThread]: [32mCompleted successfully[0m
+[0m00:18:10.880418 [info ] [MainThread]: 
+[0m00:18:10.892842 [info ] [MainThread]: Done. PASS=10 WARN=0 ERROR=0 SKIP=0 NO-OP=0 REUSED=0 TOTAL=10
+[0m00:18:10.915297 [debug] [MainThread]: Command `python -m dbt.cli.main run` succeeded at 00:18:10.911755 after 69.14 seconds
+[0m00:18:10.920192 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'end', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000013C3CCEAA50>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000013C5269A5D0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000013C3CD26F30>]}
+[0m00:18:10.929217 [debug] [MainThread]: Flushing usage events
+[0m00:18:14.943309 [debug] [MainThread]: An error was encountered while trying to flush usage events
