@@ -1,4 +1,4 @@
-﻿# Environment & Credentials
+# Environment & Credentials
 .env
 *.env
 gcp_key.json
@@ -13,6 +13,14 @@ venv/
 env/
 ENV/
 
+# dbt Build Artifacts & Logs
+**/target/
+**/dbt_packages/
+**/logs/
+target/
+dbt_packages/
+logs/
+
 # Data Files & Logs
 data/landing/*.parquet
 !data/landing/.gitkeep
@@ -23,9 +31,8 @@ logs/*.log
 standalone_admin_password.txt
 
 # Local Guides & Notes
-
-docs/incremental_and_quality_guide.md
 docs/source_code_guide.md
+docs/incremental_and_quality_guide.md
 myprompt.txt
 readmanytime.md
 PROJECT_STRUCTURE.md
