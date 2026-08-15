@@ -1,7 +1,8 @@
-﻿import os
+import os
 import sys
 import shutil
 import subprocess
+from typing import Optional
 from google.cloud import bigquery
 from src.utils.gcp_client import get_bigquery_client
 from src.utils.config import Config
@@ -22,10 +23,11 @@ def get_dbt_binary():
 
     return "dbt"
 
-def run_in_warehouse_transformations():
+def run_in_warehouse_transformations(full_refresh: bool = False):
     """
     Runs in-warehouse SQL transformations using dbt-bigquery against BigQuery DW,
     followed by automated Data Quality testing with dbt test.
+    Supports full-refresh backfill execution when full_refresh=True.
     Auto-creates the BigQuery 'marts' dataset if missing.
     """
     client = get_bigquery_client()
@@ -61,8 +63,13 @@ def run_in_warehouse_transformations():
     logger.info(f"Using dbt binary at: '{dbt_bin}'")
 
     # Step 1: dbt run (compile & execute models)
-    logger.info("Executing dbt-bigquery transformations (dbt run)...")
     run_cmd = [dbt_bin, "run", "--project-dir", dbt_dir, "--profiles-dir", dbt_dir]
+    if full_refresh:
+        logger.info("Executing dbt-bigquery transformations with FULL-REFRESH (Backfill mode)...")
+        run_cmd.append("--full-refresh")
+    else:
+        logger.info("Executing dbt-bigquery incremental merge transformations (dbt run)...")
+
     run_result = subprocess.run(run_cmd, env=env, capture_output=True, text=True, shell=(os.name == 'nt'))
 
     if run_result.returncode != 0:
@@ -85,4 +92,5 @@ def run_in_warehouse_transformations():
     logger.info("All dbt Data Quality Tests passed (100% PASS)!\n" + test_result.stdout)
 
 if __name__ == "__main__":
-    run_in_warehouse_transformations()
+    is_full = "--full-refresh" in sys.argv
+    run_in_warehouse_transformations(full_refresh=is_full)

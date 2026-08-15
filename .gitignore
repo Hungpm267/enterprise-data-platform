@@ -30,9 +30,10 @@ logs/*.log
 *.db-journal
 standalone_admin_password.txt
 
-# Local Guides & Notes
+# Local Guides & Architecture Tracking (Ignored from Git)
 docs/source_code_guide.md
 docs/incremental_and_quality_guide.md
+docs/platform_capabilities_and_architecture.md
 myprompt.txt
 readmanytime.md
 PROJECT_STRUCTURE.md

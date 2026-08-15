@@ -22,16 +22,33 @@ def clear_landing_zone():
             except Exception as e:
                 logger.warning(f"Could not remove {f}: {e}")
 
-def extract_table_to_parquet(table_name: str, query: Optional[str] = None, timestamp_suffix: bool = False) -> str:
+def extract_table_to_parquet(
+    table_name: str,
+    query: Optional[str] = None,
+    timestamp_suffix: bool = False,
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None
+) -> str:
     """
     Extracts raw data from PostgreSQL table and saves it directly to Landing Zone as Parquet (EL Step).
-    If timestamp_suffix is False, overwrites table_name.parquet to avoid duplicate files.
-    Uses pure SQLAlchemy result mapping to avoid pandas read_sql version conflicts.
+    Supports granular date-range filtering for backfilling historical partitions.
     """
     connector = PostgresConnector()
     engine = connector.get_engine()
     
-    sql_query = query if query else f'SELECT * FROM "{Config.DB_SCHEMA}"."{table_name}"'
+    if query:
+        sql_query = query
+    elif table_name == "raw_orders" and (start_date or end_date):
+        conditions = []
+        if start_date:
+            conditions.append(f"order_purchase_timestamp >= '{start_date}'")
+        if end_date:
+            conditions.append(f"order_purchase_timestamp <= '{end_date}'")
+        where_clause = " AND ".join(conditions)
+        sql_query = f'SELECT * FROM "{Config.DB_SCHEMA}"."raw_orders" WHERE {where_clause}'
+        logger.info(f"Backfill mode active for table '{table_name}' with filter: {where_clause}")
+    else:
+        sql_query = f'SELECT * FROM "{Config.DB_SCHEMA}"."{table_name}"'
     
     logger.info(f"Executing extraction for table '{table_name}'...")
     with engine.connect() as conn:
@@ -51,17 +68,20 @@ def extract_table_to_parquet(table_name: str, query: Optional[str] = None, times
         filename = f"{table_name}.parquet"
 
     file_path = os.path.join(Config.LANDING_DIR, filename)
-    
-    # Save raw data without transformation to landing zone (overwriting deterministic file)
     df.to_parquet(file_path, index=False)
     logger.info(f"Saved: {file_path}")
     
     return file_path
 
-def extract_all_tables(table_list: Optional[List[str]] = None, clean_landing: bool = True) -> List[str]:
+def extract_all_tables(
+    table_list: Optional[List[str]] = None,
+    clean_landing: bool = True,
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None
+) -> List[str]:
     """
     Extracts multiple tables from PostgreSQL in batch.
-    If clean_landing is True, clears old parquet files in landing zone first.
+    Supports granular date-range backfill parameters.
     """
     if clean_landing:
         clear_landing_zone()
@@ -76,12 +96,20 @@ def extract_all_tables(table_list: Optional[List[str]] = None, clean_landing: bo
             "raw_products"
         ]
 
+    if start_date or end_date:
+        logger.info(f"--- BACKFILL INGESTION: Range [{start_date or 'BEGIN'} to {end_date or 'NOW'}] ---")
+
     logger.info(f"Starting batch extraction for {len(table_list)} tables: {table_list}")
     extracted_files = []
     
     for table_name in table_list:
         try:
-            file_path = extract_table_to_parquet(table_name, timestamp_suffix=False)
+            file_path = extract_table_to_parquet(
+                table_name,
+                timestamp_suffix=False,
+                start_date=start_date,
+                end_date=end_date
+            )
             extracted_files.append(file_path)
         except Exception as e:
             logger.error(f"Error extracting table '{table_name}': {e}")
