@@ -6,6 +6,7 @@ profile: 'enterprise_bigquery'
 
 model-paths: ["models"]
 macro-paths: ["macros"]
+test-paths: ["tests"]
 target-path: "target"
 clean-targets:
   - "target"

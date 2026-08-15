@@ -7,7 +7,7 @@ gcp_key.json
 # Python / Virtualenv
 __pycache__/
 *.py[cod]
-*.class
+*$py.class
 venv/
 .venv/
 env/
@@ -24,6 +24,7 @@ standalone_admin_password.txt
 
 # Local Guides & Notes
 docs/source_code_guide.md
+docs/incremental_and_quality_guide.md
 myprompt.txt
 readmanytime.md
 PROJECT_STRUCTURE.md

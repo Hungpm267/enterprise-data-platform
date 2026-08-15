@@ -1,24 +1,13 @@
-{{ config(
-    materialized='incremental',
-    incremental_strategy='merge',
-    unique_key='order_id',
-    schema='marts',
-    partition_by={
-      "field": "order_purchase_timestamp",
-      "data_type": "timestamp",
-      "granularity": "day"
-    },
-    cluster_by=["order_status", "customer_id"]
-) }}
+
 
 WITH orders AS (
-    SELECT * FROM {{ ref('stg_orders') }}
-    {% if is_incremental() %}
+    SELECT * FROM `data-engineering-504901`.`staging`.`stg_orders`
+    
     WHERE order_purchase_timestamp >= (
         SELECT TIMESTAMP_SUB(MAX(order_purchase_timestamp), INTERVAL 3 DAY)
-        FROM {{ this }}
+        FROM `data-engineering-504901`.`marts`.`fct_orders`
     )
-    {% endif %}
+    
 ),
 items AS (
     SELECT
@@ -26,7 +15,7 @@ items AS (
         COUNT(order_item_id) AS total_items,
         SUM(price) AS total_order_value,
         SUM(freight_value) AS total_freight_value
-    FROM {{ ref('stg_order_items') }}
+    FROM `data-engineering-504901`.`staging`.`stg_order_items`
     GROUP BY order_id
 )
 

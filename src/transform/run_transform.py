@@ -1,4 +1,4 @@
-import os
+﻿import os
 import sys
 import shutil
 import subprocess
@@ -7,9 +7,25 @@ from src.utils.gcp_client import get_bigquery_client
 from src.utils.config import Config
 from src.utils.logger import logger
 
+def get_dbt_binary():
+    bin_path = shutil.which("dbt")
+    if bin_path:
+        return bin_path
+
+    scripts_dbt = os.path.join(os.path.dirname(sys.executable), "Scripts", "dbt.exe")
+    if os.path.exists(scripts_dbt):
+        return scripts_dbt
+
+    unix_dbt = os.path.join(os.path.dirname(sys.executable), "dbt")
+    if os.path.exists(unix_dbt):
+        return unix_dbt
+
+    return "dbt"
+
 def run_in_warehouse_transformations():
     """
-    Runs in-warehouse SQL transformations using dbt-bigquery against BigQuery DW.
+    Runs in-warehouse SQL transformations using dbt-bigquery against BigQuery DW,
+    followed by automated Data Quality testing with dbt test.
     Auto-creates the BigQuery 'marts' dataset if missing.
     """
     client = get_bigquery_client()
@@ -36,24 +52,37 @@ def run_in_warehouse_transformations():
             f.write(gcp_sa_key_json)
 
     dbt_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "dbt")
-    logger.info("Executing dbt-bigquery transformations...")
-
     env = os.environ.copy()
     env["GCP_PROJECT_ID"] = Config.GCP_PROJECT_ID
     env["GCP_STAGING_DATASET"] = Config.GCP_STAGING_DATASET
     env["GCP_KEY_FILE"] = key_file_path
 
-    dbt_bin = shutil.which("dbt") or "dbt"
-    cmd = [dbt_bin, "run", "--project-dir", dbt_dir, "--profiles-dir", dbt_dir]
-    result = subprocess.run(cmd, env=env, capture_output=True, text=True, shell=(os.name == 'nt'))
+    dbt_bin = get_dbt_binary()
+    logger.info(f"Using dbt binary at: '{dbt_bin}'")
 
-    full_output = f"STDOUT:\n{result.stdout}\nSTDERR:\n{result.stderr}"
+    # Step 1: dbt run (compile & execute models)
+    logger.info("Executing dbt-bigquery transformations (dbt run)...")
+    run_cmd = [dbt_bin, "run", "--project-dir", dbt_dir, "--profiles-dir", dbt_dir]
+    run_result = subprocess.run(run_cmd, env=env, capture_output=True, text=True, shell=(os.name == 'nt'))
 
-    if result.returncode != 0:
-        logger.error(f"dbt run failed:\n{full_output}")
-        raise RuntimeError(f"dbt transformation failed:\n{full_output}")
+    if run_result.returncode != 0:
+        full_run_output = f"STDOUT:\n{run_result.stdout}\nSTDERR:\n{run_result.stderr}"
+        logger.error(f"dbt run failed:\n{full_run_output}")
+        raise RuntimeError(f"dbt run failed:\n{full_run_output}")
 
-    logger.info("dbt-bigquery transformations executed successfully!\n" + result.stdout)
+    logger.info("dbt-bigquery transformations completed successfully!\n" + run_result.stdout)
+
+    # Step 2: dbt test (automated data quality verification)
+    logger.info("Executing dbt Data Quality Tests (dbt test)...")
+    test_cmd = [dbt_bin, "test", "--project-dir", dbt_dir, "--profiles-dir", dbt_dir]
+    test_result = subprocess.run(test_cmd, env=env, capture_output=True, text=True, shell=(os.name == 'nt'))
+
+    if test_result.returncode != 0:
+        full_test_output = f"STDOUT:\n{test_result.stdout}\nSTDERR:\n{test_result.stderr}"
+        logger.error(f"dbt test FAILED:\n{full_test_output}")
+        raise RuntimeError(f"dbt Data Quality Tests failed:\n{full_test_output}")
+
+    logger.info("All dbt Data Quality Tests passed (100% PASS)!\n" + test_result.stdout)
 
 if __name__ == "__main__":
     run_in_warehouse_transformations()
