@@ -1,12 +1,9 @@
-﻿name: Automated Enterprise GCP ELT Pipeline
+name: Automated Enterprise GCP ELT Pipeline
 
 on:
   schedule:
-    # Runs automatically every 1 hour and 15 minutes (75 minutes)
-    - cron: '0 0,5,10,15,20 * * *'
-    - cron: '15 1,6,11,16,21 * * *'
-    - cron: '30 2,7,12,17,22 * * *'
-    - cron: '45 3,8,13,18,23 * * *'
+    # Runs automatically every 2 hours
+    - cron: '0 */2 * * *'
   workflow_dispatch: # Allows manual trigger anytime from GitHub Web UI
   push:
     branches: [ main ]
@@ -81,17 +78,17 @@ jobs:
           TRIGGER_EVENT="${{ github.event_name }}"
           
           if [ "$TRIGGER_EVENT" = "schedule" ]; then
-            EVENT_DESC="Scheduled Cron (75m interval)"
+            EVENT_DESC="Scheduled Cron (Every 2 Hours)"
           elif [ "$TRIGGER_EVENT" = "workflow_dispatch" ]; then
-            EVENT_DESC="Manual Trigger (Web UI)"
+            EVENT_DESC="Manual Trigger (GitHub Web UI)"
           else
             EVENT_DESC="Git Push (${SHORT_SHA})"
           fi
 
           if [ "$WORKFLOW_STATUS" = "success" ]; then
-            MESSAGE="🟢 *ENTERPRISE DATA PLATFORM ELT SUCCESS*%0A%0A📁 *Repository:* \`${{ github.repository }}\`%0A🌿 *Branch:* \`${{ github.ref_name }}\`%0A⚡ *Trigger:* ${EVENT_DESC}%0A☁️ *Data Lake:* \`Google Cloud Storage (GCS)\`%0A🏢 *Data Warehouse:* \`Google BigQuery\`%0A🛠️ *Transform Engine:* \`dbt-bigquery\`%0A%0A📋 *Pipeline Execution Summary:*%0A1. *Extract:* 6 raw tables extracted from Postgres to Parquet.%0A2. *Load GCS:* Parquet files uploaded to GCS Data Lake.%0A3. *Load BigQuery:* Bulk loaded Parquet from GCS into BigQuery staging tables.%0A4. *dbt Transform:* Executed dbt-bigquery models to build Star Schema Data Marts & OBT View.%0A%0A✅ *Status:* Data is ready for Looker Studio analytics!%0A%0A🔗 [View Execution Logs on GitHub Actions]($RUN_URL)"
+            MESSAGE="*ENTERPRISE DATA PLATFORM ELT SUCCESS*%0A%0A*Repository:* \`${{ github.repository }}\`%0A*Branch:* \`${{ github.ref_name }}\`%0A*Trigger:* ${EVENT_DESC}%0A*Data Lake:* \`Google Cloud Storage (GCS)\`%0A*Data Warehouse:* \`Google BigQuery\`%0A*Transform Engine:* \`dbt-bigquery\`%0A%0A*Pipeline Execution Summary:*%0A1. *Extract:* 6 raw tables extracted from Postgres to Parquet.%0A2. *Load GCS:* Parquet files uploaded to GCS Data Lake.%0A3. *Load BigQuery:* Bulk loaded Parquet from GCS into BigQuery staging tables.%0A4. *dbt Transform:* Executed dbt-bigquery incremental merge models.%0A5. *dbt Test:* All 17 automated data quality tests PASSED (100%25).%0A%0A*Result:* Staging and Data Marts successfully synchronized.%0A%0A[View Detailed Execution Logs on GitHub Actions](${RUN_URL})"
           else
-            MESSAGE="🔴 *ENTERPRISE DATA PLATFORM ELT FAILED*%0A%0A📁 *Repository:* \`${{ github.repository }}\`%0A🌿 *Branch:* \`${{ github.ref_name }}\`%0A⚡ *Trigger:* ${EVENT_DESC}%0A☁️ *Data Lake:* \`Google Cloud Storage (GCS)\`%0A🏢 *Data Warehouse:* \`Google BigQuery\`%0A%0A⚠️ *Status:* Pipeline encountered an error during execution!%0A%0A🔗 [Check Error Logs on GitHub Actions]($RUN_URL)"
+            MESSAGE="*ENTERPRISE DATA PLATFORM ELT FAILED*%0A%0A*Repository:* \`${{ github.repository }}\`%0A*Branch:* \`${{ github.ref_name }}\`%0A*Trigger:* ${EVENT_DESC}%0A*Data Lake:* \`Google Cloud Storage (GCS)\`%0A*Data Warehouse:* \`Google BigQuery\`%0A%0A*Result:* Pipeline encountered an error during execution.%0A%0A[Inspect Error Logs on GitHub Actions](${RUN_URL})"
           fi
 
           curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
