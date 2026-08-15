@@ -1,4 +1,4 @@
-name: ecommerce-data-pipeline
+﻿name: enterprise-data-platform
 prefect-version: 3.0.0
 
 build:
@@ -10,9 +10,9 @@ pull:
       directory: .
 
 deployments:
-  - name: ecommerce-deployment
+  - name: enterprise-deployment
     version: 1.0.0
     entrypoint: main.py:run_elt_pipeline
-    description: "Automated E-Commerce ELT Pipeline Deployment"
+    description: "Automated Enterprise Data Platform ELT Deployment"
     work_pool:
       name: local-process-pool

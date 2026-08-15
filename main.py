@@ -1,4 +1,4 @@
-import sys
+﻿import sys
 import os
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -46,7 +46,7 @@ def transform_step_task():
     run_in_warehouse_transformations()
     logger.info("Transform step finished. Data Marts built in BigQuery.")
 
-@flow(name="E-Commerce ELT Pipeline", log_prints=True)
+@flow(name="Enterprise Data Platform ELT", log_prints=True)
 def run_elt_pipeline():
     logger.info("==================================================")
     logger.info("  STARTING FULL GCP MODERN DATA STACK ELT PIPELINE")
@@ -64,6 +64,6 @@ def run_elt_pipeline():
 if __name__ == "__main__":
     if len(sys.argv) > 1 and sys.argv[1] == "--serve":
         logger.info("Registering deployment and serving flow on Prefect Cloud...")
-        run_elt_pipeline.serve(name="ecommerce-deployment")
+        run_elt_pipeline.serve(name="enterprise-deployment")
     else:
         run_elt_pipeline()

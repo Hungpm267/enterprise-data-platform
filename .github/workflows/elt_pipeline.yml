@@ -1,4 +1,4 @@
-name: Automated E-Commerce GCP ELT Pipeline
+﻿name: Automated Enterprise GCP ELT Pipeline
 
 on:
   schedule:
@@ -16,21 +16,21 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: 📥 Checkout Repository
+      - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: 🐍 Set up Python 3.11 & Pip Cache
+      - name: Set up Python 3.11 & Pip Cache
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
           cache: 'pip'
           cache-dependency-path: 'requirements.txt'
 
-      - name: 📦 Fast Install Dependencies (Cached)
+      - name: Fast Install Dependencies (Cached)
         run: |
           pip install --prefer-binary -r requirements.txt
 
-      - name: 🔑 Check Secrets & GCP Configuration
+      - name: Check Secrets & GCP Configuration
         env:
           DB_HOST: ${{ secrets.DB_HOST }}
           DB_PORT: ${{ secrets.DB_PORT }}
@@ -40,11 +40,11 @@ jobs:
           GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
         run: |
           echo "Checking Secrets availability..."
-          [ -n "$DB_HOST" ] && echo "✓ DB_HOST secret found" || echo "❌ DB_HOST secret MISSING!"
-          [ -n "$DB_PASSWORD" ] && echo "✓ DB_PASSWORD secret found" || echo "❌ DB_PASSWORD secret MISSING!"
-          [ -n "$GCP_SA_KEY" ] && echo "✓ GCP_SA_KEY secret found" || echo "❌ GCP_SA_KEY secret MISSING!"
+          [ -n "$DB_HOST" ] && echo "DB_HOST secret found" || echo "DB_HOST secret MISSING!"
+          [ -n "$DB_PASSWORD" ] && echo "DB_PASSWORD secret found" || echo "DB_PASSWORD secret MISSING!"
+          [ -n "$GCP_SA_KEY" ] && echo "GCP_SA_KEY secret found" || echo "GCP_SA_KEY secret MISSING!"
 
-      - name: 🚀 Execute GCP Modern ELT Pipeline (Postgres -> GCS -> BigQuery -> dbt)
+      - name: Execute GCP Modern ELT Pipeline (Postgres -> GCS -> BigQuery -> dbt)
         env:
           PYTHONPATH: .
           PREFECT_API_KEY: ${{ secrets.PREFECT_API_KEY }}
@@ -64,7 +64,7 @@ jobs:
         run: |
           python main.py
 
-      - name: 📢 Send Detailed Telegram Notification
+      - name: Send Detailed Telegram Notification
         if: always()
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
@@ -81,17 +81,17 @@ jobs:
           TRIGGER_EVENT="${{ github.event_name }}"
           
           if [ "$TRIGGER_EVENT" = "schedule" ]; then
-            EVENT_DESC="⏰ Lập lịch tự động (1h15m/lần)"
+            EVENT_DESC="Scheduled Cron (75m interval)"
           elif [ "$TRIGGER_EVENT" = "workflow_dispatch" ]; then
-            EVENT_DESC="👤 Kích hoạt thủ công (Web UI)"
+            EVENT_DESC="Manual Trigger (Web UI)"
           else
-            EVENT_DESC="📦 Push Commit (${SHORT_SHA})"
+            EVENT_DESC="Git Push (${SHORT_SHA})"
           fi
 
           if [ "$WORKFLOW_STATUS" = "success" ]; then
-            MESSAGE="🎉 *GCP MODERN ELT PIPELINE SUCCESS* 🟢%0A%0A📌 *Repository:* \`${{ github.repository }}\`%0A🌿 *Branch:* \`${{ github.ref_name }}\`%0A💡 *Nguồn kích hoạt:* ${EVENT_DESC}%0A☁️ *Data Lake:* \`Google Cloud Storage (GCS)\`%0A⚡ *Data Warehouse:* \`Google BigQuery\`%0A🛠️ *Transform Engine:* \`dbt-bigquery\`%0A%0A📋 *Tóm Tắt Các Bước Đã Chạy:*%0A1️⃣ *Extract:* Trích xuất 6 bảng thô từ Postgres ➔ Parquet.%0A2️⃣ *Load GCS:* Nạp 6 file Parquet lên GCS Bucket \`gs://ecommerce-data-lake-504901/\`.%0A3️⃣ *Load BigQuery:* Nạp dữ liệu Parquet từ GCS vào BigQuery dataset \`staging.stg_raw_*\`.%0A4️⃣ *dbt Transform:* Thực thi SQL models dbt-bigquery ➔ Tạo Star Schema Data Marts (\`marts.dim_*\`, \`marts.fct_*\`).%0A%0A✅ *Kết quả:* Dữ liệu sẵn sàng phục vụ Looker Studio!%0A%0A🔗 [🌐 Xem Chi Tiết Log Execution Trên GitHub]($RUN_URL)"
+            MESSAGE="🟢 *ENTERPRISE DATA PLATFORM ELT SUCCESS*%0A%0A📁 *Repository:* \`${{ github.repository }}\`%0A🌿 *Branch:* \`${{ github.ref_name }}\`%0A⚡ *Trigger:* ${EVENT_DESC}%0A☁️ *Data Lake:* \`Google Cloud Storage (GCS)\`%0A🏢 *Data Warehouse:* \`Google BigQuery\`%0A🛠️ *Transform Engine:* \`dbt-bigquery\`%0A%0A📋 *Pipeline Execution Summary:*%0A1. *Extract:* 6 raw tables extracted from Postgres to Parquet.%0A2. *Load GCS:* Parquet files uploaded to GCS Data Lake.%0A3. *Load BigQuery:* Bulk loaded Parquet from GCS into BigQuery staging tables.%0A4. *dbt Transform:* Executed dbt-bigquery models to build Star Schema Data Marts & OBT View.%0A%0A✅ *Status:* Data is ready for Looker Studio analytics!%0A%0A🔗 [View Execution Logs on GitHub Actions]($RUN_URL)"
           else
-            MESSAGE="🚨 *GCP MODERN ELT PIPELINE FAILED* 🔴%0A%0A📌 *Repository:* \`${{ github.repository }}\`%0A🌿 *Branch:* \`${{ github.ref_name }}\`%0A💡 *Nguồn kích hoạt:* ${EVENT_DESC}%0A☁️ *Data Lake:* \`Google Cloud Storage (GCS)\`%0A⚡ *Data Warehouse:* \`Google BigQuery\`%0A%0A⚠️ *Trạng thái:* Phát sinh sự cố trong quá trình Extract, GCS Upload, BigQuery Load hoặc dbt Transform!%0A%0A🔗 [🔍 Kiểm Tra Nhật Ký Lỗi Trực Tiếp Trên GitHub]($RUN_URL)"
+            MESSAGE="🔴 *ENTERPRISE DATA PLATFORM ELT FAILED*%0A%0A📁 *Repository:* \`${{ github.repository }}\`%0A🌿 *Branch:* \`${{ github.ref_name }}\`%0A⚡ *Trigger:* ${EVENT_DESC}%0A☁️ *Data Lake:* \`Google Cloud Storage (GCS)\`%0A🏢 *Data Warehouse:* \`Google BigQuery\`%0A%0A⚠️ *Status:* Pipeline encountered an error during execution!%0A%0A🔗 [Check Error Logs on GitHub Actions]($RUN_URL)"
           fi
 
           curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \

@@ -1,8 +1,8 @@
-name: 'ecommerce_elt'
+﻿name: 'enterprise_data_platform'
 version: '1.0.0'
 config-version: 2
 
-profile: 'ecommerce_bigquery'
+profile: 'enterprise_bigquery'
 
 model-paths: ["models"]
 macro-paths: ["macros"]
@@ -12,6 +12,6 @@ clean-targets:
   - "dbt_packages"
 
 models:
-  ecommerce_elt:
+  enterprise_data_platform:
     marts:
       +materialized: table
