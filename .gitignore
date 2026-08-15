@@ -23,8 +23,9 @@ logs/*.log
 standalone_admin_password.txt
 
 # Local Guides & Notes
-docs/source_code_guide.md
+
 docs/incremental_and_quality_guide.md
+docs/source_code_guide.md
 myprompt.txt
 readmanytime.md
 PROJECT_STRUCTURE.md
