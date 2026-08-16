@@ -1,4 +1,4 @@
- #!/usr/bin/env python
+#!/usr/bin/env python
 import os
 import sys
 import argparse
@@ -18,17 +18,24 @@ def create_connector(name: str):
     os.makedirs(target_dir, exist_ok=True)
     os.makedirs(staging_dbt_dir, exist_ok=True)
 
-    # 1. extract.py
-    extract_code = f"""from typing import List
+    # 1. extract.py with parameterized queries
+    extract_code = f"""from typing import List, Optional, Dict, Any
+from sqlalchemy import text
 from connectors._base.schemas import RunArgs
 from src.utils.logger import logger
 
 def extract_{slug}_data(args: RunArgs) -> List[str]:
     \"\"\"
-    Extraction logic for {slug} connector.
+    Secure extraction logic for {slug} connector using parameterized queries / API params.
     \"\"\"
     logger.info(f"Extracting data for connector '{slug}' with mode: {{args.mode}}")
-    # TODO: Implement API requests or queries and save Parquet files to landing zone.
+    params: Dict[str, Any] = {{}}
+    if args.start_date:
+        params["start_date"] = args.start_date
+    if args.end_date:
+        params["end_date"] = args.end_date
+    
+    # TODO: Implement API requests or DB parameterized queries and save Parquet files to landing zone.
     extracted_files = []
     return extracted_files
 """

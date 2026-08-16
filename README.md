@@ -7,7 +7,7 @@
 [![GitHub Actions](https://img.shields.io/badge/GitHub%20Actions-24%2F7%20Automation-blue.svg)](https://github.com/features/actions)
 [![Looker Studio](https://img.shields.io/badge/Looker%20Studio-Live%20Dashboard-yellow.svg)](https://datastudio.google.com/reporting/7d592d8e-bc9e-464f-adeb-008de9c7b35f)
 
-An end-to-end, production-grade **Modular Multi-Connector ELT (Extract - Load - Transform)** Data Platform built for modern enterprise analytics. Designed with a **Plugin Monorepo Architecture**, the platform standardizes data contracts across ingestion sources, loads compressed columnar Parquet files into Google Cloud Storage (GCS) Data Lake, synchronizes to BigQuery Staging, and transforms data into an **OLAP Star Schema and One Big Table (OBT) Analytics View** using `dbt-bigquery` with automated Data Quality testing. Fully orchestrated with Prefect Cloud and automated 24/7 on GitHub Actions with real-time Telegram alerts.
+An end-to-end, production-grade **Modular Multi-Connector ELT (Extract - Load - Transform)** Data Platform built for modern enterprise analytics. Designed with a **Plugin Monorepo Architecture**, the platform standardizes data contracts across ingestion sources, loads compressed columnar Parquet files into Google Cloud Storage (GCS) Data Lake, synchronizes to BigQuery Staging via **Idempotent Ingestion Merges**, and transforms data into an **OLAP Star Schema and One Big Table (OBT) Analytics View** using `dbt-bigquery` with automated Data Quality testing. Features **Automated Watermark State Tracking**, SQLAlchemy parameterized queries, and 24/7 orchestration on GitHub Actions with Prefect Cloud observability and Telegram alerts.
 
 ---
 
@@ -20,7 +20,10 @@ An end-to-end, production-grade **Modular Multi-Connector ELT (Extract - Load - 
 ## Key Highlights & Enterprise Architecture
 
 - **Modular Multi-Connector Monorepo (`connectors/`):** Plug-and-play ingestion layer inheriting from `BaseConnector` abstract base class with standardized `RunArgs` contract (`INCREMENTAL` & `FULL_REFRESH` modes).
-- **CLI Scaffolding Tool (`cli/create_connector.py`):** Instantly scaffold new data connectors with boilerplate ingestion logic and dbt staging sources in seconds:
+- **SQL Injection Defense (Parameterized Queries):** Strictly enforces SQLAlchemy query parameter binding (`:start_date`, `:end_date`) across all extraction connectors, eliminating SQL injection risks.
+- **Automated Watermark State Tracking (`src/utils/state_manager.py`):** Persistent pipeline state management tracked in BigQuery `staging._pipeline_state`. Automatically queries `last_sync_timestamp` with a 1-hour safety lookback offset to execute genuine hands-free incremental synchronization.
+- **Idempotent Staging Ingestion & Backfill Safety:** Employs BigQuery Primary-Key `MERGE` during incremental loads and date-range backfills, preserving full historical staging partitions without accidental truncation.
+- **CLI Scaffolding Tool (`cli/create_connector.py`):** Instantly scaffold new data connectors with boilerplate parameterized ingestion logic and dbt staging sources in seconds:
   ```bash
   python cli/create_connector.py --name <connector_name>
   ```
@@ -34,7 +37,7 @@ An end-to-end, production-grade **Modular Multi-Connector ELT (Extract - Load - 
 ## Tech Stack
 
 - **Orchestration:** Prefect Cloud, GitHub Actions (24/7 Cloud Automation)
-- **Ingestion & Ingestion Framework:** Python 3.11+, Pydantic (`connectors/`)
+- **Ingestion & State Tracking:** Python 3.11+, SQLAlchemy Parameterized Queries, Pydantic, BigQuery State Store
 - **Data Lake (Landing Zone):** Google Cloud Storage (GCS)
 - **Data Warehouse:** Google BigQuery (staging and marts datasets)
 - **Transform & Testing Engine:** dbt-bigquery (Root Level `dbt/`)
@@ -110,7 +113,7 @@ erDiagram
 - **`marts.dim_customers`**: Customer geographic profile (`customer_id`, `customer_city`, `customer_state`).
 - **`marts.dim_products`**: Product catalog information (`product_id`, `product_category_name`).
 - **`marts.fct_orders`**: Order-level aggregations (`order_id`, `customer_id`, `total_items`, `total_order_value`, `total_freight_value`) with day-partitioning and clustering.
-- **`marts.fct_order_items`**: Line-item granularity fact table (`order_item_id`, `order_id`, `product_id`, `price`, `freight_value`).
+- **`marts.fct_order_items`**: Line-item granularity fact table (`order_item_id`, `order_id`, `product_id`, `customer_id`, `price`, `freight_value`).
 - **`marts.fct_payments`**: Payment transaction methods and values (`payment_id`, `order_id`, `payment_type`, `payment_value`).
 - **`marts.wide_orders_analytics`**: Pre-joined One Big Table (OBT) View for direct BI consumption without manual table blending.
 
@@ -120,13 +123,13 @@ erDiagram
 
 ### 1. Run Pipeline for Default / Target Connector
 ```bash
-# Run incremental pipeline for PostgreSQL connector
+# Run automated incremental pipeline with State Watermark tracking
 python main.py --connector postgres_db
 
-# Run historical backfill by date range
+# Run historical backfill by date range (with safe staging merge & dbt vars)
 python main.py --connector postgres_db --start-date 2026-05-01 --end-date 2026-05-31
 
-# Force full-refresh rebuild of marts
+# Force full-refresh rebuild of marts and reset watermark
 python main.py --full-refresh
 ```
 

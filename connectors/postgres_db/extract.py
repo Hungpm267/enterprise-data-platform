@@ -1,7 +1,7 @@
 import os
 import glob
 import pandas as pd
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 from datetime import datetime
 from sqlalchemy import text
 from src.utils.db_connector import PostgresConnector
@@ -33,24 +33,32 @@ def extract_single_table(
     start_date: Optional[str] = None,
     end_date: Optional[str] = None
 ) -> str:
+    """
+    Extracts a single table from PostgreSQL using secure parameterized queries.
+    Prevents SQL injection vulnerabilities by binding query parameters.
+    """
     connector = PostgresConnector()
     engine = connector.get_engine()
+    
+    params: Dict[str, Any] = {}
     
     if table_name == "raw_orders" and (start_date or end_date):
         conditions = []
         if start_date:
-            conditions.append(f"order_purchase_timestamp >= '{start_date}'")
+            conditions.append("order_purchase_timestamp >= :start_date")
+            params["start_date"] = start_date
         if end_date:
-            conditions.append(f"order_purchase_timestamp <= '{end_date}'")
+            conditions.append("order_purchase_timestamp <= :end_date")
+            params["end_date"] = end_date
         where_clause = " AND ".join(conditions)
         sql_query = f'SELECT * FROM "{Config.DB_SCHEMA}"."raw_orders" WHERE {where_clause}'
-        logger.info(f"Backfill filter active for '{table_name}': {where_clause}")
+        logger.info(f"Parameterized filter active for '{table_name}': {where_clause} with params={params}")
     else:
         sql_query = f'SELECT * FROM "{Config.DB_SCHEMA}"."{table_name}"'
     
-    logger.info(f"Executing extraction for table '{table_name}'...")
+    logger.info(f"Executing secure parameterized extraction for table '{table_name}'...")
     with engine.connect() as conn:
-        result = conn.execute(text(sql_query))
+        result = conn.execute(text(sql_query), params)
         rows = result.fetchall()
         cols = result.keys()
         df = pd.DataFrame(rows, columns=cols)
@@ -71,7 +79,7 @@ def extract_postgres_tables(args: RunArgs) -> List[str]:
 
     tables = args.tables if args.tables else TABLES_LIST
     if args.start_date or args.end_date:
-        logger.info(f"--- POSTGRES CONNECTOR: Backfill Range [{args.start_date or 'BEGIN'} -> {args.end_date or 'NOW'}] ---")
+        logger.info(f"--- POSTGRES CONNECTOR: Filter Range [{args.start_date or 'BEGIN'} -> {args.end_date or 'NOW'}] ---")
 
     logger.info(f"Starting extraction for {len(tables)} tables: {tables}")
     extracted_files = []

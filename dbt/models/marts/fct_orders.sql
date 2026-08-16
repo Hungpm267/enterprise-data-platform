@@ -14,10 +14,17 @@
 WITH orders AS (
     SELECT * FROM {{ ref('stg_orders') }}
     {% if is_incremental() %}
-    WHERE order_purchase_timestamp >= (
-        SELECT TIMESTAMP_SUB(MAX(order_purchase_timestamp), INTERVAL 3 DAY)
-        FROM {{ this }}
-    )
+        {% if var('start_date', none) and var('end_date', none) %}
+            WHERE order_purchase_timestamp >= '{{ var("start_date") }}'
+              AND order_purchase_timestamp <= '{{ var("end_date") }}'
+        {% elif var('start_date', none) %}
+            WHERE order_purchase_timestamp >= '{{ var("start_date") }}'
+        {% else %}
+            WHERE order_purchase_timestamp >= (
+                SELECT TIMESTAMP_SUB(MAX(order_purchase_timestamp), INTERVAL 3 DAY)
+                FROM {{ this }}
+            )
+        {% endif %}
     {% endif %}
 ),
 items AS (

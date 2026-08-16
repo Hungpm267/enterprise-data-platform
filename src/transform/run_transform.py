@@ -1,5 +1,6 @@
 import os
 import sys
+import json
 import shutil
 import subprocess
 from typing import Optional
@@ -25,12 +26,14 @@ def get_dbt_binary():
 
 def run_in_warehouse_transformations(
     full_refresh: bool = False,
-    select_models: Optional[str] = None
+    select_models: Optional[str] = None,
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None
 ):
     """
     Runs in-warehouse SQL transformations using dbt-bigquery against BigQuery DW,
     followed by automated Data Quality testing with dbt test.
-    dbt directory is located at the root level 'dbt/'.
+    Supports passing start_date/end_date as dbt vars for historical backfills.
     """
     client = get_bigquery_client()
     project_id = Config.GCP_PROJECT_ID
@@ -55,7 +58,6 @@ def run_in_warehouse_transformations(
         with open(key_file_path, "w", encoding="utf-8") as f:
             f.write(gcp_sa_key_json)
 
-    # Locate dbt at root level
     base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     dbt_dir = os.path.join(base_dir, "dbt")
 
@@ -79,6 +81,17 @@ def run_in_warehouse_transformations(
     if select_models:
         logger.info(f"Targeting dbt models: --select {select_models}")
         run_cmd.extend(["--select", select_models])
+
+    # Pass date vars if backfill
+    dbt_vars = {}
+    if start_date:
+        dbt_vars["start_date"] = start_date
+    if end_date:
+        dbt_vars["end_date"] = end_date
+    if dbt_vars:
+        vars_json = json.dumps(dbt_vars)
+        logger.info(f"Passing dbt execution vars: --vars '{vars_json}'")
+        run_cmd.extend(["--vars", vars_json])
 
     run_result = subprocess.run(run_cmd, env=env, capture_output=True, text=True, shell=(os.name == 'nt'))
 
