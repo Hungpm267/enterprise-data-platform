@@ -2,7 +2,6 @@ import os
 import glob
 import pandas as pd
 from typing import List, Optional, Dict, Any
-from datetime import datetime
 from sqlalchemy import text
 from src.utils.db_connector import PostgresConnector
 from src.utils.config import Config
@@ -35,7 +34,7 @@ def extract_single_table(
 ) -> str:
     """
     Extracts a single table from PostgreSQL using secure parameterized queries.
-    Prevents SQL injection vulnerabilities by binding query parameters.
+    Uses pd.read_sql_query to preserve exact schema datatypes even on empty delta batches.
     """
     connector = PostgresConnector()
     engine = connector.get_engine()
@@ -58,10 +57,13 @@ def extract_single_table(
     
     logger.info(f"Executing secure parameterized extraction for table '{table_name}'...")
     with engine.connect() as conn:
-        result = conn.execute(text(sql_query), params)
-        rows = result.fetchall()
-        cols = result.keys()
-        df = pd.DataFrame(rows, columns=cols)
+        df = pd.read_sql_query(text(sql_query), conn, params=params)
+
+    # Ensure timestamp columns are properly typed
+    if "order_purchase_timestamp" in df.columns:
+        df["order_purchase_timestamp"] = pd.to_datetime(df["order_purchase_timestamp"])
+    if "order_estimated_delivery_date" in df.columns:
+        df["order_estimated_delivery_date"] = pd.to_datetime(df["order_estimated_delivery_date"])
 
     logger.info(f"Extracted {len(df)} rows from table '{table_name}'.")
 
