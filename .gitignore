@@ -43,3 +43,8 @@ PROJECT_STRUCTURE.md
 .idea/
 .DS_Store
 Thumbs.db
+docs/superpowers/
+
+dbt/.user.yml
+
+docs/modular_connector_architecture_guide.txt

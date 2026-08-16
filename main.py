@@ -1,35 +1,33 @@
 import sys
 import os
 import argparse
-from typing import Optional
+from typing import Optional, List
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from prefect import task, flow
-from src.extract.extract_db import extract_all_tables
+from connectors._base.schemas import RunArgs, RunMode
+from connectors.postgres_db.connector import PostgresConnector
 from src.load.load_to_gcs import upload_landing_to_gcs
 from src.load.load_to_bigquery import load_gcs_to_bigquery_staging
 from src.transform.run_transform import run_in_warehouse_transformations
 from src.utils.logger import logger
 
-TABLES_TO_EXTRACT = [
-    "raw_customers",
-    "raw_orders",
-    "raw_order_items",
-    "raw_payments",
-    "raw_reviews",
-    "raw_products"
-]
+# Active Connectors Registry
+AVAILABLE_CONNECTORS = {
+    "postgres_db": PostgresConnector(),
+    "postgres": PostgresConnector(),
+}
 
-@task(name="1. Extract Step", retries=2, retry_delay_seconds=10)
-def extract_step_task(start_date: Optional[str] = None, end_date: Optional[str] = None):
-    logger.info("\n--- STEP 1: EXTRACT (Postgres -> Parquet) ---")
-    extracted_files = extract_all_tables(
-        TABLES_TO_EXTRACT,
-        start_date=start_date,
-        end_date=end_date
-    )
-    logger.info(f"Extract step finished. {len(extracted_files)} parquet files written to landing zone.")
+@task(name="1. Connector Extract Step", retries=2, retry_delay_seconds=10)
+def extract_connector_task(connector_name: str, args: RunArgs) -> List[str]:
+    logger.info(f"\n--- STEP 1: EXTRACT (Connector: '{connector_name}') ---")
+    if connector_name not in AVAILABLE_CONNECTORS:
+        raise ValueError(f"Unknown connector '{connector_name}'. Available: {list(AVAILABLE_CONNECTORS.keys())}")
+    
+    connector = AVAILABLE_CONNECTORS[connector_name]
+    extracted_files = connector.run(args)
+    logger.info(f"Extract step finished for '{connector_name}'. {len(extracted_files)} files in landing zone.")
     return extracted_files
 
 @task(name="2. Load GCS Step", retries=2, retry_delay_seconds=10)
@@ -47,38 +45,48 @@ def load_bigquery_step_task():
     return loaded_tables
 
 @task(name="4. dbt Transform Step", retries=2, retry_delay_seconds=10)
-def transform_step_task(full_refresh: bool = False):
-    logger.info("\n--- STEP 3: TRANSFORM (dbt-bigquery -> BigQuery Marts & Tests) ---")
-    run_in_warehouse_transformations(full_refresh=full_refresh)
-    logger.info("Transform & Test step finished. Data Marts validated in BigQuery.")
+def transform_step_task(full_refresh: bool = False, select_models: Optional[str] = None):
+    logger.info("\n--- STEP 3: TRANSFORM & TEST (dbt-bigquery -> Marts & Data Quality) ---")
+    run_in_warehouse_transformations(full_refresh=full_refresh, select_models=select_models)
+    logger.info("Transform & Test step finished. Data Marts validated successfully.")
 
 @flow(name="Enterprise Data Platform ELT", log_prints=True)
 def run_elt_pipeline(
+    connector_name: str = "postgres_db",
     start_date: Optional[str] = None,
     end_date: Optional[str] = None,
     full_refresh: bool = False
 ):
+    mode = RunMode.FULL_REFRESH if full_refresh else RunMode.INCREMENTAL
+    run_args = RunArgs(
+        start_date=start_date,
+        end_date=end_date,
+        mode=mode,
+        clean_landing=True
+    )
+
     logger.info("==================================================")
-    if start_date or end_date or full_refresh:
-        logger.info(f"  STARTING BACKFILL ELT PIPELINE [{start_date or 'BEGIN'} -> {end_date or 'NOW'}] (Full-Refresh: {full_refresh})")
-    else:
-        logger.info("  STARTING FULL GCP MODERN DATA STACK ELT PIPELINE")
+    logger.info(f"  ENTERPRISE DATA PLATFORM (Connector: {connector_name})")
+    logger.info(f"  Mode: {mode.value.upper()} | Range: [{start_date or 'BEGIN'} -> {end_date or 'NOW'}]")
     logger.info("==================================================")
 
-    extracted_files = extract_step_task(start_date=start_date, end_date=end_date)
+    extracted_files = extract_connector_task(connector_name, run_args)
     gcs_uris = load_gcs_step_task(wait_for=[extracted_files])
     loaded_tables = load_bigquery_step_task(wait_for=[gcs_uris])
+    
+    # Run dbt transformations & tests
     transform_step_task(full_refresh=full_refresh, wait_for=[loaded_tables])
 
     logger.info("\n==================================================")
-    logger.info("  GCP ELT PIPELINE COMPLETED SUCCESSFULLY!        ")
+    logger.info(f"  PIPELINE FOR '{connector_name}' COMPLETED SUCCESSFULLY! ")
     logger.info("==================================================")
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Enterprise Data Platform ELT Pipeline CLI Runner")
+    parser = argparse.ArgumentParser(description="Enterprise Data Platform Master Orchestrator")
+    parser.add_argument("--connector", type=str, default="postgres_db", help="Target connector name (default: postgres_db)")
     parser.add_argument("--start-date", type=str, default=None, help="Start date for backfill (YYYY-MM-DD)")
     parser.add_argument("--end-date", type=str, default=None, help="End date for backfill (YYYY-MM-DD)")
-    parser.add_argument("--full-refresh", action="store_true", help="Force full-refresh rebuild of incremental dbt models")
+    parser.add_argument("--full-refresh", action="store_true", help="Force full-refresh rebuild of incremental models")
     parser.add_argument("--serve", action="store_true", help="Register deployment and serve flow on Prefect Cloud")
     
     args = parser.parse_args()
@@ -88,6 +96,7 @@ if __name__ == "__main__":
         run_elt_pipeline.serve(name="enterprise-deployment")
     else:
         run_elt_pipeline(
+            connector_name=args.connector,
             start_date=args.start_date,
             end_date=args.end_date,
             full_refresh=args.full_refresh

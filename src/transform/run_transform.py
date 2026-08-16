@@ -23,12 +23,14 @@ def get_dbt_binary():
 
     return "dbt"
 
-def run_in_warehouse_transformations(full_refresh: bool = False):
+def run_in_warehouse_transformations(
+    full_refresh: bool = False,
+    select_models: Optional[str] = None
+):
     """
     Runs in-warehouse SQL transformations using dbt-bigquery against BigQuery DW,
     followed by automated Data Quality testing with dbt test.
-    Supports full-refresh backfill execution when full_refresh=True.
-    Auto-creates the BigQuery 'marts' dataset if missing.
+    dbt directory is located at the root level 'dbt/'.
     """
     client = get_bigquery_client()
     project_id = Config.GCP_PROJECT_ID
@@ -53,7 +55,10 @@ def run_in_warehouse_transformations(full_refresh: bool = False):
         with open(key_file_path, "w", encoding="utf-8") as f:
             f.write(gcp_sa_key_json)
 
-    dbt_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "dbt")
+    # Locate dbt at root level
+    base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    dbt_dir = os.path.join(base_dir, "dbt")
+
     env = os.environ.copy()
     env["GCP_PROJECT_ID"] = Config.GCP_PROJECT_ID
     env["GCP_STAGING_DATASET"] = Config.GCP_STAGING_DATASET
@@ -61,14 +66,19 @@ def run_in_warehouse_transformations(full_refresh: bool = False):
 
     dbt_bin = get_dbt_binary()
     logger.info(f"Using dbt binary at: '{dbt_bin}'")
+    logger.info(f"dbt project directory: '{dbt_dir}'")
 
     # Step 1: dbt run (compile & execute models)
     run_cmd = [dbt_bin, "run", "--project-dir", dbt_dir, "--profiles-dir", dbt_dir]
     if full_refresh:
-        logger.info("Executing dbt-bigquery transformations with FULL-REFRESH (Backfill mode)...")
+        logger.info("Executing dbt-bigquery transformations with FULL-REFRESH...")
         run_cmd.append("--full-refresh")
     else:
         logger.info("Executing dbt-bigquery incremental merge transformations (dbt run)...")
+
+    if select_models:
+        logger.info(f"Targeting dbt models: --select {select_models}")
+        run_cmd.extend(["--select", select_models])
 
     run_result = subprocess.run(run_cmd, env=env, capture_output=True, text=True, shell=(os.name == 'nt'))
 
@@ -82,6 +92,9 @@ def run_in_warehouse_transformations(full_refresh: bool = False):
     # Step 2: dbt test (automated data quality verification)
     logger.info("Executing dbt Data Quality Tests (dbt test)...")
     test_cmd = [dbt_bin, "test", "--project-dir", dbt_dir, "--profiles-dir", dbt_dir]
+    if select_models:
+        test_cmd.extend(["--select", select_models])
+
     test_result = subprocess.run(test_cmd, env=env, capture_output=True, text=True, shell=(os.name == 'nt'))
 
     if test_result.returncode != 0:
