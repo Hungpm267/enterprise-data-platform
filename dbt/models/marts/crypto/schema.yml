@@ -1,0 +1,56 @@
+version: 2
+
+models:
+  - name: dim_crypto_coins
+    description: "Dimension table containing cryptocurrency catalog attributes and historical extremes (ATH/ATL)"
+    columns:
+      - name: coin_id
+        description: "Primary key identifier of coin"
+        tests:
+          - not_null
+          - unique
+      - name: symbol
+        description: "Coin symbol"
+        tests:
+          - not_null
+      - name: name
+        description: "Coin display name"
+        tests:
+          - not_null
+
+  - name: fct_crypto_market_metrics
+    description: "Incremental Fact table tracking cryptocurrency price, market cap, and volume metrics"
+    columns:
+      - name: metric_id
+        description: "Unique surrogate key hash of coin_id and timestamp"
+        tests:
+          - not_null
+          - unique
+      - name: coin_id
+        description: "Foreign key reference to dim_crypto_coins"
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_crypto_coins')
+                field: coin_id
+      - name: current_price_usd
+        description: "Price in USD"
+        tests:
+          - not_null
+      - name: market_cap_usd
+        description: "Market capitalization in USD"
+        tests:
+          - not_null
+
+  - name: wide_crypto_analytics
+    description: "One Big Table (OBT) analytical view joining crypto facts and dimensions for Looker Studio / Power BI"
+    columns:
+      - name: metric_id
+        description: "Metric identifier"
+        tests:
+          - not_null
+      - name: coin_id
+        description: "Coin identifier"
+        tests:
+          - not_null

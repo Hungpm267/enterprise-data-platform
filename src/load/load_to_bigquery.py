@@ -1,18 +1,22 @@
 from typing import List, Optional
 from google.cloud import bigquery
 from google.cloud.exceptions import NotFound
-from src.utils.gcp_client import get_bigquery_client
+from src.utils.gcp_client import get_bigquery_client, get_storage_client
 from src.utils.config import Config
 from src.utils.logger import logger
 from connectors._base.schemas import RunMode
 
 TABLE_MAPPING = {
+    # Postgres E-Commerce Source Tables
     "raw_customers.parquet": ("stg_raw_customers", "customer_id"),
     "raw_orders.parquet": ("stg_raw_orders", "order_id"),
     "raw_order_items.parquet": ("stg_raw_order_items", "order_item_id"),
     "raw_payments.parquet": ("stg_raw_payments", "payment_id"),
     "raw_products.parquet": ("stg_raw_products", "product_id"),
     "raw_reviews.parquet": ("stg_raw_reviews", "review_id"),
+    # Crypto Market REST API Source Tables
+    "crypto_market_coins.parquet": ("stg_raw_crypto_market_coins", "coin_id"),
+    "crypto_global_market.parquet": ("stg_raw_crypto_global_market", "snapshot_id"),
 }
 
 def get_cast_expr(col_name: str, field_type: str) -> str:
@@ -58,9 +62,20 @@ def load_gcs_to_bigquery_staging(
         client.create_dataset(dataset)
         logger.info(f"Created BigQuery dataset '{staging_dataset_id}' successfully.")
 
+    gcs_storage_client = get_storage_client()
+    bucket = gcs_storage_client.bucket(bucket_name)
+    existing_gcs_files = {
+        blob.name.replace("landing/", "")
+        for blob in bucket.list_blobs(prefix="landing/")
+        if blob.name.endswith(".parquet")
+    }
+
     loaded_tables = []
 
     for parquet_file, (target_table, primary_key) in TABLE_MAPPING.items():
+        if parquet_file not in existing_gcs_files:
+            continue
+
         gcs_uri = f"gs://{bucket_name}/landing/{parquet_file}"
         target_table_ref = dataset_ref.table(target_table)
 

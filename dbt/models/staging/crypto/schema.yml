@@ -1,0 +1,37 @@
+version: 2
+
+sources:
+  - name: staging
+    dataset: staging
+    tables:
+      - name: stg_raw_crypto_market_coins
+        description: "Raw CoinGecko Top 100 Cryptocurrencies market data landing table"
+      - name: stg_raw_crypto_global_market
+        description: "Raw CoinGecko Global Crypto market metrics landing table"
+
+models:
+  - name: stg_crypto_market_coins
+    description: "Cleaned and typed Top 100 Cryptocurrencies market data"
+    columns:
+      - name: coin_id
+        description: "Primary key identifier of cryptocurrency (e.g. bitcoin, ethereum)"
+        tests:
+          - not_null
+          - unique
+      - name: symbol
+        description: "Ticker symbol of cryptocurrency (e.g. BTC, ETH)"
+        tests:
+          - not_null
+      - name: current_price_usd
+        description: "Current price in USD"
+        tests:
+          - not_null
+
+  - name: stg_crypto_global_market
+    description: "Cleaned and typed Global Crypto market overview snapshot"
+    columns:
+      - name: snapshot_id
+        description: "Snapshot unique identifier"
+        tests:
+          - not_null
+          - unique

@@ -9,6 +9,7 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from prefect import task, flow
 from connectors._base.schemas import RunArgs, RunMode
 from connectors.postgres_db.connector import PostgresConnector
+from connectors.crypto_api.connector import CryptoConnector
 from src.load.load_to_gcs import upload_landing_to_gcs
 from src.load.load_to_bigquery import load_gcs_to_bigquery_staging
 from src.transform.run_transform import run_in_warehouse_transformations
@@ -19,6 +20,8 @@ from src.utils.logger import logger
 AVAILABLE_CONNECTORS = {
     "postgres_db": PostgresConnector(),
     "postgres": PostgresConnector(),
+    "crypto_api": CryptoConnector(),
+    "crypto": CryptoConnector(),
 }
 
 @task(name="1. Connector Extract Step", retries=2, retry_delay_seconds=10)
@@ -139,7 +142,7 @@ def run_elt_pipeline(
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Enterprise Data Platform Master Orchestrator")
-    parser.add_argument("--connector", type=str, default="postgres_db", help="Target connector name (default: postgres_db)")
+    parser.add_argument("--connector", type=str, default="postgres_db", help="Target connector name (default: postgres_db, crypto_api)")
     parser.add_argument("--start-date", type=str, default=None, help="Start date for backfill (YYYY-MM-DD or YYYY-MM-DD HH:MM:SS)")
     parser.add_argument("--end-date", type=str, default=None, help="End date for backfill (YYYY-MM-DD or YYYY-MM-DD HH:MM:SS)")
     parser.add_argument("--full-refresh", action="store_true", help="Force full-refresh rebuild of incremental models")
