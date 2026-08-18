@@ -9,6 +9,7 @@ from requests.adapters import HTTPAdapter
 from urllib3.util import Retry
 from src.utils.config import Config
 from src.utils.logger import logger
+from src.utils.timezone import get_vietnam_now
 from connectors._base.schemas import RunArgs
 
 COINGECKO_BASE_URL = "https://api.coingecko.com/api/v3"
@@ -55,7 +56,7 @@ def fetch_top_crypto_markets(api_key: Optional[str] = None) -> pd.DataFrame:
     logger.info(f"Successfully received {len(data)} coin records from CoinGecko API.")
     
     records = []
-    current_time = datetime.utcnow()
+    current_time = get_vietnam_now()
     
     for item in data:
         roi = item.get("roi")
@@ -115,7 +116,7 @@ def fetch_global_crypto_market(api_key: Optional[str] = None) -> pd.DataFrame:
     response.raise_for_status()
     
     data = response.json().get("data", {})
-    current_time = datetime.utcnow()
+    current_time = get_vietnam_now()
     
     total_market_cap_usd = float(data.get("total_market_cap", {}).get("usd", 0.0))
     total_volume_usd = float(data.get("total_volume", {}).get("usd", 0.0))

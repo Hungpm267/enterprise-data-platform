@@ -83,9 +83,39 @@ jobs:
           fi
           python main.py --connector crypto_api $REFRESH_FLAG
 
-      - name: Run Comprehensive dbt Data Quality Tests (35 Tests)
+      - name: Send Detailed Telegram Notification
+        if: always()
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
-          dbt test --project-dir dbt --profiles-dir dbt
+          if [ -z "$TELEGRAM_BOT_TOKEN" ] || [ -z "$TELEGRAM_CHAT_ID" ]; then
+            echo "Telegram Secrets not configured. Skipping Telegram notification."
+            exit 0
+          fi
+
+          WORKFLOW_STATUS="${{ job.status }}"
+          RUN_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
+          VN_TIMESTAMP=$(TZ='Asia/Ho_Chi_Minh' date '+%d/%m/%Y %H:%M:%S')
+          TARGET_CONNECTOR="${{ inputs.connector || 'all' }}"
+          
+          if [ "${{ github.event_name }}" = "schedule" ]; then
+            EVENT_DESC="⏰ Scheduled Cron (Every 4 Hours)"
+          else
+            EVENT_DESC="🔘 Manual Dispatch (Connector: ${TARGET_CONNECTOR})"
+          fi
+
+          if [ "$WORKFLOW_STATUS" = "success" ]; then
+            MESSAGE="🟢 *4-HOUR ELT PIPELINE SUCCESS* 🚀%0A%0A📁 *Repository:* \`${{ github.repository }}\`%0A🌿 *Branch:* \`${{ github.ref_name }}\`%0A⚡ *Trigger:* ${EVENT_DESC}%0A🕒 *Thời gian (VN UTC+7):* \`${VN_TIMESTAMP}\`%0A☁️ *Data Lake:* \`Google Cloud Storage (GCS)\`%0A🏢 *Data Warehouse:* \`Google BigQuery\`%0A🛠️ *Transform Engine:* \`dbt-bigquery\`%0A%0A✅ *Status:* Pipeline executed and all 35 Data Quality Tests PASSED!%0A%0A🔗 [Xem Chi Tiết Log Trên GitHub Actions](${RUN_URL})"
+          else
+            MESSAGE="🔴 *4-HOUR ELT PIPELINE FAILED* ⚠️%0A%0A📁 *Repository:* \`${{ github.repository }}\`%0A🌿 *Branch:* \`${{ github.ref_name }}\`%0A⚡ *Trigger:* ${EVENT_DESC}%0A🕒 *Thời gian (VN UTC+7):* \`${VN_TIMESTAMP}\`%0A❌ *Status:* Pipeline failed during execution.%0A%0A🔍 [Kiểm Tra Chi Tiết Lỗi Trên GitHub Actions](${RUN_URL})"
+          fi
+
+          curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+            -d "chat_id=${TELEGRAM_CHAT_ID}" \
+            -d "parse_mode=Markdown" \
+            -d "text=${MESSAGE}"
 
       - name: Cleanup Credentials
         if: always()

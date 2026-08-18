@@ -4,6 +4,7 @@ from google.cloud import bigquery
 from src.utils.gcp_client import get_bigquery_client
 from src.utils.config import Config
 from src.utils.logger import logger
+from src.utils.timezone import get_vietnam_now_str
 
 class StateManager:
     """
@@ -72,7 +73,7 @@ class StateManager:
         Persists the newly achieved watermark timestamp idempotently in BigQuery.
         """
         formatted_sync_time = sync_timestamp.strftime("%Y-%m-%d %H:%M:%S")
-        formatted_now = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+        formatted_now = get_vietnam_now_str()
 
         merge_query = f"""
         MERGE `{self.table_id}` T

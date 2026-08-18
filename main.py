@@ -15,6 +15,7 @@ from src.load.load_to_bigquery import load_gcs_to_bigquery_staging
 from src.transform.run_transform import run_in_warehouse_transformations
 from src.utils.state_manager import StateManager
 from src.utils.logger import logger
+from src.utils.timezone import get_vietnam_now, get_vietnam_now_str
 
 # Active Connectors Registry
 AVAILABLE_CONNECTORS = {
@@ -91,9 +92,9 @@ def run_elt_pipeline(
 ):
     mode = RunMode.FULL_REFRESH if full_refresh else RunMode.INCREMENTAL
     is_backfill = bool(start_date or end_date)
-    sync_time = datetime.utcnow()
+    sync_time = get_vietnam_now()
 
-    # Automated Watermark State Lookup
+    # Automated Watermark State Lookup (Vietnam Time UTC+7)
     state_mgr = StateManager()
     if mode == RunMode.INCREMENTAL and not is_backfill:
         watermark = state_mgr.get_watermark(connector_name)

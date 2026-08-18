@@ -76,6 +76,7 @@ jobs:
           RUN_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
           TRIGGER_EVENT="${{ github.event_name }}"
+          VN_TIMESTAMP=$(TZ='Asia/Ho_Chi_Minh' date '+%d/%m/%Y %H:%M:%S')
           
           if [ "$TRIGGER_EVENT" = "schedule" ]; then
             EVENT_DESC="⏰ Scheduled Cron (Every 2 Hours)"
@@ -86,9 +87,9 @@ jobs:
           fi
 
           if [ "$WORKFLOW_STATUS" = "success" ]; then
-            MESSAGE="🟢 *ENTERPRISE DATA PLATFORM ELT SUCCESS* 🚀%0A%0A📁 *Repository:* \`${{ github.repository }}\`%0A🌿 *Branch:* \`${{ github.ref_name }}\`%0A⚡ *Trigger:* ${EVENT_DESC}%0A☁️ *Data Lake:* \`Google Cloud Storage (GCS)\`%0A🏢 *Data Warehouse:* \`Google BigQuery\`%0A🛠️ *Transform Engine:* \`dbt-bigquery\`%0A%0A📋 *Pipeline Execution Summary:*%0A1. *Extract:* 6 raw tables extracted from Postgres to Parquet.%0A2. *Load GCS:* Parquet files uploaded to GCS Data Lake.%0A3. *Load BigQuery:* Bulk loaded Parquet from GCS into BigQuery staging tables.%0A4. *dbt Transform:* Executed dbt-bigquery incremental merge models.%0A5. *dbt Test:* All 17 automated data quality tests PASSED (100%25).%0A%0A✅ *Result:* Staging and Data Marts successfully synchronized.%0A%0A🔗 [View Detailed Execution Logs on GitHub Actions](${RUN_URL})"
+            MESSAGE="🟢 *ENTERPRISE DATA PLATFORM ELT SUCCESS* 🚀%0A%0A📁 *Repository:* \`${{ github.repository }}\`%0A🌿 *Branch:* \`${{ github.ref_name }}\`%0A⚡ *Trigger:* ${EVENT_DESC}%0A🕒 *Thời gian (VN UTC+7):* \`${VN_TIMESTAMP}\`%0A☁️ *Data Lake:* \`Google Cloud Storage (GCS)\`%0A🏢 *Data Warehouse:* \`Google BigQuery\`%0A🛠️ *Transform Engine:* \`dbt-bigquery\`%0A%0A📋 *Pipeline Execution Summary:*%0A1. *Postgres DB:* Extracted OLTP tables & merged to Staging.%0A2. *Crypto API:* Ingested CoinGecko Top 100 & Global market.%0A3. *GCS Lake:* Namespaced Parquet landing zone.%0A4. *dbt Transform:* Incremental merge to Marts dataset.%0A5. *Data Quality:* All 35 tests PASSED (100%25).%0A%0A✅ *Result:* Staging and Data Marts successfully synchronized.%0A%0A🔗 [Xem Chi Tiết Log Trên GitHub Actions](${RUN_URL})"
           else
-            MESSAGE="🔴 *ENTERPRISE DATA PLATFORM ELT FAILED* ⚠️%0A%0A📁 *Repository:* \`${{ github.repository }}\`%0A🌿 *Branch:* \`${{ github.ref_name }}\`%0A⚡ *Trigger:* ${EVENT_DESC}%0A☁️ *Data Lake:* \`Google Cloud Storage (GCS)\`%0A🏢 *Data Warehouse:* \`Google BigQuery\`%0A%0A❌ *Result:* Pipeline encountered an error during execution.%0A%0A🔍 [Inspect Error Logs on GitHub Actions](${RUN_URL})"
+            MESSAGE="🔴 *ENTERPRISE DATA PLATFORM ELT FAILED* ⚠️%0A%0A📁 *Repository:* \`${{ github.repository }}\`%0A🌿 *Branch:* \`${{ github.ref_name }}\`%0A⚡ *Trigger:* ${EVENT_DESC}%0A🕒 *Thời gian (VN UTC+7):* \`${VN_TIMESTAMP}\`%0A☁️ *Data Lake:* \`Google Cloud Storage (GCS)\`%0A🏢 *Data Warehouse:* \`Google BigQuery\`%0A%0A❌ *Result:* Pipeline encountered an error during execution.%0A%0A🔍 [Kiểm Tra Chi Tiết Lỗi Trên GitHub Actions](${RUN_URL})"
           fi
 
           curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
