@@ -55,7 +55,8 @@ def upload_landing_to_gcs(
                         conn_sub = "crypto_api" if f.startswith("crypto_") else "postgres_db"
                         blob_path = f"landing/{conn_sub}/{f}"
                     else:
-                        blob_path = f"landing/{rel_dir.replace('\\', '/')}/{f}"
+                        clean_rel_dir = rel_dir.replace("\\", "/")
+                        blob_path = f"landing/{clean_rel_dir}/{f}"
                     files_to_upload.append((full_path, blob_path))
 
     if not files_to_upload:
