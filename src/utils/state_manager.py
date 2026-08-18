@@ -14,6 +14,7 @@ class StateManager:
         self.client = get_bigquery_client()
         self.project_id = Config.GCP_PROJECT_ID
         self.dataset_id = Config.GCP_STAGING_DATASET
+        self.location = "asia-southeast1"
         self.table_id = f"{self.project_id}.{self.dataset_id}._pipeline_state"
         self._ensure_state_table()
 
@@ -48,7 +49,7 @@ class StateManager:
             ]
         )
         try:
-            query_job = self.client.query(query, job_config=job_config)
+            query_job = self.client.query(query, job_config=job_config, location=self.location)
             results = list(query_job.result())
             if results and results[0].last_sync_timestamp:
                 watermark = results[0].last_sync_timestamp
@@ -104,7 +105,7 @@ class StateManager:
             ]
         )
         try:
-            query_job = self.client.query(merge_query, job_config=job_config)
+            query_job = self.client.query(merge_query, job_config=job_config, location=self.location)
             query_job.result()
             logger.info(f"Watermark successfully committed for '{connector_name}': {formatted_sync_time}")
         except Exception as e:
@@ -124,7 +125,7 @@ class StateManager:
             ]
         )
         try:
-            query_job = self.client.query(delete_query, job_config=job_config)
+            query_job = self.client.query(delete_query, job_config=job_config, location=self.location)
             query_job.result()
             logger.info(f"Watermark reset for connector '{connector_name}'.")
         except Exception as e:

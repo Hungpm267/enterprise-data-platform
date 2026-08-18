@@ -1,3 +1,11 @@
+{{
+    config(
+        materialized='view',
+        schema='staging',
+        tags=['crypto']
+    )
+}}
+
 SELECT
     coin_id,
     symbol,

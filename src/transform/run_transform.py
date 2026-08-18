@@ -26,6 +26,7 @@ def get_dbt_binary():
 
 def run_in_warehouse_transformations(
     full_refresh: bool = False,
+    connector_name: Optional[str] = None,
     select_models: Optional[str] = None,
     start_date: Optional[str] = None,
     end_date: Optional[str] = None
@@ -33,7 +34,7 @@ def run_in_warehouse_transformations(
     """
     Runs in-warehouse SQL transformations using dbt-bigquery against BigQuery DW,
     followed by automated Data Quality testing with dbt test.
-    Supports passing start_date/end_date as dbt vars for historical backfills.
+    Supports scoping dbt executions per connector via dbt tags.
     """
     client = get_bigquery_client()
     project_id = Config.GCP_PROJECT_ID
@@ -70,6 +71,14 @@ def run_in_warehouse_transformations(
     logger.info(f"Using dbt binary at: '{dbt_bin}'")
     logger.info(f"dbt project directory: '{dbt_dir}'")
 
+    # Determine selector
+    target_selector = select_models
+    if not target_selector and connector_name:
+        if "crypto" in connector_name:
+            target_selector = "tag:crypto"
+        elif "postgres" in connector_name:
+            target_selector = "tag:postgres"
+
     # Step 1: dbt run (compile & execute models)
     run_cmd = [dbt_bin, "run", "--project-dir", dbt_dir, "--profiles-dir", dbt_dir]
     if full_refresh:
@@ -78,9 +87,9 @@ def run_in_warehouse_transformations(
     else:
         logger.info("Executing dbt-bigquery incremental merge transformations (dbt run)...")
 
-    if select_models:
-        logger.info(f"Targeting dbt models: --select {select_models}")
-        run_cmd.extend(["--select", select_models])
+    if target_selector:
+        logger.info(f"Targeting dbt models: --select {target_selector}")
+        run_cmd.extend(["--select", target_selector])
 
     # Pass date vars if backfill
     dbt_vars = {}
@@ -105,8 +114,8 @@ def run_in_warehouse_transformations(
     # Step 2: dbt test (automated data quality verification)
     logger.info("Executing dbt Data Quality Tests (dbt test)...")
     test_cmd = [dbt_bin, "test", "--project-dir", dbt_dir, "--profiles-dir", dbt_dir]
-    if select_models:
-        test_cmd.extend(["--select", select_models])
+    if target_selector:
+        test_cmd.extend(["--select", target_selector])
 
     test_result = subprocess.run(test_cmd, env=env, capture_output=True, text=True, shell=(os.name == 'nt'))
 

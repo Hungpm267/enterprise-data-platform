@@ -1,3 +1,11 @@
+{{
+    config(
+        materialized='view',
+        schema='staging',
+        tags=['crypto']
+    )
+}}
+
 SELECT
     snapshot_id,
     SAFE_CAST(active_cryptocurrencies AS INT64) AS active_cryptocurrencies,

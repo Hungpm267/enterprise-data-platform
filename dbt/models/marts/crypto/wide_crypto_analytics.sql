@@ -1,6 +1,8 @@
 {{
     config(
-        materialized='view'
+        materialized='view',
+        schema='marts',
+        tags=['crypto']
     )
 }}
 

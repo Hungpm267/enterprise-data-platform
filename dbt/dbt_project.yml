@@ -1,4 +1,4 @@
-﻿name: 'enterprise_data_platform'
+name: 'enterprise_data_platform'
 version: '1.0.0'
 config-version: 2
 
@@ -14,5 +14,14 @@ clean-targets:
 
 models:
   enterprise_data_platform:
+    +tags: ["postgres"]
+    staging:
+      +schema: staging
+      +materialized: view
+      crypto:
+        +tags: ["crypto"]
     marts:
+      +schema: marts
       +materialized: table
+      crypto:
+        +tags: ["crypto"]

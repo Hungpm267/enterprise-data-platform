@@ -18,8 +18,9 @@ TABLES_LIST = [
 ]
 
 def clear_landing_zone():
-    if os.path.exists(Config.LANDING_DIR):
-        files = glob.glob(os.path.join(Config.LANDING_DIR, "*.parquet"))
+    pg_landing = os.path.join(Config.LANDING_DIR, "postgres_db")
+    if os.path.exists(pg_landing):
+        files = glob.glob(os.path.join(pg_landing, "*.parquet"))
         for f in files:
             try:
                 os.remove(f)
@@ -35,6 +36,7 @@ def extract_single_table(
     """
     Extracts a single table from PostgreSQL using secure parameterized queries.
     Uses pd.read_sql_query to preserve exact schema datatypes even on empty delta batches.
+    Saves to namespaced landing path: data/landing/postgres_db/{table_name}.parquet
     """
     connector = PostgresConnector()
     engine = connector.get_engine()
@@ -67,9 +69,10 @@ def extract_single_table(
 
     logger.info(f"Extracted {len(df)} rows from table '{table_name}'.")
 
-    os.makedirs(Config.LANDING_DIR, exist_ok=True)
+    target_dir = os.path.join(Config.LANDING_DIR, "postgres_db")
+    os.makedirs(target_dir, exist_ok=True)
     filename = f"{table_name}.parquet"
-    file_path = os.path.join(Config.LANDING_DIR, filename)
+    file_path = os.path.join(target_dir, filename)
     df.to_parquet(file_path, index=False)
     logger.info(f"Saved: {file_path}")
     

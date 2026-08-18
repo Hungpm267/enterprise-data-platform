@@ -144,14 +144,15 @@ def fetch_global_crypto_market(api_key: Optional[str] = None) -> pd.DataFrame:
 
 def extract_crypto_tables(args: RunArgs) -> List[str]:
     api_key = os.getenv("COINGECKO_API_KEY")
-    os.makedirs(Config.LANDING_DIR, exist_ok=True)
+    target_dir = os.path.join(Config.LANDING_DIR, "crypto_api")
+    os.makedirs(target_dir, exist_ok=True)
     
     extracted_files = []
     
     # 1. Extract Top 100 Coins Market Data
     try:
         df_coins = fetch_top_crypto_markets(api_key=api_key)
-        coins_path = os.path.join(Config.LANDING_DIR, "crypto_market_coins.parquet")
+        coins_path = os.path.join(target_dir, "crypto_market_coins.parquet")
         df_coins.to_parquet(coins_path, index=False)
         logger.info(f"Saved: {coins_path} ({len(df_coins)} rows)")
         extracted_files.append(coins_path)
@@ -165,7 +166,7 @@ def extract_crypto_tables(args: RunArgs) -> List[str]:
     # 2. Extract Global Market Snapshot
     try:
         df_global = fetch_global_crypto_market(api_key=api_key)
-        global_path = os.path.join(Config.LANDING_DIR, "crypto_global_market.parquet")
+        global_path = os.path.join(target_dir, "crypto_global_market.parquet")
         df_global.to_parquet(global_path, index=False)
         logger.info(f"Saved: {global_path} ({len(df_global)} rows)")
         extracted_files.append(global_path)

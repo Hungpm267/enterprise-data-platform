@@ -1,6 +1,8 @@
 {{
     config(
         materialized='table',
+        schema='marts',
+        tags=['crypto'],
         cluster_by=["symbol", "coin_id"]
     )
 }}
