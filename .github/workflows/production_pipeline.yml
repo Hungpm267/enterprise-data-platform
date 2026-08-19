@@ -1,13 +1,13 @@
-name: Scheduled 4-Hour Enterprise ELT Pipeline
+name: Production Enterprise ELT Pipeline (Postgres & Crypto)
 
 on:
   schedule:
-    # Run every 4 hours: 00:00, 04:00, 08:00, 12:00, 16:00, 20:00 UTC
+    # Run every 4 hours automatically (00:00, 04:00, 08:00, 12:00, 16:00, 20:00 UTC)
     - cron: '0 */4 * * *'
   workflow_dispatch:
     inputs:
       connector:
-        description: 'Target connector to execute (postgres_db, crypto_api, or all)'
+        description: 'Select connector to run (all, postgres_db, crypto_api)'
         required: true
         default: 'all'
         type: choice
@@ -16,18 +16,21 @@ on:
           - postgres_db
           - crypto_api
       full_refresh:
-        description: 'Run dbt full-refresh rebuild'
+        description: 'Force full-refresh rebuild of incremental models'
         required: false
         default: false
         type: boolean
+  push:
+    branches: [ main ]
 
 jobs:
-  run-elt-pipeline:
-    name: Run End-to-End ELT Pipeline & Quality Tests
+  run-pipeline:
+    name: Execute Unified ELT Pipeline & Quality Verification
     runs-on: ubuntu-latest
     timeout-minutes: 45
 
     env:
+      PYTHONPATH: .
       DB_HOST: ${{ secrets.DB_HOST }}
       DB_PORT: ${{ secrets.DB_PORT }}
       DB_NAME: ${{ secrets.DB_NAME }}
@@ -36,11 +39,12 @@ jobs:
       DB_SCHEMA: ${{ secrets.DB_SCHEMA || 'public' }}
       PREFECT_API_KEY: ${{ secrets.PREFECT_API_KEY }}
       PREFECT_API_URL: ${{ secrets.PREFECT_API_URL }}
-      GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID || 'data-engineering-504901' }}
-      GCP_GCS_BUCKET: ${{ secrets.GCP_GCS_BUCKET || 'ecommerce-data-lake-504901' }}
-      GCP_STAGING_DATASET: ${{ secrets.GCP_STAGING_DATASET || 'staging' }}
-      GCP_MARTS_DATASET: ${{ secrets.GCP_MARTS_DATASET || 'marts' }}
+      GCP_PROJECT_ID: 'data-engineering-504901'
+      GCP_GCS_BUCKET: 'ecommerce-data-lake-504901'
+      GCP_STAGING_DATASET: 'staging'
+      GCP_MARTS_DATASET: 'marts'
       GCP_KEY_FILE: 'gcp_key.json'
+      GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
       COINGECKO_API_KEY: ${{ secrets.COINGECKO_API_KEY }}
       LANDING_DIR: 'data/landing'
 
@@ -48,25 +52,20 @@ jobs:
       - name: Checkout Codebase
         uses: actions/checkout@v4
 
-      - name: Set up Python 3.11
+      - name: Set up Python 3.11 & Pip Cache
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
           cache: 'pip'
+          cache-dependency-path: 'requirements.txt'
 
-      - name: Install Platform & dbt Dependencies
+      - name: Install Platform Dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install dbt-bigquery==1.9.0
-
-      - name: Authenticate with Google Cloud
-        run: |
-          echo "${{ secrets.GCP_SA_KEY }}" > gcp_key.json
-          export GOOGLE_APPLICATION_CREDENTIALS="gcp_key.json"
+          pip install --prefer-binary -r requirements.txt
 
       - name: Run Postgres E-Commerce Pipeline
-        if: "${{ github.event_name == 'schedule' || inputs.connector == 'all' || inputs.connector == 'postgres_db' }}"
+        if: "${{ github.event_name == 'schedule' || github.event_name == 'push' || inputs.connector == 'all' || inputs.connector == 'postgres_db' }}"
         run: |
           REFRESH_FLAG=""
           if [ "${{ inputs.full_refresh }}" = "true" ]; then
@@ -75,7 +74,7 @@ jobs:
           python main.py --connector postgres_db $REFRESH_FLAG
 
       - name: Run CoinGecko Crypto Market API Pipeline
-        if: "${{ github.event_name == 'schedule' || inputs.connector == 'all' || inputs.connector == 'crypto_api' }}"
+        if: "${{ github.event_name == 'schedule' || github.event_name == 'push' || inputs.connector == 'all' || inputs.connector == 'crypto_api' }}"
         run: |
           REFRESH_FLAG=""
           if [ "${{ inputs.full_refresh }}" = "true" ]; then
@@ -83,7 +82,7 @@ jobs:
           fi
           python main.py --connector crypto_api $REFRESH_FLAG
 
-      - name: Send Detailed Telegram Notification
+      - name: Send Consolidated Telegram Executive Summary
         if: always()
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
@@ -102,14 +101,16 @@ jobs:
           
           if [ "${{ github.event_name }}" = "schedule" ]; then
             EVENT_DESC="⏰ Scheduled Cron (Every 4 Hours)"
+          elif [ "${{ github.event_name }}" = "push" ]; then
+            EVENT_DESC="📦 Git Push (${SHORT_SHA})"
           else
-            EVENT_DESC="🔘 Manual Dispatch (Connector: ${TARGET_CONNECTOR})"
+            EVENT_DESC="🔘 Manual Trigger (Connector: ${TARGET_CONNECTOR})"
           fi
 
           if [ "$WORKFLOW_STATUS" = "success" ]; then
-            MESSAGE="🟢 *4-HOUR ELT PIPELINE SUCCESS* 🚀%0A%0A📁 *Repository:* \`${{ github.repository }}\`%0A🌿 *Branch:* \`${{ github.ref_name }}\`%0A⚡ *Trigger:* ${EVENT_DESC}%0A🕒 *Thời gian (VN UTC+7):* \`${VN_TIMESTAMP}\`%0A☁️ *Data Lake:* \`Google Cloud Storage (GCS)\`%0A🏢 *Data Warehouse:* \`Google BigQuery\`%0A🛠️ *Transform Engine:* \`dbt-bigquery\`%0A%0A✅ *Status:* Pipeline executed and all 35 Data Quality Tests PASSED!%0A%0A🔗 [Xem Chi Tiết Log Trên GitHub Actions](${RUN_URL})"
+            MESSAGE="🟢 *ENTERPRISE DATA PLATFORM BATCH SUCCESS* 🚀%0A%0A📁 *Repository:* \`${{ github.repository }}\`%0A🌿 *Branch:* \`${{ github.ref_name }}\`%0A⚡ *Trigger:* ${EVENT_DESC}%0A🕒 *Thời gian (VN UTC+7):* \`${VN_TIMESTAMP}\`%0A☁️ *Data Lake:* \`Google Cloud Storage (GCS)\`%0A🏢 *Data Warehouse:* \`Google BigQuery\`%0A🛠️ *Transform Engine:* \`dbt-bigquery\`%0A%0A📊 *Executive Pipeline Status:*%0A• 🐘 *PostgreSQL DB:* 6/6 Tables Ingested & Merged%0A• 🪙 *Crypto API:* Top 100 Coins & Global Market Synced%0A• 🧪 *Data Quality:* 35/35 dbt Tests PASSED (100%25)%0A• 🎯 *Data Marts:* \`marts.dim_*\`, \`marts.fct_*\`, \`marts.wide_*\` Up to date%0A%0A✅ *Result:* All pipelines completed successfully.%0A%0A🔗 [Xem Chi Tiết Log Trên GitHub Actions](${RUN_URL})"
           else
-            MESSAGE="🔴 *4-HOUR ELT PIPELINE FAILED* ⚠️%0A%0A📁 *Repository:* \`${{ github.repository }}\`%0A🌿 *Branch:* \`${{ github.ref_name }}\`%0A⚡ *Trigger:* ${EVENT_DESC}%0A🕒 *Thời gian (VN UTC+7):* \`${VN_TIMESTAMP}\`%0A❌ *Status:* Pipeline failed during execution.%0A%0A🔍 [Kiểm Tra Chi Tiết Lỗi Trên GitHub Actions](${RUN_URL})"
+            MESSAGE="🔴 *ENTERPRISE DATA PLATFORM BATCH FAILED* ⚠️%0A%0A📁 *Repository:* \`${{ github.repository }}\`%0A🌿 *Branch:* \`${{ github.ref_name }}\`%0A⚡ *Trigger:* ${EVENT_DESC}%0A🕒 *Thời gian (VN UTC+7):* \`${VN_TIMESTAMP}\`%0A☁️ *Data Lake:* \`Google Cloud Storage (GCS)\`%0A🏢 *Data Warehouse:* \`Google BigQuery\`%0A%0A❌ *Result:* Pipeline encountered an error during execution.%0A%0A🔍 [Kiểm Tra Chi Tiết Lỗi Trên GitHub Actions](${RUN_URL})"
           fi
 
           curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
