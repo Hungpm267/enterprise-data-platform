@@ -29,7 +29,7 @@ def build_telegram_report(workflow_status: str) -> str:
     event_name = os.getenv("GITHUB_EVENT_NAME", "manual")
 
     if event_name == "schedule":
-        trigger_desc = "Scheduled Cron (Every 4 Hours)"
+        trigger_desc = "Scheduled Cron (Every 6 Hours)"
     elif event_name == "push":
         trigger_desc = f"Git Push [{sha}]"
     else:

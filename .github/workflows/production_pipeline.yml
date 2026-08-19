@@ -2,8 +2,8 @@ name: Production Enterprise ELT Pipeline (Postgres & Crypto)
 
 on:
   schedule:
-    # Run every 4 hours automatically (00:00, 04:00, 08:00, 12:00, 16:00, 20:00 UTC)
-    - cron: '0 */4 * * *'
+    # Run every 6 hours automatically (00:00, 06:00, 12:00, 18:00 UTC)
+    - cron: '0 */6 * * *'
   workflow_dispatch:
     inputs:
       connector:

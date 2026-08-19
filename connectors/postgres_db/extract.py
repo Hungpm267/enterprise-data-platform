@@ -78,6 +78,8 @@ def extract_single_table(
     
     return file_path
 
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
 def extract_postgres_tables(args: RunArgs) -> List[str]:
     if args.clean_landing:
         clear_landing_zone()
@@ -86,20 +88,26 @@ def extract_postgres_tables(args: RunArgs) -> List[str]:
     if args.start_date or args.end_date:
         logger.info(f"--- POSTGRES CONNECTOR: Filter Range [{args.start_date or 'BEGIN'} -> {args.end_date or 'NOW'}] ---")
 
-    logger.info(f"Starting extraction for {len(tables)} tables: {tables}")
+    logger.info(f"Starting parallel extraction for {len(tables)} tables (4 worker threads): {tables}")
     extracted_files = []
     
-    for table_name in tables:
-        try:
-            file_path = extract_single_table(
-                table_name,
-                start_date=args.start_date,
-                end_date=args.end_date
-            )
-            extracted_files.append(file_path)
-        except Exception as e:
-            logger.error(f"Error extracting table '{table_name}': {e}")
-            raise e
+    with ThreadPoolExecutor(max_workers=min(len(tables), 4)) as executor:
+        future_to_table = {
+            executor.submit(
+                extract_single_table,
+                t,
+                args.start_date,
+                args.end_date
+            ): t for t in tables
+        }
+        for future in as_completed(future_to_table):
+            tbl = future_to_table[future]
+            try:
+                file_path = future.result()
+                extracted_files.append(file_path)
+            except Exception as e:
+                logger.error(f"Error extracting table '{tbl}': {e}")
+                raise e
             
-    logger.info(f"Postgres extraction completed. {len(extracted_files)}/{len(tables)} tables extracted successfully.")
+    logger.info(f"Postgres extraction completed in parallel. {len(extracted_files)}/{len(tables)} tables extracted successfully.")
     return extracted_files

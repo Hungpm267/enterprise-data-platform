@@ -158,7 +158,7 @@ def run_elt_pipeline(
 
         logger.info("\n==================================================")
         logger.info(f"  PIPELINE FOR '{connector_name}' COMPLETED SUCCESSFULLY! ")
-        logger.info(f"  Summary: {tables_cnt} tables, {rows_count} rows in {round(duration_sec, 1)}s")
+        logger.info(f"  Summary: {tables_cnt} tables, {rows_cnt} rows in {round(duration_sec, 1)}s")
         logger.info("==================================================")
     except Exception as e:
         duration_sec = time.time() - start_exec_time

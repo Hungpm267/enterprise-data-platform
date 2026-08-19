@@ -63,16 +63,23 @@ def upload_landing_to_gcs(
         logger.warning(f"No Parquet files found in '{base_landing}' for connector '{connector_name or 'all'}'.")
         return []
 
-    uploaded_uris = []
-    logger.info(f"Found {len(files_to_upload)} parquet files for connector '{connector_name or 'all'}'. Uploading to GCS Bucket '{bucket_name}'...")
+    from concurrent.futures import ThreadPoolExecutor, as_completed
 
-    for local_path, blob_path in files_to_upload:
+    uploaded_uris = []
+    logger.info(f"Found {len(files_to_upload)} parquet files for connector '{connector_name or 'all'}'. Uploading in parallel (4 workers) to GCS Bucket '{bucket_name}'...")
+
+    def _upload_single_file(item):
+        local_path, blob_path = item
         blob = bucket.blob(blob_path)
-        logger.info(f"Uploading '{os.path.basename(local_path)}' to 'gs://{bucket_name}/{blob_path}'...")
         blob.upload_from_filename(local_path)
         gcs_uri = f"gs://{bucket_name}/{blob_path}"
-        uploaded_uris.append(gcs_uri)
-        logger.info(f"Successfully uploaded: {gcs_uri}")
+        logger.info(f"Uploaded: {gcs_uri}")
+        return gcs_uri
+
+    with ThreadPoolExecutor(max_workers=min(len(files_to_upload), 4)) as executor:
+        futures = [executor.submit(_upload_single_file, item) for item in files_to_upload]
+        for future in as_completed(futures):
+            uploaded_uris.append(future.result())
 
     logger.info(f"GCS Data Lake upload finished. {len(uploaded_uris)} files uploaded successfully.")
     return uploaded_uris
