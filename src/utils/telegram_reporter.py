@@ -1,8 +1,37 @@
 import os
 import json
 import requests
+from typing import Optional
 from src.utils.timezone import get_vietnam_now_str
 from src.utils.logger import logger
+
+def _clean_error_summary(error: Optional[str]) -> str:
+    """
+    Extracts a concise, single-line error description and sanitizes Markdown characters
+    to ensure Telegram message limits and formatting rules are never violated.
+    """
+    if not error:
+        return "❌ Gặp lỗi không xác định"
+
+    lines = [line.strip() for line in str(error).split("\n") if line.strip()]
+    
+    # Priority: Find error lines with 'ERROR', 'Exception', 'Not found', 'Failed'
+    meaningful_line = ""
+    for l in lines:
+        if any(keyword in l for keyword in ["Not found", "ERROR", "Exception", "Error:", "failed"]):
+            meaningful_line = l
+            break
+
+    if not meaningful_line and lines:
+        meaningful_line = lines[0]
+
+    # Limit length
+    if len(meaningful_line) > 160:
+        meaningful_line = meaningful_line[:157] + "..."
+
+    # Sanitize markdown characters
+    sanitized = meaningful_line.replace("_", " ").replace("*", " ").replace("`", "'")
+    return f"❌ {sanitized}"
 
 def build_telegram_report(workflow_status: str) -> str:
     vn_time = get_vietnam_now_str()
@@ -69,9 +98,9 @@ def build_telegram_report(workflow_status: str) -> str:
             "━━━━━━━━━━━━━━━━━━━━"
         )
     else:
-        # Failure Report
-        pg_status = "✅ Thành công" if pg.get("status") == "SUCCESS" else f"❌ {pg.get('error_msg', 'Failed')}"
-        crypto_status = "✅ Thành công" if crypto.get("status") == "SUCCESS" else f"❌ {crypto.get('error_msg', 'Failed')}"
+        # Failure Report with concise sanitized errors
+        pg_status = "✅ Thành công" if pg.get("status") == "SUCCESS" else _clean_error_summary(pg.get("error_msg"))
+        crypto_status = "✅ Thành công" if crypto.get("status") == "SUCCESS" else _clean_error_summary(crypto.get("error_msg"))
         
         message = (
             "━━━━━━━━━━━━━━━━━━━━\n"
@@ -96,6 +125,10 @@ def build_telegram_report(workflow_status: str) -> str:
             "━━━━━━━━━━━━━━━━━━━━"
         )
 
+    # Hard truncate to prevent any 4096-character limit overflow
+    if len(message) > 3500:
+        message = message[:3450] + "\n...\n━━━━━━━━━━━━━━━━━━━━"
+
     return message
 
 def send_telegram_notification(workflow_status: str = "success"):
@@ -118,6 +151,15 @@ def send_telegram_notification(workflow_status: str = "success"):
         res = requests.post(url, json=payload, timeout=15)
         if res.status_code == 200:
             logger.info("Telegram report sent successfully!")
+        elif res.status_code == 400:
+            # Fallback to plain text if Markdown parsing failed
+            logger.warning(f"Markdown parse error, retrying with plain text: {res.text}")
+            payload.pop("parse_mode", None)
+            res_retry = requests.post(url, json=payload, timeout=15)
+            if res_retry.status_code == 200:
+                logger.info("Telegram report sent successfully (plain text fallback)!")
+            else:
+                logger.error(f"Telegram plain text fallback failed: {res_retry.text}")
         else:
             logger.warning(f"Telegram send failed with status {res.status_code}: {res.text}")
     except Exception as e:
