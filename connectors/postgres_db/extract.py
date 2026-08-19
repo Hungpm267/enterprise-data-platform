@@ -29,6 +29,7 @@ def clear_landing_zone():
                 logger.warning(f"Could not remove {f}: {e}")
 
 def extract_single_table(
+    engine,
     table_name: str,
     start_date: Optional[str] = None,
     end_date: Optional[str] = None
@@ -38,9 +39,6 @@ def extract_single_table(
     Uses pd.read_sql_query to preserve exact schema datatypes even on empty delta batches.
     Saves to namespaced landing path: data/landing/postgres_db/{table_name}.parquet
     """
-    connector = PostgresConnector()
-    engine = connector.get_engine()
-    
     params: Dict[str, Any] = {}
     
     if table_name == "raw_orders" and (start_date or end_date):
@@ -88,26 +86,34 @@ def extract_postgres_tables(args: RunArgs) -> List[str]:
     if args.start_date or args.end_date:
         logger.info(f"--- POSTGRES CONNECTOR: Filter Range [{args.start_date or 'BEGIN'} -> {args.end_date or 'NOW'}] ---")
 
-    logger.info(f"Starting parallel extraction for {len(tables)} tables (4 worker threads): {tables}")
+    connector = PostgresConnector()
+    engine = connector.get_engine()
+
+    logger.info(f"Starting connection-safe parallel extraction for {len(tables)} tables (2 workers): {tables}")
     extracted_files = []
     
-    with ThreadPoolExecutor(max_workers=min(len(tables), 4)) as executor:
-        future_to_table = {
-            executor.submit(
-                extract_single_table,
-                t,
-                args.start_date,
-                args.end_date
-            ): t for t in tables
-        }
-        for future in as_completed(future_to_table):
-            tbl = future_to_table[future]
-            try:
-                file_path = future.result()
-                extracted_files.append(file_path)
-            except Exception as e:
-                logger.error(f"Error extracting table '{tbl}': {e}")
-                raise e
+    try:
+        with ThreadPoolExecutor(max_workers=min(len(tables), 2)) as executor:
+            future_to_table = {
+                executor.submit(
+                    extract_single_table,
+                    engine,
+                    t,
+                    args.start_date,
+                    args.end_date
+                ): t for t in tables
+            }
+            for future in as_completed(future_to_table):
+                tbl = future_to_table[future]
+                try:
+                    file_path = future.result()
+                    extracted_files.append(file_path)
+                except Exception as e:
+                    logger.error(f"Error extracting table '{tbl}': {e}")
+                    raise e
+    finally:
+        # Ensure connection slots are freed immediately
+        connector.close()
             
-    logger.info(f"Postgres extraction completed in parallel. {len(extracted_files)}/{len(tables)} tables extracted successfully.")
+    logger.info(f"Postgres extraction completed cleanly. {len(extracted_files)}/{len(tables)} tables extracted successfully.")
     return extracted_files
