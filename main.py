@@ -78,18 +78,30 @@ def commit_watermark_step_task(
     sync_timestamp: datetime,
     mode: str,
     full_refresh: bool = False,
-    records_extracted: int = 0
+    records_extracted: int = 0,
+    watermark_start: Optional[str] = None,
+    watermark_end: Optional[str] = None,
+    tables_count: int = 0,
+    duration_sec: float = 0.0
 ):
     state_mgr = StateManager()
-    if full_refresh:
-        state_mgr.reset_watermark(connector_name)
-    else:
-        state_mgr.commit_watermark(
-            connector_name=connector_name,
-            sync_timestamp=sync_timestamp,
-            mode=mode,
-            records_extracted=records_extracted
-        )
+    effective_mode = "full_refresh" if full_refresh else mode
+    state_mgr.commit_watermark(
+        connector_name=connector_name,
+        sync_timestamp=sync_timestamp,
+        mode=effective_mode,
+        records_extracted=records_extracted
+    )
+    state_mgr.log_audit_trail(
+        connector_name=connector_name,
+        run_mode=effective_mode.upper(),
+        status="SUCCESS",
+        watermark_start=watermark_start,
+        watermark_end=watermark_end,
+        records_extracted=records_extracted,
+        tables_count=tables_count,
+        duration_sec=duration_sec
+    )
 
 @flow(name="Enterprise Data Platform ELT", log_prints=True)
 def run_elt_pipeline(
@@ -145,17 +157,22 @@ def run_elt_pipeline(
             wait_for=[loaded_tables]
         )
 
-        # Persist Watermark State only on 100% pipeline success
+        duration_sec = time.time() - start_exec_time
+
+        # Persist Watermark State & Audit Log only on 100% pipeline success
         commit_watermark_step_task(
             connector_name=connector_name,
             sync_timestamp=sync_time,
             mode=mode.value,
             full_refresh=full_refresh,
             records_extracted=rows_cnt,
+            watermark_start=start_date,
+            watermark_end=end_date,
+            tables_count=tables_cnt,
+            duration_sec=duration_sec,
             wait_for=[transformed]
         )
 
-        duration_sec = time.time() - start_exec_time
         record_pipeline_metrics(
             connector_name=connector_name,
             status="SUCCESS",
@@ -170,6 +187,19 @@ def run_elt_pipeline(
         logger.info("==================================================")
     except Exception as e:
         duration_sec = time.time() - start_exec_time
+        try:
+            state_mgr.log_audit_trail(
+                connector_name=connector_name,
+                run_mode="FULL_REFRESH" if full_refresh else mode.value.upper(),
+                status="FAILED",
+                watermark_start=start_date,
+                watermark_end=end_date,
+                duration_sec=duration_sec,
+                error_message=str(e)[:300]
+            )
+        except Exception as audit_err:
+            logger.warning(f"Could not write failure audit log: {audit_err}")
+
         record_pipeline_metrics(
             connector_name=connector_name,
             status="FAILED",
