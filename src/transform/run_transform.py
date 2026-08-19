@@ -111,7 +111,19 @@ def run_in_warehouse_transformations(
 
     logger.info("dbt-bigquery transformations completed successfully!\n" + run_result.stdout)
 
-    # Step 2: dbt test (automated data quality verification)
+    # Step 2: dbt snapshot (SCD Type 2 Historical Change Tracking)
+    logger.info("Executing dbt Snapshots for SCD Type 2 row history tracking (dbt snapshot)...")
+    snap_cmd = [dbt_bin, "snapshot", "--project-dir", dbt_dir, "--profiles-dir", dbt_dir]
+    if target_selector:
+        snap_cmd.extend(["--select", target_selector])
+
+    snap_result = subprocess.run(snap_cmd, env=env, capture_output=True, text=True, shell=(os.name == 'nt'))
+    if snap_result.returncode != 0:
+        logger.warning(f"dbt snapshot output:\n{snap_result.stdout}\n{snap_result.stderr}")
+    else:
+        logger.info("dbt snapshots executed successfully!\n" + snap_result.stdout)
+
+    # Step 3: dbt test (automated data quality verification)
     logger.info("Executing dbt Data Quality Tests (dbt test)...")
     test_cmd = [dbt_bin, "test", "--project-dir", dbt_dir, "--profiles-dir", dbt_dir]
     if target_selector:

@@ -157,6 +157,14 @@ def load_gcs_to_bigquery_staging(
                     merge_job = client.query(merge_sql)
                     merge_job.result()
 
+                    # Extract exact row-level mutation metrics from BigQuery DML statistics
+                    dml_stats = getattr(merge_job, "dml_stats", None)
+                    ins_cnt = getattr(dml_stats, "inserted_row_count", 0) if dml_stats else 0
+                    upd_cnt = getattr(dml_stats, "updated_row_count", 0) if dml_stats else 0
+                    del_cnt = getattr(dml_stats, "deleted_row_count", 0) if dml_stats else 0
+                    
+                    logger.info(f"Merge DML Stats for '{target_table}': +{ins_cnt} inserted, ~{upd_cnt} updated, -{del_cnt} deleted.")
+
                 # Clean up temp table
                 client.delete_table(temp_table_ref, not_found_ok=True)
 
