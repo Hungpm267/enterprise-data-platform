@@ -77,13 +77,19 @@ def commit_watermark_step_task(
     connector_name: str,
     sync_timestamp: datetime,
     mode: str,
-    full_refresh: bool = False
+    full_refresh: bool = False,
+    records_extracted: int = 0
 ):
     state_mgr = StateManager()
     if full_refresh:
         state_mgr.reset_watermark(connector_name)
     else:
-        state_mgr.commit_watermark(connector_name, sync_timestamp, mode=mode)
+        state_mgr.commit_watermark(
+            connector_name=connector_name,
+            sync_timestamp=sync_timestamp,
+            mode=mode,
+            records_extracted=records_extracted
+        )
 
 @flow(name="Enterprise Data Platform ELT", log_prints=True)
 def run_elt_pipeline(
@@ -125,6 +131,8 @@ def run_elt_pipeline(
 
     try:
         extracted_files = extract_connector_task(connector_name, run_args)
+        tables_cnt, rows_cnt = calculate_extracted_rows(extracted_files)
+        
         gcs_uris = load_gcs_step_task(connector_name=connector_name, wait_for=[extracted_files])
         loaded_tables = load_bigquery_step_task(mode=mode, is_backfill=is_backfill, connector_name=connector_name, wait_for=[gcs_uris])
         
@@ -143,11 +151,11 @@ def run_elt_pipeline(
             sync_timestamp=sync_time,
             mode=mode.value,
             full_refresh=full_refresh,
+            records_extracted=rows_cnt,
             wait_for=[transformed]
         )
 
         duration_sec = time.time() - start_exec_time
-        tables_cnt, rows_cnt = calculate_extracted_rows(extracted_files)
         record_pipeline_metrics(
             connector_name=connector_name,
             status="SUCCESS",
