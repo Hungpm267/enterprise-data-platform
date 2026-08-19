@@ -82,41 +82,18 @@ jobs:
           fi
           python main.py --connector crypto_api $REFRESH_FLAG
 
-      - name: Send Consolidated Telegram Executive Summary
+      - name: Send Detailed Telegram Pipeline Report
         if: always()
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_REF_NAME: ${{ github.ref_name }}
+          GITHUB_SHA: ${{ github.sha }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
         run: |
-          if [ -z "$TELEGRAM_BOT_TOKEN" ] || [ -z "$TELEGRAM_CHAT_ID" ]; then
-            echo "Telegram Secrets not configured. Skipping Telegram notification."
-            exit 0
-          fi
-
-          WORKFLOW_STATUS="${{ job.status }}"
-          RUN_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-          SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
-          VN_TIMESTAMP=$(TZ='Asia/Ho_Chi_Minh' date '+%d/%m/%Y %H:%M:%S')
-          TARGET_CONNECTOR="${{ inputs.connector || 'all' }}"
-          
-          if [ "${{ github.event_name }}" = "schedule" ]; then
-            EVENT_DESC="⏰ Scheduled Cron (Every 4 Hours)"
-          elif [ "${{ github.event_name }}" = "push" ]; then
-            EVENT_DESC="📦 Git Push (${SHORT_SHA})"
-          else
-            EVENT_DESC="🔘 Manual Trigger (Connector: ${TARGET_CONNECTOR})"
-          fi
-
-          if [ "$WORKFLOW_STATUS" = "success" ]; then
-            MESSAGE="🟢 *ENTERPRISE DATA PLATFORM BATCH SUCCESS* 🚀%0A%0A📁 *Repository:* \`${{ github.repository }}\`%0A🌿 *Branch:* \`${{ github.ref_name }}\`%0A⚡ *Trigger:* ${EVENT_DESC}%0A🕒 *Thời gian (VN UTC+7):* \`${VN_TIMESTAMP}\`%0A☁️ *Data Lake:* \`Google Cloud Storage (GCS)\`%0A🏢 *Data Warehouse:* \`Google BigQuery\`%0A🛠️ *Transform Engine:* \`dbt-bigquery\`%0A%0A📊 *Executive Pipeline Status:*%0A• 🐘 *PostgreSQL DB:* 6/6 Tables Ingested & Merged%0A• 🪙 *Crypto API:* Top 100 Coins & Global Market Synced%0A• 🧪 *Data Quality:* 35/35 dbt Tests PASSED (100%25)%0A• 🎯 *Data Marts:* \`marts.dim_*\`, \`marts.fct_*\`, \`marts.wide_*\` Up to date%0A%0A✅ *Result:* All pipelines completed successfully.%0A%0A🔗 [Xem Chi Tiết Log Trên GitHub Actions](${RUN_URL})"
-          else
-            MESSAGE="🔴 *ENTERPRISE DATA PLATFORM BATCH FAILED* ⚠️%0A%0A📁 *Repository:* \`${{ github.repository }}\`%0A🌿 *Branch:* \`${{ github.ref_name }}\`%0A⚡ *Trigger:* ${EVENT_DESC}%0A🕒 *Thời gian (VN UTC+7):* \`${VN_TIMESTAMP}\`%0A☁️ *Data Lake:* \`Google Cloud Storage (GCS)\`%0A🏢 *Data Warehouse:* \`Google BigQuery\`%0A%0A❌ *Result:* Pipeline encountered an error during execution.%0A%0A🔍 [Kiểm Tra Chi Tiết Lỗi Trên GitHub Actions](${RUN_URL})"
-          fi
-
-          curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
-            -d "chat_id=${TELEGRAM_CHAT_ID}" \
-            -d "parse_mode=Markdown" \
-            -d "text=${MESSAGE}"
+          python -m src.utils.telegram_reporter ${{ job.status }}
 
       - name: Cleanup Credentials
         if: always()

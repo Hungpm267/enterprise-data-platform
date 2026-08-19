@@ -16,6 +16,7 @@ from src.transform.run_transform import run_in_warehouse_transformations
 from src.utils.state_manager import StateManager
 from src.utils.logger import logger
 from src.utils.timezone import get_vietnam_now, get_vietnam_now_str
+from src.utils.metrics_tracker import record_pipeline_metrics, calculate_extracted_rows
 
 # Active Connectors Registry
 AVAILABLE_CONNECTORS = {
@@ -90,6 +91,7 @@ def run_elt_pipeline(
     end_date: Optional[str] = None,
     full_refresh: bool = False
 ):
+    start_exec_time = time.time()
     mode = RunMode.FULL_REFRESH if full_refresh else RunMode.INCREMENTAL
     is_backfill = bool(start_date or end_date)
     sync_time = get_vietnam_now()
@@ -120,31 +122,53 @@ def run_elt_pipeline(
     logger.info(f"  Effective Range: [{start_date or 'BEGIN'} -> {end_date or 'NOW'}]")
     logger.info("==================================================")
 
-    extracted_files = extract_connector_task(connector_name, run_args)
-    gcs_uris = load_gcs_step_task(connector_name=connector_name, wait_for=[extracted_files])
-    loaded_tables = load_bigquery_step_task(mode=mode, is_backfill=is_backfill, connector_name=connector_name, wait_for=[gcs_uris])
-    
-    # Run dbt transformations & tests scoped to this connector
-    transformed = transform_step_task(
-        connector_name=connector_name,
-        full_refresh=full_refresh,
-        start_date=start_date if is_backfill else None,
-        end_date=end_date if is_backfill else None,
-        wait_for=[loaded_tables]
-    )
+    try:
+        extracted_files = extract_connector_task(connector_name, run_args)
+        gcs_uris = load_gcs_step_task(connector_name=connector_name, wait_for=[extracted_files])
+        loaded_tables = load_bigquery_step_task(mode=mode, is_backfill=is_backfill, connector_name=connector_name, wait_for=[gcs_uris])
+        
+        # Run dbt transformations & tests scoped to this connector
+        transformed = transform_step_task(
+            connector_name=connector_name,
+            full_refresh=full_refresh,
+            start_date=start_date if is_backfill else None,
+            end_date=end_date if is_backfill else None,
+            wait_for=[loaded_tables]
+        )
 
-    # Persist Watermark State only on 100% pipeline success
-    commit_watermark_step_task(
-        connector_name=connector_name,
-        sync_timestamp=sync_time,
-        mode=mode.value,
-        full_refresh=full_refresh,
-        wait_for=[transformed]
-    )
+        # Persist Watermark State only on 100% pipeline success
+        commit_watermark_step_task(
+            connector_name=connector_name,
+            sync_timestamp=sync_time,
+            mode=mode.value,
+            full_refresh=full_refresh,
+            wait_for=[transformed]
+        )
 
-    logger.info("\n==================================================")
-    logger.info(f"  PIPELINE FOR '{connector_name}' COMPLETED SUCCESSFULLY! ")
-    logger.info("==================================================")
+        duration_sec = time.time() - start_exec_time
+        tables_cnt, rows_cnt = calculate_extracted_rows(extracted_files)
+        record_pipeline_metrics(
+            connector_name=connector_name,
+            status="SUCCESS",
+            duration_sec=duration_sec,
+            tables_count=tables_cnt,
+            rows_count=rows_cnt
+        )
+
+        logger.info("\n==================================================")
+        logger.info(f"  PIPELINE FOR '{connector_name}' COMPLETED SUCCESSFULLY! ")
+        logger.info(f"  Summary: {tables_cnt} tables, {rows_count} rows in {round(duration_sec, 1)}s")
+        logger.info("==================================================")
+    except Exception as e:
+        duration_sec = time.time() - start_exec_time
+        record_pipeline_metrics(
+            connector_name=connector_name,
+            status="FAILED",
+            duration_sec=duration_sec,
+            error_msg=str(e)
+        )
+        logger.error(f"Pipeline failed for '{connector_name}': {e}")
+        raise e
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Enterprise Data Platform Master Orchestrator")
