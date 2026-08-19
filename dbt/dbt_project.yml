@@ -14,14 +14,17 @@ clean-targets:
 
 models:
   enterprise_data_platform:
-    +tags: ["postgres"]
     staging:
       +schema: staging
       +materialized: view
+      postgres:
+        +tags: ["postgres"]
       crypto:
         +tags: ["crypto"]
     marts:
       +schema: marts
       +materialized: table
+      postgres:
+        +tags: ["postgres"]
       crypto:
         +tags: ["crypto"]
