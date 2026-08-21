@@ -232,6 +232,17 @@ async function loadClientLookerDashboards() {
     }
 }
 
+function normalizeLookerUrl(url) {
+    if (!url) return '';
+    let clean = url.trim();
+    if (clean.includes('lookerstudio.google.com/reporting/') && !clean.includes('/embed/')) {
+        clean = clean.replace('lookerstudio.google.com/reporting/', 'lookerstudio.google.com/embed/reporting/');
+    } else if (clean.includes('datastudio.google.com/reporting/') && !clean.includes('/embed/')) {
+        clean = clean.replace('datastudio.google.com/reporting/', 'datastudio.google.com/embed/reporting/');
+    }
+    return clean;
+}
+
 function selectLookerDashboard(index) {
     if (!appState.clientDashboards || !appState.clientDashboards[index]) return;
     appState.activeDashboardIndex = index;
@@ -250,7 +261,7 @@ function selectLookerDashboard(index) {
     });
 
     const iframe = document.getElementById('lookerEmbedIframe');
-    iframe.src = dash.embed_url;
+    iframe.src = normalizeLookerUrl(dash.embed_url);
 }
 
 function reloadLookerIframe() {

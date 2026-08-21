@@ -6,6 +6,15 @@ from src.web.db.models import LookerDashboard, Tenant, User
 from src.web.core.dependencies import get_current_user, require_platform_admin
 from pydantic import BaseModel
 
+def normalize_looker_url(url: str) -> str:
+    """Ensures Looker Studio URLs always have the /embed/ path."""
+    clean = url.strip()
+    if "lookerstudio.google.com/reporting/" in clean and "/embed/" not in clean:
+        clean = clean.replace("lookerstudio.google.com/reporting/", "lookerstudio.google.com/embed/reporting/")
+    elif "datastudio.google.com/reporting/" in clean and "/embed/" not in clean:
+        clean = clean.replace("datastudio.google.com/reporting/", "datastudio.google.com/embed/reporting/")
+    return clean
+
 class LookerDashboardOut(BaseModel):
     id: str
     tenant_id: str
@@ -43,7 +52,7 @@ def get_my_dashboards(
             tenant_id=str(d.tenant_id),
             title=d.title,
             category=d.category or "General",
-            embed_url=d.embed_url,
+            embed_url=normalize_looker_url(d.embed_url),
             is_default=d.is_default,
             sort_order=d.sort_order
         ) for d in dashboards
@@ -61,11 +70,13 @@ def assign_looker_dashboard(
     if not tenant:
         raise HTTPException(status_code=404, detail="Tenant không tồn tại.")
 
+    normalized_url = normalize_looker_url(req.embed_url)
+
     new_dash = LookerDashboard(
         tenant_id=tenant.id,
         title=req.title.strip(),
         category=req.category.strip(),
-        embed_url=req.embed_url.strip(),
+        embed_url=normalized_url,
         is_default=req.is_default,
         sort_order=req.sort_order
     )
