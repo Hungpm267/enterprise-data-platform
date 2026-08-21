@@ -21,9 +21,13 @@ target/
 dbt_packages/
 logs/
 
-# Data Files & Logs
-data/landing/*.parquet
-!data/landing/.gitkeep
+# Data Files, Scratch & Logs
+data/
+scratch/
+.pytest_cache/
+tests/.pytest_cache/
+.coverage
+htmlcov/
 logs/*.log
 !logs/.gitkeep
 *.db

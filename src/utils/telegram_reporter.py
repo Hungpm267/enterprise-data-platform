@@ -15,12 +15,21 @@ def _clean_error_summary(error: Optional[str]) -> str:
 
     lines = [line.strip() for line in str(error).split("\n") if line.strip()]
     
-    # Priority: Find error lines with 'ERROR', 'Exception', 'Not found', 'Failed'
+    # Priority 1: Find specific root-cause error lines
     meaningful_line = ""
     for l in lines:
-        if any(keyword in l for keyword in ["Not found", "ERROR", "Exception", "Error:", "failed"]):
+        lower = l.lower()
+        if any(k in lower for k in ["not found", "database error", "duplicate", "syntax error", "fatal", "permission"]):
             meaningful_line = l
             break
+
+    # Priority 2: General error/exception lines
+    if not meaningful_line:
+        for l in lines:
+            lower = l.lower()
+            if any(k in lower for k in ["error", "exception", "failed"]):
+                meaningful_line = l
+                break
 
     if not meaningful_line and lines:
         meaningful_line = lines[0]

@@ -1,0 +1,55 @@
+name: CI Quality Gate & Automated Testing
+
+on:
+  pull_request:
+    branches: [ main ]
+  push:
+    branches:
+      - 'feature/**'
+      - 'fix/**'
+      - 'refactor/**'
+
+jobs:
+  quality-gate:
+    name: Run Unit & Integration Tests (Pre-Merge Quality Gate)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    env:
+      PYTHONPATH: .
+      GCP_PROJECT_ID: 'data-engineering-504901'
+      GCP_STAGING_DATASET: 'staging'
+      GCP_MARTS_DATASET: 'marts'
+      GCP_KEY_FILE: 'gcp_key.json'
+
+    steps:
+      - name: Checkout Codebase
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11 & Pip Cache
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: 'requirements.txt'
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install --prefer-binary -r requirements.txt
+
+      - name: Run Full Testing Suite (Unit & Integration Tests)
+        run: |
+          python -m pytest tests/ -v
+
+      - name: Verify dbt Models & DAG Syntax (dbt compile dry-run)
+        env:
+          GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
+        run: |
+          if [ -n "$GCP_SA_KEY" ]; then
+            echo "$GCP_SA_KEY" > gcp_key.json
+            dbt compile --project-dir dbt --profiles-dir dbt
+            rm -f gcp_key.json
+          else
+            echo "Skipping live dbt compile (no GCP_SA_KEY in fork/PR context), verified via pytest."
+          fi
