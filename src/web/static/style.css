@@ -52,24 +52,28 @@ body {
 
 .toast-wrap {
   position: fixed;
-  bottom: 1.5rem;
-  right: 1.5rem;
+  bottom: 1.25rem;
+  right: 1.25rem;
   z-index: 2000;
+  pointer-events: none;
 }
 
 .toast-msg {
-  background: #0e3a40;
+  background: rgba(14, 58, 64, 0.94);
+  backdrop-filter: blur(8px);
   color: #ffffff;
-  padding: 0.85rem 1.25rem;
-  border-radius: 0.75rem;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2);
-  font-size: 0.875rem;
+  padding: 0.5rem 0.9rem;
+  border-radius: 0.65rem;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+  font-size: 0.8rem;
   font-weight: 600;
-  margin-top: 0.5rem;
-  animation: slideIn 0.25s ease;
+  margin-top: 0.35rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  animation: toastFade 0.15s ease-out;
+  transition: opacity 0.15s ease-out;
 }
 
-@keyframes slideIn {
-  from { transform: translateX(100%); opacity: 0; }
-  to { transform: translateX(0); opacity: 1; }
+@keyframes toastFade {
+  from { transform: translateY(4px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
 }

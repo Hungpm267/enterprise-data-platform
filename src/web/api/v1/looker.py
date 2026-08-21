@@ -31,7 +31,6 @@ def get_my_dashboards(
 ):
     """Retrieve Looker Studio dashboards assigned to current user's tenant."""
     if not current_user.tenant_id:
-        # If admin, return all default dashboards or sample
         dashboards = db.query(LookerDashboard).order_by(LookerDashboard.sort_order).all()
     else:
         dashboards = db.query(LookerDashboard).filter(
@@ -40,8 +39,8 @@ def get_my_dashboards(
 
     return [
         LookerDashboardOut(
-            id=d.id,
-            tenant_id=d.tenant_id,
+            id=str(d.id),
+            tenant_id=str(d.tenant_id),
             title=d.title,
             category=d.category or "General",
             embed_url=d.embed_url,
@@ -75,8 +74,8 @@ def assign_looker_dashboard(
     db.refresh(new_dash)
 
     return LookerDashboardOut(
-        id=new_dash.id,
-        tenant_id=new_dash.tenant_id,
+        id=str(new_dash.id),
+        tenant_id=str(new_dash.tenant_id),
         title=new_dash.title,
         category=new_dash.category,
         embed_url=new_dash.embed_url,

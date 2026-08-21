@@ -29,8 +29,6 @@
       }
     }
   </script>
-  <!-- Chart.js CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
   <link rel="stylesheet" href="/static/style.css">
@@ -73,8 +71,9 @@
           <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Mật Khẩu</label>
           <input type="password" id="loginPassword" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-600 text-sm font-medium transition-all" placeholder="••••••••" required>
         </div>
-        <button type="submit" class="w-full py-3.5 px-4 rounded-xl text-white dg-gradient-bg font-bold text-sm shadow-lg shadow-teal-600/20 hover:opacity-95 transition-all">
-          Đăng Nhập Vào Hệ Thống →
+        <button type="submit" id="btnLoginSubmit" class="w-full py-3.5 px-4 rounded-xl text-white dg-gradient-bg font-bold text-sm shadow-lg shadow-teal-600/20 hover:opacity-95 transition-all flex items-center justify-center gap-2">
+          <span>Đăng Nhập Vào Hệ Thống</span>
+          <i data-lucide="arrow-right" class="w-4 h-4"></i>
         </button>
       </form>
 
@@ -84,14 +83,14 @@
         <div class="grid grid-cols-1 gap-2.5">
           <button onclick="quickFillLogin('admin@dashgrow.io', 'admin123')" class="w-full text-left px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-teal-50 hover:border-teal-200 transition-all flex items-center justify-between text-xs">
             <div>
-              <div class="font-bold text-dg-dark">👑 DashGrow Admin (Bên Bán)</div>
+              <div class="font-bold text-dg-dark">DashGrow Admin (Bên Bán)</div>
               <div class="text-slate-500 text-[11px]">admin@dashgrow.io (Quản trị Khách Hàng & Gán Looker URL)</div>
             </div>
             <span class="text-teal-600 font-bold">Chọn →</span>
           </button>
           <button onclick="quickFillLogin('owner@olist-store.vn', 'client123')" class="w-full text-left px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-teal-50 hover:border-teal-200 transition-all flex items-center justify-between text-xs">
             <div>
-              <div class="font-bold text-dg-dark">🏢 Khách Hàng SMB (Bên Mua)</div>
+              <div class="font-bold text-dg-dark">Khách Hàng SMB (Bên Mua)</div>
               <div class="text-slate-500 text-[11px]">owner@olist-store.vn (Xem Dashboard Looker Studio Nhúng)</div>
             </div>
             <span class="text-teal-600 font-bold">Chọn →</span>
@@ -131,8 +130,9 @@
               <div class="text-sm font-bold text-dg-dark" id="headerUserName">Nguyễn Văn An</div>
               <div class="text-xs font-semibold text-teal-600" id="headerUserRole">Chủ Doanh Nghiệp</div>
             </div>
+            <!-- Avatar shown for Admin only, hidden for Client as requested -->
             <div class="w-9 h-9 rounded-xl dg-gradient-bg text-white font-extrabold text-xs flex items-center justify-center shadow-sm" id="headerUserAvatar">
-              NA
+              HQ
             </div>
           </div>
           <button onclick="handleLogout()" class="text-xs font-bold text-rose-600 hover:bg-rose-50 border border-rose-200 px-3 py-2 rounded-xl transition-all flex items-center gap-1.5">
@@ -145,29 +145,29 @@
     <!-- Main Content Area -->
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       
-      <!-- ==================== A. TABS FOR ADMIN ==================== -->
+      <!-- ==================== A. TABS FOR ADMIN (Clean single icon on left) ==================== -->
       <nav id="navAdminTabs" class="hidden flex-wrap items-center gap-2 bg-slate-200/60 p-1.5 rounded-2xl mb-8 border border-slate-200">
-        <button id="btnAdminTabUsers" onclick="switchAdminTab('admin-users')" class="tab-btn-admin active px-5 py-2.5 rounded-xl font-bold text-sm bg-white text-dg-dark shadow-sm flex items-center gap-2">
-          <i data-lucide="users" class="w-4 h-4"></i> 👥 Quản Lý Khách Hàng & Cấp Looker URLs (Aiven DB)
+        <button id="btnAdminTabUsers" onclick="switchAdminTab('admin-users')" class="tab-btn-admin active px-5 py-2.5 rounded-xl font-bold text-sm bg-white text-dg-dark shadow-sm flex items-center gap-2 transition-all">
+          <i data-lucide="users" class="w-4 h-4 text-teal-600"></i> Quản Lý Khách Hàng & Cấp Looker URLs (Aiven DB)
         </button>
-        <button id="btnAdminTabPipelines" onclick="switchAdminTab('admin-pipelines')" class="tab-btn-admin px-5 py-2.5 rounded-xl font-bold text-sm text-slate-600 hover:text-dg-dark flex items-center gap-2">
-          <i data-lucide="cpu" class="w-4 h-4"></i> ⚙️ Vận Hành Hạ Tầng & Pipeline
+        <button id="btnAdminTabPipelines" onclick="switchAdminTab('admin-pipelines')" class="tab-btn-admin px-5 py-2.5 rounded-xl font-bold text-sm text-slate-600 hover:text-dg-dark flex items-center gap-2 transition-all">
+          <i data-lucide="cpu" class="w-4 h-4 text-slate-500"></i> Vận Hành Hạ Tầng & Pipeline
         </button>
-        <button id="btnAdminTabQuality" onclick="switchAdminTab('admin-quality')" class="tab-btn-admin px-5 py-2.5 rounded-xl font-bold text-sm text-slate-600 hover:text-dg-dark flex items-center gap-2">
-          <i data-lucide="shield-check" class="w-4 h-4"></i> 🛡️ Giám Sát Chất Lượng Nền Tảng (35 Tests)
+        <button id="btnAdminTabQuality" onclick="switchAdminTab('admin-quality')" class="tab-btn-admin px-5 py-2.5 rounded-xl font-bold text-sm text-slate-600 hover:text-dg-dark flex items-center gap-2 transition-all">
+          <i data-lucide="shield-check" class="w-4 h-4 text-slate-500"></i> Giám Sát Chất Lượng Nền Tảng (35 Tests)
         </button>
       </nav>
 
-      <!-- ==================== B. TABS FOR CLIENT ==================== -->
+      <!-- ==================== B. TABS FOR CLIENT (Clean single icon on left) ==================== -->
       <nav id="navClientTabs" class="flex flex-wrap items-center gap-2 bg-slate-200/60 p-1.5 rounded-2xl mb-8 border border-slate-200">
-        <button id="btnClientTabLooker" onclick="switchClientTab('client-looker')" class="tab-btn-client active px-5 py-2.5 rounded-xl font-bold text-sm bg-white text-dg-dark shadow-sm flex items-center gap-2">
-          <i data-lucide="layout-dashboard" class="w-4 h-4"></i> 📊 Dashboard Looker Studio Nhúng
+        <button id="btnClientTabLooker" onclick="switchClientTab('client-looker')" class="tab-btn-client active px-5 py-2.5 rounded-xl font-bold text-sm bg-white text-dg-dark shadow-sm flex items-center gap-2 transition-all">
+          <i data-lucide="layout-dashboard" class="w-4 h-4 text-teal-600"></i> Dashboard Looker Studio Nhúng
         </button>
-        <button id="btnClientTabScd2" onclick="switchClientTab('client-scd2')" class="tab-btn-client px-5 py-2.5 rounded-xl font-bold text-sm text-slate-600 hover:text-dg-dark flex items-center gap-2">
-          <i data-lucide="history" class="w-4 h-4"></i> 🔍 Tra Cứu Vòng Đời Đơn Hàng (SCD 2)
+        <button id="btnClientTabScd2" onclick="switchClientTab('client-scd2')" class="tab-btn-client px-5 py-2.5 rounded-xl font-bold text-sm text-slate-600 hover:text-dg-dark flex items-center gap-2 transition-all">
+          <i data-lucide="history" class="w-4 h-4 text-slate-500"></i> Tra Cứu Vòng Đời Đơn Hàng (SCD 2)
         </button>
-        <button id="btnClientTabHealth" onclick="switchClientTab('client-health')" class="tab-btn-client px-5 py-2.5 rounded-xl font-bold text-sm text-slate-600 hover:text-dg-dark flex items-center gap-2">
-          <i data-lucide="shield-check" class="w-4 h-4"></i> 🛡️ Độ Tin Cậy Dữ Liệu Shop
+        <button id="btnClientTabHealth" onclick="switchClientTab('client-health')" class="tab-btn-client px-5 py-2.5 rounded-xl font-bold text-sm text-slate-600 hover:text-dg-dark flex items-center gap-2 transition-all">
+          <i data-lucide="shield-check" class="w-4 h-4 text-slate-500"></i> Độ Tin Cậy Dữ Liệu Shop
         </button>
       </nav>
 
@@ -177,11 +177,11 @@
       <section id="view-admin-users" class="admin-view space-y-6">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 class="text-2xl sm:text-3xl font-extrabold text-dg-dark tracking-tight">👑 Quản Trị Khách Hàng & Gán Dashboard Looker</h1>
+            <h1 class="text-2xl sm:text-3xl font-extrabold text-dg-dark tracking-tight">Quản Trị Khách Hàng & Gán Dashboard Looker</h1>
             <p class="text-slate-500 text-sm mt-1">Dữ liệu được lưu trữ và truy vấn trực tiếp từ <strong>Aiven.io PostgreSQL (dashgrow_app_db)</strong></p>
           </div>
           <button onclick="openCreateUserModal()" class="px-5 py-2.5 rounded-xl text-white dg-gradient-bg font-bold text-sm shadow-md hover:opacity-95 transition-all flex items-center gap-2">
-            <i data-lucide="user-plus" class="w-4 h-4"></i> + Thêm Doanh Nghiệp Khách Hàng
+            <i data-lucide="user-plus" class="w-4 h-4"></i> Thêm Doanh Nghiệp Khách Hàng
           </button>
         </div>
 
@@ -189,7 +189,7 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
           <div class="bento-card bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm">
             <div class="text-xs font-bold text-slate-500 uppercase tracking-wider">Khách Hàng Doanh Nghiệp (Tenants)</div>
-            <div class="text-3xl font-extrabold text-dg-dark mt-2" id="valTotalTenants">12 Doanh Nghiệp</div>
+            <div class="text-3xl font-extrabold text-dg-dark mt-2" id="valTotalTenants">-- Doanh Nghiệp</div>
             <div class="text-xs text-emerald-600 font-bold mt-2">● Lưu trên Aiven PostgreSQL</div>
           </div>
 
@@ -215,7 +215,10 @@
         <!-- Tenant / User List Table -->
         <div class="bento-card bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
           <div class="p-4 bg-slate-50 border-b border-slate-200 font-bold text-sm text-dg-dark flex items-center justify-between">
-            <span>📋 Danh Sách Khách Hàng & Cấu Hình Looker Studio URL</span>
+            <div class="flex items-center gap-2">
+              <i data-lucide="table" class="w-4 h-4 text-teal-600"></i>
+              <span>Danh Sách Khách Hàng & Cấu Hình Looker Studio URL</span>
+            </div>
             <span class="text-xs font-mono text-slate-500">Source: Aiven.io (dashgrow_app_db)</span>
           </div>
           <div class="overflow-x-auto">
@@ -245,7 +248,7 @@
       <section id="view-admin-pipelines" class="admin-view hidden space-y-6">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 class="text-2xl sm:text-3xl font-extrabold text-dg-dark tracking-tight">⚙️ Giám Sát Hạ Tầng & Vận Hành Pipeline</h1>
+            <h1 class="text-2xl sm:text-3xl font-extrabold text-dg-dark tracking-tight">Giám Sát Hạ Tầng & Vận Hành Pipeline</h1>
             <p class="text-slate-500 text-sm mt-1">Quản lý luồng trích xuất dữ liệu, tài nguyên BigQuery & Cloud Postgres</p>
           </div>
           <button onclick="openPipelineModal()" class="px-5 py-2.5 rounded-xl text-white dg-gradient-bg font-bold text-sm shadow-md hover:opacity-95 transition-all flex items-center gap-2">
@@ -263,7 +266,7 @@
           <div class="bento-card bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm">
             <div class="text-xs font-bold text-slate-500 uppercase tracking-wider">BigQuery Data Warehouse</div>
             <div class="text-2xl font-extrabold text-emerald-600 mt-2">● CONNECTED</div>
-            <div class="text-xs text-slate-500 mt-2">Project: dt-dev-468007</div>
+            <div class="text-xs text-slate-500 mt-2">Project: data-engineering-504901</div>
           </div>
           <div class="bento-card bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm">
             <div class="text-xs font-bold text-slate-500 uppercase tracking-wider">GCS Data Lake Storage</div>
@@ -279,8 +282,9 @@
 
         <!-- Audit Log History -->
         <div class="bento-card bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
-          <div class="p-4 bg-slate-50 border-b border-slate-200 font-bold text-sm text-dg-dark">
-            📋 Nhật Ký Vận Hành Kỹ Thuật (<code>_pipeline_audit_log</code>)
+          <div class="p-4 bg-slate-50 border-b border-slate-200 font-bold text-sm text-dg-dark flex items-center gap-2">
+            <i data-lucide="file-text" class="w-4 h-4 text-teal-600"></i>
+            <span>Nhật Ký Vận Hành Kỹ Thuật (<code>_pipeline_audit_log</code>)</span>
           </div>
           <div class="overflow-x-auto">
             <table class="w-full text-left text-sm">
@@ -309,7 +313,7 @@
       <section id="view-admin-quality" class="admin-view hidden space-y-6">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 class="text-2xl sm:text-3xl font-extrabold text-dg-dark tracking-tight">🛡️ Giám Sát Chất Lượng Dữ Liệu Toàn Sàn</h1>
+            <h1 class="text-2xl sm:text-3xl font-extrabold text-dg-dark tracking-tight">Giám Sát Chất Lượng Dữ Liệu Toàn Sàn</h1>
             <p class="text-slate-500 text-sm mt-1">Kiểm soát toàn bộ ràng buộc schema, unique key và foreign key qua dbt test suite</p>
           </div>
           <span class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold">
@@ -365,7 +369,7 @@
       <section id="view-client-looker" class="client-view space-y-6">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 class="text-2xl sm:text-3xl font-extrabold text-dg-dark tracking-tight">📊 Báo Cáo Phân Tích Dữ Liệu Doanh Nghiệp (Looker Studio)</h1>
+            <h1 class="text-2xl sm:text-3xl font-extrabold text-dg-dark tracking-tight">Báo Cáo Phân Tích Dữ Liệu Doanh Nghiệp (Looker Studio)</h1>
             <p class="text-slate-500 text-sm mt-1">Hệ thống báo cáo BI trực quan được nhúng an toàn dành riêng cho doanh nghiệp của bạn</p>
           </div>
           <div class="flex items-center gap-2">
@@ -397,8 +401,8 @@
 
           <!-- Fallback Helper if URL not configured yet -->
           <div id="lookerFallbackNotice" class="hidden absolute inset-0 bg-slate-50 flex flex-col items-center justify-center p-8 text-center">
-            <div class="w-16 h-16 rounded-2xl bg-teal-50 text-teal-600 flex items-center justify-center font-bold text-2xl mb-4">
-              📊
+            <div class="w-14 h-14 rounded-2xl bg-teal-50 text-teal-600 flex items-center justify-center mb-4">
+              <i data-lucide="layout-dashboard" class="w-7 h-7"></i>
             </div>
             <h3 class="text-xl font-extrabold text-dg-dark mb-2">Chưa Cấu Hình Link Looker Studio</h3>
             <p class="text-slate-500 text-sm max-w-md mb-6 leading-relaxed">
@@ -420,7 +424,7 @@
       <section id="view-client-scd2" class="client-view hidden space-y-6">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 class="text-2xl sm:text-3xl font-extrabold text-dg-dark tracking-tight">🔍 Tra Cứu Vòng Đời Đơn Hàng Của Shop (SCD 2)</h1>
+            <h1 class="text-2xl sm:text-3xl font-extrabold text-dg-dark tracking-tight">Tra Cứu Vòng Đời Đơn Hàng Của Shop (SCD 2)</h1>
             <p class="text-slate-500 text-sm mt-1">Truy vết lịch sử thay đổi trạng thái và phát hiện đơn hàng bị xóa (Hard-Delete)</p>
           </div>
           <div class="flex items-center gap-2">
@@ -432,7 +436,7 @@
         </div>
 
         <div class="p-4 rounded-2xl bg-teal-50/70 border border-teal-200/60 text-xs text-teal-900 leading-relaxed">
-          <strong class="font-bold">💡 Nguyên lý SCD Type 2:</strong> Nếu <code>valid_to = NULL</code> ➔ Bản ghi hiện tại đang có hiệu lực. Nếu <code>valid_to NOT NULL</code> và còn dòng mới ➔ Đơn hàng vừa được CẬP NHẬT. Nếu tất cả các dòng của ID đều có <code>valid_to</code> ➔ Đơn hàng đã bị <strong>XÓA HOÀN TOÀN (Hard-Deleted)</strong> khỏi hệ thống nguồn.
+          <strong class="font-bold">Nguyên lý SCD Type 2:</strong> Nếu <code>valid_to = NULL</code> ➔ Bản ghi hiện tại đang có hiệu lực. Nếu <code>valid_to NOT NULL</code> và còn dòng mới ➔ Đơn hàng vừa được CẬP NHẬT. Nếu tất cả các dòng của ID đều có <code>valid_to</code> ➔ Đơn hàng đã bị <strong>XÓA HOÀN TOÀN (Hard-Deleted)</strong> khỏi hệ thống nguồn.
         </div>
 
         <div class="bento-card bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
@@ -463,7 +467,7 @@
       <section id="view-client-health" class="client-view hidden space-y-6">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 class="text-2xl sm:text-3xl font-extrabold text-dg-dark tracking-tight">🛡️ Độ Tin Cậy & Tính Toàn Vẹn Dữ Liệu Của Shop</h1>
+            <h1 class="text-2xl sm:text-3xl font-extrabold text-dg-dark tracking-tight">Độ Tin Cậy & Tính Toàn Vẹn Dữ Liệu Của Shop</h1>
             <p class="text-slate-500 text-sm mt-1">Đảm bảo toàn bộ số liệu báo cáo đã qua kiểm định sạch 100%</p>
           </div>
           <span class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold">
@@ -498,7 +502,7 @@
   <div id="modalCreateUser" class="modal-backdrop">
     <div class="max-w-lg w-full bg-white rounded-3xl p-8 border border-slate-200 shadow-2xl mx-4">
       <div class="flex items-center justify-between mb-6">
-        <h3 class="text-xl font-extrabold text-dg-dark tracking-tight">+ Thêm Khách Hàng & Cấp Tài Khoản</h3>
+        <h3 class="text-xl font-extrabold text-dg-dark tracking-tight">Thêm Khách Hàng & Cấp Tài Khoản</h3>
         <button onclick="closeCreateUserModal()" class="text-slate-400 hover:text-slate-600 text-xl font-bold">&times;</button>
       </div>
       <form onsubmit="handleCreateUserSubmit(event)" class="space-y-4">
@@ -542,7 +546,7 @@
   <div id="modalAssignLooker" class="modal-backdrop">
     <div class="max-w-md w-full bg-white rounded-3xl p-8 border border-slate-200 shadow-2xl mx-4">
       <div class="flex items-center justify-between mb-6">
-        <h3 class="text-xl font-extrabold text-dg-dark tracking-tight">🔗 Gán Looker Studio URL</h3>
+        <h3 class="text-xl font-extrabold text-dg-dark tracking-tight">Gán Looker Studio URL</h3>
         <button onclick="closeAssignLookerModal()" class="text-slate-400 hover:text-slate-600 text-xl font-bold">&times;</button>
       </div>
       <form onsubmit="handleAssignLookerSubmit(event)" class="space-y-4">
@@ -579,7 +583,7 @@
   <div id="modalPipeline" class="modal-backdrop">
     <div class="max-w-md w-full bg-white rounded-3xl p-8 border border-slate-200 shadow-2xl mx-4">
       <div class="flex items-center justify-between mb-6">
-        <h3 class="text-xl font-extrabold text-dg-dark tracking-tight">🚀 Kích Hoạt Pipeline</h3>
+        <h3 class="text-xl font-extrabold text-dg-dark tracking-tight">Kích Hoạt Pipeline</h3>
         <button onclick="closePipelineModal()" class="text-slate-400 hover:text-slate-600 text-xl font-bold">&times;</button>
       </div>
       <div class="space-y-4">

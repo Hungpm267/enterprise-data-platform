@@ -1,4 +1,5 @@
 import os
+import time
 import subprocess
 import threading
 from datetime import datetime
@@ -16,10 +17,27 @@ execution_state = {
     "logs": []
 }
 
+_PIPE_CACHE = {}
+_PIPE_CACHE_TTL = 30
+
+def _get_pipe_cache(key: str):
+    if key in _PIPE_CACHE:
+        val, ts = _PIPE_CACHE[key]
+        if time.time() - ts < _PIPE_CACHE_TTL:
+            return val
+    return None
+
+def _set_pipe_cache(key: str, val: Any):
+    _PIPE_CACHE[key] = (val, time.time())
+
 class PipelineService:
     @staticmethod
     def get_audit_logs(limit: int = 15) -> List[Dict[str, Any]]:
-        """Retrieves append-only execution history from BigQuery _pipeline_audit_log."""
+        """Retrieves append-only execution history from BigQuery _pipeline_audit_log with caching."""
+        cache_key = f"audit_logs_{limit}"
+        cached = _get_pipe_cache(cache_key)
+        if cached:
+            return cached
         client = get_bigquery_client()
         if client:
             try:
@@ -45,11 +63,12 @@ class PipelineService:
                             "error_message": str(r["error_message"]) if r["error_message"] else None,
                             "executed_at": str(r["executed_at"])[:19]
                         })
+                    _set_pipe_cache(cache_key, records)
                     return records
             except Exception as e:
                 print(f"[WARN] Failed to query _pipeline_audit_log: {e}")
 
-        return [
+        res = [
             {
                 "run_id": "RUN_20260821_060000",
                 "connector_name": "postgres_db",
@@ -71,10 +90,17 @@ class PipelineService:
                 "executed_at": "2026-08-21 06:01:12"
             }
         ]
+        _set_pipe_cache(cache_key, res)
+        return res
 
     @staticmethod
     def search_scd2_orders(query_str: Optional[str] = None, limit: int = 15) -> List[Dict[str, Any]]:
         """Searches snapshots.snap_orders to demonstrate SCD Type 2 time-travel."""
+        cache_key = f"scd2_{query_str}_{limit}"
+        cached = _get_pipe_cache(cache_key)
+        if cached:
+            return cached
+
         client = get_bigquery_client()
         if client:
             try:
@@ -105,6 +131,7 @@ class PipelineService:
                             "dbt_valid_to": str(r["dbt_valid_to"])[:19] if r["dbt_valid_to"] is not None and str(r["dbt_valid_to"]) != 'NaT' else None,
                             "is_current": r["dbt_valid_to"] is None or str(r["dbt_valid_to"]) == 'NaT'
                         })
+                    _set_pipe_cache(cache_key, records)
                     return records
             except Exception as e:
                 print(f"[WARN] BigQuery snap_orders query failed: {e}")

@@ -36,7 +36,17 @@ async function handleLoginSubmit(e) {
     e.preventDefault();
     const email = document.getElementById('loginEmail').value.trim();
     const password = document.getElementById('loginPassword').value;
+    const btn = document.getElementById('btnLoginSubmit');
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<span>Đang đăng nhập...</span>';
+    }
     await loginUser(email, password);
+    if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = '<span>Đăng Nhập Vào Hệ Thống</span><i data-lucide="arrow-right" class="w-4 h-4"></i>';
+        lucide.createIcons();
+    }
 }
 
 function quickFillLogin(email, pass) {
@@ -100,24 +110,34 @@ function handleLogout() {
 function setupPortalForUser(user) {
     document.getElementById('headerUserName').textContent = user.full_name;
     document.getElementById('headerTenantName').textContent = user.tenant_name;
-    document.getElementById('headerUserAvatar').textContent = user.full_name.split(' ').map(n => n[0]).slice(0, 2).join('');
 
     const isAdmin = user.role === 'platform_admin';
-    document.getElementById('headerUserRole').textContent = isAdmin ? '👑 Platform Super Admin' : '🏢 Khách Hàng (Client Owner)';
+    const avatarEl = document.getElementById('headerUserAvatar');
 
     if (isAdmin) {
+        document.getElementById('headerUserRole').textContent = 'Platform Super Admin';
+        if (avatarEl) {
+            avatarEl.classList.remove('hidden');
+            avatarEl.textContent = 'HQ';
+        }
         document.getElementById('navAdminTabs').classList.remove('hidden');
         document.getElementById('navAdminTabs').classList.add('flex');
         document.getElementById('navClientTabs').classList.add('hidden');
         document.getElementById('navClientTabs').classList.remove('flex');
         switchAdminTab('admin-users');
     } else {
+        document.getElementById('headerUserRole').textContent = 'Khách Hàng Doanh Nghiệp';
+        // Hide avatar for client as requested
+        if (avatarEl) {
+            avatarEl.classList.add('hidden');
+        }
         document.getElementById('navClientTabs').classList.remove('hidden');
         document.getElementById('navClientTabs').classList.add('flex');
         document.getElementById('navAdminTabs').classList.add('hidden');
         document.getElementById('navAdminTabs').classList.remove('flex');
         switchClientTab('client-looker');
     }
+    lucide.createIcons();
 }
 
 // ==================== ADMIN TAB SWITCHER ====================
@@ -142,6 +162,7 @@ function switchAdminTab(tabId) {
 
     if (tabId === 'admin-users') fetchUsersList();
     if (tabId === 'admin-pipelines') fetchAuditLogs();
+    lucide.createIcons();
 }
 
 // ==================== CLIENT TAB SWITCHER ====================
@@ -166,6 +187,7 @@ function switchClientTab(tabId) {
 
     if (tabId === 'client-looker') loadClientLookerDashboards();
     if (tabId === 'client-scd2') fetchScdData();
+    lucide.createIcons();
 }
 
 async function fetchWithAuth(endpoint) {
@@ -193,13 +215,14 @@ async function loadClientLookerDashboards() {
             fallback.classList.remove('hidden');
             iframe.src = 'about:blank';
             selectorBar.innerHTML = '';
+            lucide.createIcons();
             return;
         }
 
         fallback.classList.add('hidden');
         selectorBar.innerHTML = dashboards.map((d, idx) => `
             <button onclick="selectLookerDashboard(${idx})" id="btnLookerDash${idx}" class="px-4 py-2 rounded-xl text-xs font-bold transition-all ${idx === 0 ? 'bg-teal-600 text-white shadow-md' : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'}">
-                📊 ${d.title} (${d.category})
+                ${d.title} (${d.category})
             </button>
         `).join('');
 
@@ -235,7 +258,7 @@ function reloadLookerIframe() {
     if (iframe.src && iframe.src !== 'about:blank') {
         const currentSrc = iframe.src;
         iframe.src = 'about:blank';
-        setTimeout(() => { iframe.src = currentSrc; }, 200);
+        setTimeout(() => { iframe.src = currentSrc; }, 100);
         showToast('Đang làm mới báo cáo Looker Studio...');
     }
 }
@@ -326,7 +349,7 @@ async function fetchUsersList() {
                 <td class="py-3.5 px-4">
                     ${u.tenant_id ? `
                         <button onclick="openAssignLookerModal('${u.tenant_id}', '${u.tenant_name}')" class="px-3 py-1.5 rounded-lg border border-teal-200 bg-teal-50 text-teal-800 text-xs font-bold hover:bg-teal-100 flex items-center gap-1">
-                            🔗 Gán Looker URL
+                            Gán Looker URL
                         </button>
                     ` : '<span class="text-xs text-slate-400">DashGrow HQ</span>'}
                 </td>
@@ -342,6 +365,7 @@ async function fetchUsersList() {
                 </td>
             </tr>
         `).join('');
+        lucide.createIcons();
     } catch (e) {
         console.error(e);
     }
@@ -529,19 +553,24 @@ async function executePipelineTrigger() {
         }
 
         closePipelineModal();
-        showToast(`Đã kích hoạt chạy pipeline cho ${connector} ngầm!`, 'success');
+        showToast(`Đã kích hoạt pipeline cho ${connector}!`, 'success');
         await fetchAuditLogs();
     } catch (err) {
         showToast(err.message, 'error');
     }
 }
 
-// ==================== TOAST HELPER ====================
+// ==================== LIGHTWEIGHT 0.5s TOAST ====================
 function showToast(msg, type = 'info') {
     const wrap = document.getElementById('toastWrap');
+    if (!wrap) return;
     const t = document.createElement('div');
     t.className = 'toast-msg';
     t.textContent = msg;
     wrap.appendChild(t);
-    setTimeout(() => t.remove(), 4000);
+    // 0.5s display duration with fast fade-out
+    setTimeout(() => {
+        t.style.opacity = '0';
+        setTimeout(() => t.remove(), 150);
+    }, 500);
 }
