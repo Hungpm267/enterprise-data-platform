@@ -21,29 +21,31 @@ class AuthService:
                 detail="Tài khoản của bạn đã bị tạm khóa."
             )
         
+        user_id_str = str(user.id)
+        tenant_id_str = str(user.tenant_id) if user.tenant_id else None
+
         token_payload = {
-            "sub": user.id,
+            "sub": user_id_str,
             "email": user.email,
             "role": user.role,
-            "tenant_id": user.tenant_id,
-            "tenant_slug": user.tenant.slug if user.tenant else "unknown"
+            "tenant_id": tenant_id_str,
+            "tenant_slug": user.tenant.slug if user.tenant else "dashgrow-hq"
         }
         access_token = create_access_token(token_payload)
         
         return TokenResponse(
             access_token=access_token,
-            user_id=user.id,
+            user_id=user_id_str,
             email=user.email,
             full_name=user.full_name,
             role=user.role,
-            tenant_id=user.tenant_id,
+            tenant_id=tenant_id_str,
             tenant_name=user.tenant.name if user.tenant else "DashGrow HQ",
             tenant_slug=user.tenant.slug if user.tenant else "dashgrow-hq"
         )
 
     @staticmethod
     def register_client(db: Session, req: RegisterRequest) -> TokenResponse:
-        # Check if email exists
         existing_user = db.query(User).filter(User.email == req.email.strip().lower()).first()
         if existing_user:
             raise HTTPException(
@@ -51,13 +53,11 @@ class AuthService:
                 detail="Email này đã được đăng ký trên hệ thống."
             )
         
-        # Check or create Tenant
         tenant = db.query(Tenant).filter(Tenant.slug == req.company_slug.strip().lower()).first()
         if not tenant:
             tenant = Tenant(
                 name=req.company_name.strip(),
-                slug=req.company_slug.strip().lower(),
-                plan="growth_pro"
+                slug=req.company_slug.strip().lower()
             )
             db.add(tenant)
             db.commit()
@@ -79,15 +79,19 @@ class AuthService:
 
     @staticmethod
     def get_user_profile(user: User) -> UserOut:
+        plan = "growth_pro"
+        if user.tenant and user.tenant.subscriptions:
+            plan = user.tenant.subscriptions[0].plan_tier
+
         return UserOut(
-            id=user.id,
+            id=str(user.id),
             email=user.email,
             full_name=user.full_name,
             role=user.role,
             is_active=user.is_active,
-            tenant_id=user.tenant_id,
+            tenant_id=str(user.tenant_id) if user.tenant_id else None,
             tenant_name=user.tenant.name if user.tenant else "DashGrow HQ",
             tenant_slug=user.tenant.slug if user.tenant else "dashgrow-hq",
-            tenant_plan=user.tenant.plan if user.tenant else "enterprise",
+            tenant_plan=plan,
             created_at=user.created_at
         )

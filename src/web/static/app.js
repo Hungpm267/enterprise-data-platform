@@ -7,8 +7,8 @@ const API_BASE = '/api/v1';
 let appState = {
     token: localStorage.getItem('dg_token') || null,
     currentUser: null,
-    chartRevenueInstance: null,
-    chartStatusInstance: null
+    clientDashboards: [],
+    activeDashboardIndex: 0
 };
 
 // ==================== INITIALIZATION ====================
@@ -116,9 +116,7 @@ function setupPortalForUser(user) {
         document.getElementById('navClientTabs').classList.add('flex');
         document.getElementById('navAdminTabs').classList.add('hidden');
         document.getElementById('navAdminTabs').classList.remove('flex');
-        
-        document.getElementById('clientDashboardTitle').textContent = `📊 Báo Cáo Doanh Số & P&L - ${user.tenant_name}`;
-        switchClientTab('client-analytics');
+        switchClientTab('client-looker');
     }
 }
 
@@ -159,18 +157,14 @@ function switchClientTab(tabId) {
     const targetView = document.getElementById(`view-${tabId}`);
     if (targetView) targetView.classList.remove('hidden');
 
-    const btnId = tabId === 'client-analytics' ? 'btnClientTabAnalytics' : tabId === 'client-scd2' ? 'btnClientTabScd2' : 'btnClientTabHealth';
+    const btnId = tabId === 'client-looker' ? 'btnClientTabLooker' : tabId === 'client-scd2' ? 'btnClientTabScd2' : 'btnClientTabHealth';
     const activeBtn = document.getElementById(btnId);
     if (activeBtn) {
         activeBtn.classList.add('bg-white', 'text-dg-dark', 'shadow-sm');
         activeBtn.classList.remove('text-slate-600');
     }
 
-    if (tabId === 'client-analytics') {
-        loadKpis();
-        loadRevenueChart();
-        loadOrderStatusChart();
-    }
+    if (tabId === 'client-looker') loadClientLookerDashboards();
     if (tabId === 'client-scd2') fetchScdData();
 }
 
@@ -183,116 +177,86 @@ async function fetchWithAuth(endpoint) {
     });
 }
 
-// ==================== CLIENT: ANALYTICS (P&L) ====================
-async function loadKpis() {
+// ==================== CLIENT: LOOKER STUDIO EMBED ====================
+async function loadClientLookerDashboards() {
     try {
-        const res = await fetchWithAuth('/analytics/kpis');
+        const res = await fetchWithAuth('/looker/my-dashboards');
         if (!res.ok) return;
-        const data = await res.json();
+        const dashboards = await res.json();
+        appState.clientDashboards = dashboards;
 
-        document.getElementById('valRevenue').textContent = `$${Number(data.total_revenue).toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
-        document.getElementById('valOrders').textContent = Number(data.total_orders).toLocaleString('en-US');
-        document.getElementById('valAOV').textContent = `$${Number(data.aov).toFixed(2)}`;
-        document.getElementById('valDelivery').textContent = `${data.delivery_success_rate}%`;
+        const selectorBar = document.getElementById('lookerDashboardSelectorBar');
+        const iframe = document.getElementById('lookerEmbedIframe');
+        const fallback = document.getElementById('lookerFallbackNotice');
+
+        if (!dashboards || dashboards.length === 0) {
+            fallback.classList.remove('hidden');
+            iframe.src = 'about:blank';
+            selectorBar.innerHTML = '';
+            return;
+        }
+
+        fallback.classList.add('hidden');
+        selectorBar.innerHTML = dashboards.map((d, idx) => `
+            <button onclick="selectLookerDashboard(${idx})" id="btnLookerDash${idx}" class="px-4 py-2 rounded-xl text-xs font-bold transition-all ${idx === 0 ? 'bg-teal-600 text-white shadow-md' : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'}">
+                📊 ${d.title} (${d.category})
+            </button>
+        `).join('');
+
+        selectLookerDashboard(0);
     } catch (e) {
-        console.error(e);
+        console.error('Failed to load Looker dashboards:', e);
     }
 }
 
-async function loadRevenueChart() {
-    try {
-        const res = await fetchWithAuth('/analytics/revenue-trend');
-        if (!res.ok) return;
-        const data = await res.json();
+function selectLookerDashboard(index) {
+    if (!appState.clientDashboards || !appState.clientDashboards[index]) return;
+    appState.activeDashboardIndex = index;
+    const dash = appState.clientDashboards[index];
 
-        const ctx = document.getElementById('canvasRevenueTrend').getContext('2d');
-        if (appState.chartRevenueInstance) appState.chartRevenueInstance.destroy();
-
-        appState.chartRevenueInstance = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: data.labels,
-                datasets: [
-                    {
-                        label: 'Doanh Thu ($)',
-                        data: data.revenue,
-                        borderColor: '#0284c7',
-                        backgroundColor: 'rgba(2, 132, 199, 0.08)',
-                        borderWidth: 3,
-                        fill: true,
-                        tension: 0.35,
-                        yAxisID: 'y'
-                    },
-                    {
-                        label: 'Số Lượng Đơn',
-                        data: data.orders,
-                        borderColor: '#0d9488',
-                        backgroundColor: 'transparent',
-                        borderWidth: 2,
-                        borderDash: [5, 5],
-                        tension: 0.35,
-                        yAxisID: 'y1'
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                interaction: { mode: 'index', intersect: false },
-                plugins: {
-                    legend: { labels: { color: '#0e3a40', font: { family: 'Plus Jakarta Sans', weight: '600' } } }
-                },
-                scales: {
-                    x: { grid: { color: 'rgba(14, 58, 64, 0.05)' }, ticks: { color: '#64748b' } },
-                    y: {
-                        position: 'left',
-                        grid: { color: 'rgba(14, 58, 64, 0.05)' },
-                        ticks: { color: '#64748b', callback: v => `$${v.toLocaleString()}` }
-                    },
-                    y1: {
-                        position: 'right',
-                        grid: { drawOnChartArea: false },
-                        ticks: { color: '#0d9488' }
-                    }
-                }
+    // Toggle button active classes
+    appState.clientDashboards.forEach((_, idx) => {
+        const btn = document.getElementById(`btnLookerDash${idx}`);
+        if (btn) {
+            if (idx === index) {
+                btn.className = 'px-4 py-2 rounded-xl text-xs font-bold transition-all bg-teal-600 text-white shadow-md';
+            } else {
+                btn.className = 'px-4 py-2 rounded-xl text-xs font-bold transition-all bg-white text-slate-700 border border-slate-200 hover:bg-slate-50';
             }
-        });
-    } catch (e) {
-        console.error(e);
+        }
+    });
+
+    const iframe = document.getElementById('lookerEmbedIframe');
+    iframe.src = dash.embed_url;
+}
+
+function reloadLookerIframe() {
+    const iframe = document.getElementById('lookerEmbedIframe');
+    if (iframe.src && iframe.src !== 'about:blank') {
+        const currentSrc = iframe.src;
+        iframe.src = 'about:blank';
+        setTimeout(() => { iframe.src = currentSrc; }, 200);
+        showToast('Đang làm mới báo cáo Looker Studio...');
     }
 }
 
-async function loadOrderStatusChart() {
-    try {
-        const res = await fetchWithAuth('/analytics/order-status');
-        if (!res.ok) return;
-        const data = await res.json();
-
-        const ctx = document.getElementById('canvasOrderStatus').getContext('2d');
-        if (appState.chartStatusInstance) appState.chartStatusInstance.destroy();
-
-        appState.chartStatusInstance = new Chart(ctx, {
-            type: 'doughnut',
-            data: {
-                labels: data.labels,
-                datasets: [{
-                    data: data.values,
-                    backgroundColor: ['#10b981', '#0284c7', '#f59e0b', '#6366f1', '#ef4444'],
-                    borderWidth: 0
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { position: 'bottom', labels: { color: '#0e3a40', boxWidth: 12, font: { family: 'Plus Jakarta Sans', weight: '600' } } }
-                },
-                cutout: '70%'
-            }
+function toggleFullscreenLooker() {
+    const container = document.getElementById('lookerIframeContainer');
+    if (!document.fullscreenElement) {
+        container.requestFullscreen().catch(err => {
+            alert(`Lỗi mở toàn màn hình: ${err.message}`);
         });
-    } catch (e) {
-        console.error(e);
+    } else {
+        document.exitFullscreen();
     }
+}
+
+function applyCustomLookerUrl() {
+    const url = document.getElementById('customLookerInput').value.trim();
+    if (!url) return;
+    document.getElementById('lookerFallbackNotice').classList.add('hidden');
+    document.getElementById('lookerEmbedIframe').src = url;
+    showToast('Đã tải báo cáo Looker Studio!', 'success');
 }
 
 // ==================== CLIENT: SCD TYPE 2 EXPLORER ====================
@@ -331,7 +295,7 @@ async function fetchScdData() {
     }
 }
 
-// ==================== ADMIN: USER & TENANT MANAGER ====================
+// ==================== ADMIN: USER & TENANT MANAGER (AIVEN DB) ====================
 async function fetchUsersList() {
     try {
         const res = await fetchWithAuth('/users');
@@ -354,13 +318,17 @@ async function fetchUsersList() {
                 <td class="py-3.5 px-4">
                     <span class="px-2.5 py-1 rounded-md bg-teal-50 text-teal-800 text-xs font-bold uppercase">${u.tenant_plan}</span>
                 </td>
-                <td class="py-3.5 px-4 text-xs font-semibold text-slate-700">
-                    ${u.role === 'platform_admin' ? '👑 Platform Admin' : '🏢 Client Owner'}
-                </td>
                 <td class="py-3.5 px-4">
                     ${u.is_active 
                         ? '<span class="px-2.5 py-1 rounded-md bg-emerald-50 text-emerald-700 text-xs font-bold">● Hoạt Động</span>' 
                         : '<span class="px-2.5 py-1 rounded-md bg-rose-50 text-rose-700 text-xs font-bold">● Bị Khóa</span>'}
+                </td>
+                <td class="py-3.5 px-4">
+                    ${u.tenant_id ? `
+                        <button onclick="openAssignLookerModal('${u.tenant_id}', '${u.tenant_name}')" class="px-3 py-1.5 rounded-lg border border-teal-200 bg-teal-50 text-teal-800 text-xs font-bold hover:bg-teal-100 flex items-center gap-1">
+                            🔗 Gán Looker URL
+                        </button>
+                    ` : '<span class="text-xs text-slate-400">DashGrow HQ</span>'}
                 </td>
                 <td class="py-3.5 px-4">
                     <div class="flex items-center gap-2">
@@ -415,8 +383,52 @@ async function handleCreateUserSubmit(e) {
         }
 
         closeCreateUserModal();
-        showToast(`Đã tạo thành công khách hàng: ${payload.company_name}`, 'success');
+        showToast(`Đã lưu khách hàng mới lên Aiven.io: ${payload.company_name}`, 'success');
         await fetchUsersList();
+    } catch (err) {
+        showToast(err.message, 'error');
+    }
+}
+
+// ==================== ADMIN: ASSIGN LOOKER URL ====================
+function openAssignLookerModal(tenantId, tenantName) {
+    document.getElementById('assignLookerTenantId').value = tenantId;
+    document.getElementById('assignLookerTitle').value = `Báo Cáo Doanh Thu P&L - ${tenantName}`;
+    document.getElementById('modalAssignLooker').classList.add('active');
+}
+
+function closeAssignLookerModal() {
+    document.getElementById('modalAssignLooker').classList.remove('active');
+}
+
+async function handleAssignLookerSubmit(e) {
+    e.preventDefault();
+    const tenantId = document.getElementById('assignLookerTenantId').value;
+    const payload = {
+        title: document.getElementById('assignLookerTitle').value,
+        category: document.getElementById('assignLookerCategory').value,
+        embed_url: document.getElementById('assignLookerUrl').value,
+        is_default: document.getElementById('assignLookerDefault').checked,
+        sort_order: 1
+    };
+
+    try {
+        const res = await fetch(`${API_BASE}/looker/tenants/${tenantId}`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${appState.token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+        });
+
+        if (!res.ok) {
+            const err = await res.json();
+            throw new Error(err.detail || 'Không thể gán Looker URL.');
+        }
+
+        closeAssignLookerModal();
+        showToast('Đã lưu cấu hình Looker Studio lên Aiven PostgreSQL!', 'success');
     } catch (err) {
         showToast(err.message, 'error');
     }
@@ -438,7 +450,7 @@ async function toggleUserStatus(userId, currentStatus) {
             throw new Error(err.detail || 'Lỗi cập nhật');
         }
 
-        showToast('Đã cập nhật trạng thái người dùng.', 'success');
+        showToast('Đã cập nhật trạng thái người dùng trên Aiven.', 'success');
         await fetchUsersList();
     } catch (err) {
         showToast(err.message, 'error');
@@ -446,7 +458,7 @@ async function toggleUserStatus(userId, currentStatus) {
 }
 
 async function deleteUserAccount(userId) {
-    if (!confirm('Bạn có chắc chắn muốn xóa vĩnh viễn tài khoản này?')) return;
+    if (!confirm('Bạn có chắc chắn muốn xóa vĩnh viễn tài khoản này khỏi Aiven?')) return;
     try {
         const res = await fetch(`${API_BASE}/users/${userId}`, {
             method: 'DELETE',
@@ -458,7 +470,7 @@ async function deleteUserAccount(userId) {
             throw new Error(err.detail || 'Lỗi xóa tài khoản');
         }
 
-        showToast('Đã xóa tài khoản thành công.', 'success');
+        showToast('Đã xóa tài khoản thành công trên Aiven.', 'success');
         await fetchUsersList();
     } catch (err) {
         showToast(err.message, 'error');

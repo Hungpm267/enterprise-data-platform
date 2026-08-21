@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import Optional
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel
 
 class LoginRequest(BaseModel):
     email: str
@@ -13,9 +13,9 @@ class TokenResponse(BaseModel):
     email: str
     full_name: str
     role: str
-    tenant_id: str
-    tenant_name: str
-    tenant_slug: str
+    tenant_id: Optional[str] = None
+    tenant_name: Optional[str] = "DashGrow HQ"
+    tenant_slug: Optional[str] = "dashgrow-hq"
 
 class UserOut(BaseModel):
     id: str
@@ -23,10 +23,10 @@ class UserOut(BaseModel):
     full_name: str
     role: str
     is_active: bool
-    tenant_id: str
-    tenant_name: str
-    tenant_slug: str
-    tenant_plan: str
+    tenant_id: Optional[str] = None
+    tenant_name: Optional[str] = "DashGrow HQ"
+    tenant_slug: Optional[str] = "dashgrow-hq"
+    tenant_plan: Optional[str] = "growth_pro"
     created_at: Optional[datetime] = None
 
 class RegisterRequest(BaseModel):

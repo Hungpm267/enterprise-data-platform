@@ -2,7 +2,7 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from src.web.db.session import get_db
-from src.web.db.models import User, Tenant
+from src.web.db.models import User, Tenant, Subscription
 from src.web.core.dependencies import require_platform_admin
 from src.web.core.security import get_password_hash
 from src.web.schemas.auth import RegisterRequest, UserOut
@@ -32,16 +32,20 @@ def list_all_users(
     users = db.query(User).all()
     results = []
     for u in users:
+        plan = "growth_pro"
+        if u.tenant and u.tenant.subscriptions:
+            plan = u.tenant.subscriptions[0].plan_tier
+
         results.append(UserOut(
-            id=u.id,
+            id=str(u.id),
             email=u.email,
             full_name=u.full_name,
             role=u.role,
             is_active=u.is_active,
-            tenant_id=u.tenant_id,
+            tenant_id=str(u.tenant_id) if u.tenant_id else None,
             tenant_name=u.tenant.name if u.tenant else "DashGrow HQ",
             tenant_slug=u.tenant.slug if u.tenant else "dashgrow-hq",
-            tenant_plan=u.tenant.plan if u.tenant else "enterprise",
+            tenant_plan=plan,
             created_at=u.created_at
         ))
     return results
@@ -63,12 +67,23 @@ def create_tenant_and_user(
         tenant = Tenant(
             name=req.company_name.strip(),
             slug=req.company_slug.strip().lower(),
-            plan=req.plan,
             industry=req.industry
         )
         db.add(tenant)
         db.commit()
         db.refresh(tenant)
+
+        # Create subscription
+        price = 1990000.00 if req.plan == "starter" else 8990000.00 if req.plan == "enterprise" else 4490000.00
+        sub = Subscription(
+            tenant_id=tenant.id,
+            plan_tier=req.plan,
+            price_monthly=price,
+            billing_cycle="monthly",
+            payment_status="active"
+        )
+        db.add(sub)
+        db.commit()
 
     new_user = User(
         tenant_id=tenant.id,
@@ -83,15 +98,15 @@ def create_tenant_and_user(
     db.refresh(new_user)
 
     return UserOut(
-        id=new_user.id,
+        id=str(new_user.id),
         email=new_user.email,
         full_name=new_user.full_name,
         role=new_user.role,
         is_active=new_user.is_active,
-        tenant_id=tenant.id,
+        tenant_id=str(tenant.id),
         tenant_name=tenant.name,
         tenant_slug=tenant.slug,
-        tenant_plan=tenant.plan,
+        tenant_plan=req.plan,
         created_at=new_user.created_at
     )
 
@@ -106,7 +121,7 @@ def toggle_user_status(
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User không tồn tại.")
-    if user.id == admin_user.id:
+    if str(user.id) == str(admin_user.id):
         raise HTTPException(status_code=400, detail="Không thể tự khóa tài khoản Admin của chính bạn.")
 
     user.is_active = req.is_active
@@ -123,7 +138,7 @@ def delete_user(
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User không tồn tại.")
-    if user.id == admin_user.id:
+    if str(user.id) == str(admin_user.id):
         raise HTTPException(status_code=400, detail="Không thể xóa tài khoản Admin của chính bạn.")
 
     db.delete(user)
