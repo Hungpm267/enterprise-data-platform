@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DashGrow Enterprise Data Portal | B2B Multi-Tenant Platform</title>
+    <!-- Google Fonts Inter & JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Top Navigation Bar -->
+        <header class="top-navbar">
+            <div class="brand-section">
+                <div class="brand-logo">
+                    <span class="logo-icon">DG</span>
+                </div>
+                <div class="brand-text">
+                    <div class="brand-title">DashGrow <span class="badge-sub">Data Platform</span></div>
+                    <div class="tenant-badge" id="currentTenantBadge">
+                        <i data-lucide="building-2"></i> <span id="tenantNameDisplay">Olist Retail E-Commerce</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Health Status Indicators -->
+            <div class="health-indicators">
+                <div class="status-pill status-online">
+                    <span class="status-dot"></span> BigQuery: <strong id="bqStatus">CONNECTED</strong>
+                </div>
+                <div class="status-pill status-online">
+                    <span class="status-dot"></span> Postgres: <strong>ONLINE</strong>
+                </div>
+                <div class="status-pill status-online">
+                    <span class="status-dot"></span> Lake (GCS): <strong>ACTIVE</strong>
+                </div>
+            </div>
+
+            <!-- User Profile & Account Switcher -->
+            <div class="user-actions">
+                <div class="demo-switcher">
+                    <span class="switcher-label">Chế độ xem:</span>
+                    <button class="btn-switch" id="btnSwitchAdmin" onclick="switchDemoAccount('admin')">👑 DashGrow Admin</button>
+                    <button class="btn-switch active" id="btnSwitchClient" onclick="switchDemoAccount('client')">🏢 Doanh Nghiệp SMB</button>
+                </div>
+                <div class="user-profile-card">
+                    <div class="user-avatar" id="userAvatar">NA</div>
+                    <div class="user-info">
+                        <div class="user-name" id="userNameDisplay">Nguyễn Văn An</div>
+                        <div class="user-role-badge" id="userRoleBadge">Chủ Doanh Nghiệp</div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Workspace with Tab Navigation -->
+        <main class="main-workspace">
+            <nav class="tab-navigation">
+                <button class="tab-btn active" onclick="switchTab('analytics')">
+                    <i data-lucide="bar-chart-3"></i> Báo Cáo Kinh Doanh (P&L Analytics)
+                </button>
+                <button class="tab-btn" onclick="switchTab('scd2')">
+                    <i data-lucide="history"></i> Tra Cứu Vòng Đời Đơn Hàng (SCD 2)
+                </button>
+                <button class="tab-btn admin-only" id="tabBtnPipelines" onclick="switchTab('pipelines')">
+                    <i data-lucide="cpu"></i> Vận Hành Pipeline & Audit Logs
+                </button>
+                <button class="tab-btn" onclick="switchTab('quality')">
+                    <i data-lucide="shield-check"></i> Data Quality & 35 Tests
+                </button>
+            </nav>
+
+            <!-- TAB 1: BUSINESS ANALYTICS -->
+            <section class="tab-content active" id="tab-analytics">
+                <div class="section-header">
+                    <div>
+                        <h2>📊 Bảng Điều Hành Doanh Số & Hiệu Quả Kinh Doanh</h2>
+                        <p class="subtitle">Dữ liệu được tự động tính toán từ kho dữ liệu Google BigQuery Data Marts</p>
+                    </div>
+                    <div class="time-filter">
+                        <span class="pulse-indicator">● Live Sync (UTC+7)</span>
+                    </div>
+                </div>
+
+                <!-- KPI Cards Grid -->
+                <div class="kpi-grid">
+                    <div class="glass-card kpi-card">
+                        <div class="kpi-icon icon-revenue"><i data-lucide="dollar-sign"></i></div>
+                        <div class="kpi-body">
+                            <span class="kpi-label">Tổng Doanh Thu Tích Lũy</span>
+                            <div class="kpi-value" id="kpiRevenue">$1,584,290.50</div>
+                            <span class="kpi-subtext text-growth">↑ +14.2% so với kỳ trước</span>
+                        </div>
+                    </div>
+
+                    <div class="glass-card kpi-card">
+                        <div class="kpi-icon icon-orders"><i data-lucide="shopping-bag"></i></div>
+                        <div class="kpi-body">
+                            <span class="kpi-label">Tổng Số Lượng Đơn Hàng</span>
+                            <div class="kpi-value" id="kpiOrders">98,450</div>
+                            <span class="kpi-subtext text-neutral">Tự động dedup 100%</span>
+                        </div>
+                    </div>
+
+                    <div class="glass-card kpi-card">
+                        <div class="kpi-icon icon-aov"><i data-lucide="trending-up"></i></div>
+                        <div class="kpi-body">
+                            <span class="kpi-label">Giá Trị Trung Bình / Đơn (AOV)</span>
+                            <div class="kpi-value" id="kpiAOV">$160.92</div>
+                            <span class="kpi-subtext text-growth">Tối ưu giỏ hàng tốt</span>
+                        </div>
+                    </div>
+
+                    <div class="glass-card kpi-card">
+                        <div class="kpi-icon icon-delivery"><i data-lucide="truck"></i></div>
+                        <div class="kpi-body">
+                            <span class="kpi-label">Tỷ Lệ Giao Thành Công</span>
+                            <div class="kpi-value" id="kpiDeliveryRate">96.8%</div>
+                            <span class="kpi-subtext text-growth">Đạt chuẩn SLA 95%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts Grid -->
+                <div class="charts-grid">
+                    <div class="glass-card chart-card-main">
+                        <div class="card-header">
+                            <h3>📈 Xu Hướng Doanh Thu & Số Lượng Đơn Hàng Theo Tháng</h3>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="revenueTrendChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="glass-card chart-card-side">
+                        <div class="card-header">
+                            <h3>🎯 Cơ Cấu Trạng Thái Đơn Hàng</h3>
+                        </div>
+                        <div class="chart-container donut-container">
+                            <canvas id="orderStatusChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bottom Row: Top Categories & Crypto Market Dynamics -->
+                <div class="secondary-grid">
+                    <div class="glass-card table-card">
+                        <div class="card-header">
+                            <h3>🏆 Top 5 Ngành Hàng Đóng Góp Doanh Thu Cao Nhất</h3>
+                        </div>
+                        <div class="table-container">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Ngành Hàng</th>
+                                        <th>Doanh Số ($)</th>
+                                        <th>Tỷ Trọng (%)</th>
+                                        <th>Đánh Giá</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="topCategoriesBody">
+                                    <tr><td>Health & Beauty</td><td>$128,400</td><td>26.2%</td><td><span class="tag-success">Chủ lực</span></td></tr>
+                                    <tr><td>Watches & Gifts</td><td>$112,300</td><td>22.9%</td><td><span class="tag-success">Chủ lực</span></td></tr>
+                                    <tr><td>Bed & Bath Table</td><td>$98,700</td><td>20.1%</td><td><span class="tag-primary">Tăng trưởng</span></td></tr>
+                                    <tr><td>Sports & Leisure</td><td>$89,400</td><td>18.2%</td><td><span class="tag-primary">Ổn định</span></td></tr>
+                                    <tr><td>Computers & Acc</td><td>$76,500</td><td>15.6%</td><td><span class="tag-primary">Tiềm năng</span></td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="glass-card crypto-card">
+                        <div class="card-header">
+                            <h3>🪙 Chỉ Số Thị Trường & Tài Sản Số (CoinGecko API)</h3>
+                        </div>
+                        <div class="crypto-list" id="cryptoListContainer">
+                            <!-- Populated dynamically via JS -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 2: SCD TYPE 2 ORDER EXPLORER -->
+            <section class="tab-content" id="tab-scd2">
+                <div class="section-header">
+                    <div>
+                        <h2>🔍 Tra Cứu Vòng Đời Đơn Hàng & Xóa Dữ Liệu (SCD Type 2)</h2>
+                        <p class="subtitle">Minh họa trực quan cách bảng <code>snapshots.snap_orders</code> lưu vết lịch sử cập nhật và phát hiện Hard-Delete</p>
+                    </div>
+                    <div class="search-box">
+                        <i data-lucide="search"></i>
+                        <input type="text" id="scd2SearchInput" placeholder="Tìm kiếm theo mã Order ID (vd: ORD_DEMO_111, ORD_DEMO_222)..." onkeyup="handleScdSearch(event)">
+                        <button class="btn-primary" onclick="loadScd2Data()">Tìm Kiếm</button>
+                    </div>
+                </div>
+
+                <div class="glass-card explanation-banner">
+                    <div class="banner-icon"><i data-lucide="info"></i></div>
+                    <div class="banner-text">
+                        <strong>Quy tắc nhận diện SCD Type 2:</strong> Nếu <code>valid_to = NULL</code> ➔ Bản ghi hiện tại đang có hiệu lực. Nếu <code>valid_to NOT NULL</code> và còn dòng NULL kế tiếp ➔ Đơn hàng vừa được CẬP NHẬT. Nếu tất cả các dòng của ID đều có <code>valid_to</code> ➔ Đơn hàng đã bị <strong>XÓA VĨNH VIỄN (Hard Delete)</strong> khỏi hệ thống nguồn.
+                    </div>
+                </div>
+
+                <div class="glass-card table-card">
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Snapshot SCD ID</th>
+                                    <th>Order ID</th>
+                                    <th>Khách Hàng</th>
+                                    <th>Trạng Thái</th>
+                                    <th>Có Hiệu Lực Từ (Valid From)</th>
+                                    <th>Hết Hiệu Lực (Valid To)</th>
+                                    <th>Nhận Diện Trạng Thái</th>
+                                </tr>
+                            </thead>
+                            <tbody id="scd2TableBody">
+                                <!-- Populated dynamically via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 3: PIPELINE OPERATIONS (ADMIN ONLY) -->
+            <section class="tab-content" id="tab-pipelines">
+                <div class="section-header">
+                    <div>
+                        <h2>⚙️ Trung Tâm Điều Khiển & Giám Sát Pipeline (DashGrow Admin)</h2>
+                        <p class="subtitle">Kích hoạt trích xuất dữ liệu, chạy dbt transforms và kiểm tra nhật ký vận hành <code>_pipeline_audit_log</code></p>
+                    </div>
+                    <div class="pipeline-actions">
+                        <button class="btn-primary btn-trigger" onclick="openTriggerModal()">
+                            <i data-lucide="play"></i> Bấm Chạy Pipeline Ngay
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Connectors Summary Grid -->
+                <div class="connector-grid">
+                    <div class="glass-card connector-card">
+                        <div class="connector-header">
+                            <span class="badge-conn">RDBMS Connector</span>
+                            <span class="status-tag status-active">● Active</span>
+                        </div>
+                        <div class="connector-title">PostgreSQL E-Commerce Database</div>
+                        <p class="connector-desc">Trích xuất 6 bảng quan hệ (orders, order_items, customers, products, payments, reviews) với NullPool & Multithreading.</p>
+                        <div class="connector-meta">
+                            <span>Chế độ: <strong>Incremental (Watermark)</strong></span>
+                            <span>Chu kỳ: <strong>6 Tiếng / lần</strong></span>
+                        </div>
+                    </div>
+
+                    <div class="glass-card connector-card">
+                        <div class="connector-header">
+                            <span class="badge-conn">API Connector</span>
+                            <span class="status-tag status-active">● Active</span>
+                        </div>
+                        <div class="connector-title">CoinGecko Crypto Market API</div>
+                        <p class="connector-desc">Thu thập dữ liệu thị trường tiền mã hóa toàn cầu & Top Coins với cơ chế tự động Rate-limit & Exponential Backoff.</p>
+                        <div class="connector-meta">
+                            <span>Chế độ: <strong>Full Refresh Snap</strong></span>
+                            <span>Chu kỳ: <strong>6 Tiếng / lần</strong></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Audit Log History -->
+                <div class="glass-card table-card" style="margin-top: 1.5rem;">
+                    <div class="card-header">
+                        <h3>📋 Nhật Ký Thực Thi Gần Nhất (<code>_pipeline_audit_log</code>)</h3>
+                    </div>
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Run ID</th>
+                                    <th>Connector</th>
+                                    <th>Chế Độ</th>
+                                    <th>Trạng Thái</th>
+                                    <th>Bản Ghi Nạp</th>
+                                    <th>Thời Gian Chạy</th>
+                                    <th>Thời Điểm Thực Thi (UTC+7)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="auditLogsBody">
+                                <!-- Populated dynamically via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 4: DATA QUALITY & TESTING -->
+            <section class="tab-content" id="tab-quality">
+                <div class="section-header">
+                    <div>
+                        <h2>🛡️ Bảng Kiểm Soát Chất Lượng Dữ Liệu (35 dbt Data Tests)</h2>
+                        <p class="subtitle">Đảm bảo tính toàn vẹn 100% trước khi dữ liệu được chuyển lên các bảng Data Marts</p>
+                    </div>
+                    <div class="quality-badge-total">
+                        <i data-lucide="check-circle-2"></i> 100% Tests Passed
+                    </div>
+                </div>
+
+                <div class="quality-summary-grid">
+                    <div class="glass-card test-stat-card">
+                        <div class="stat-num">35</div>
+                        <div class="stat-desc">Tổng số bài kiểm thử dbt tự động</div>
+                    </div>
+                    <div class="glass-card test-stat-card text-success">
+                        <div class="stat-num">35</div>
+                        <div class="stat-desc">Bài test đạt chuẩn (PASSED)</div>
+                    </div>
+                    <div class="glass-card test-stat-card text-muted">
+                        <div class="stat-num">0</div>
+                        <div class="stat-desc">Vi phạm ràng buộc (FAILED)</div>
+                    </div>
+                </div>
+
+                <div class="glass-card table-card" style="margin-top: 1.5rem;">
+                    <div class="card-header">
+                        <h3>🔍 Chi Tiết Phân Bổ Các Quy Tắc Kiểm Định</h3>
+                    </div>
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Nhóm Ràng Buộc</th>
+                                    <th>Số Lượng Test</th>
+                                    <th>Mục Đích Kiểm Soát</th>
+                                    <th>Kết Quả</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>Khóa Chính Độc Nhất (Unique Keys)</strong></td>
+                                    <td>12 models</td>
+                                    <td>Chống trùng lặp ID (order_id, customer_id, product_id)</td>
+                                    <td><span class="tag-success">✓ 100% PASSED</span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Không Được Rỗng (Not Null)</strong></td>
+                                    <td>14 columns</td>
+                                    <td>Đảm bảo không thiếu sót trường quan trọng (price, timestamps)</td>
+                                    <td><span class="tag-success">✓ 100% PASSED</span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Giá Trị Hợp Lệ (Accepted Values)</strong></td>
+                                    <td>4 rules</td>
+                                    <td>Kiểm tra order_status chỉ thuộc các giá trị chuẩn</td>
+                                    <td><span class="tag-success">✓ 100% PASSED</span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Ràng Buộc Khóa Ngoại (Relationships)</strong></td>
+                                    <td>5 foreign keys</td>
+                                    <td>Đảm bảo khớp nối 1-n giữa order_items và orders, products</td>
+                                    <td><span class="tag-success">✓ 100% PASSED</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Trigger Pipeline Modal -->
+    <div class="modal-overlay" id="triggerModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3>🚀 Kích Hoạt Pipeline Thủ Công</h3>
+                <button class="btn-close" onclick="closeTriggerModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <label class="form-label">Chọn Connector:</label>
+                <select class="form-select" id="modalConnectorSelect">
+                    <option value="postgres_db">PostgreSQL E-Commerce Database</option>
+                    <option value="crypto_api">CoinGecko Crypto Market API</option>
+                </select>
+
+                <div class="form-checkbox-group">
+                    <input type="checkbox" id="modalFullRefreshCheckbox">
+                    <label for="modalFullRefreshCheckbox">Buộc chạy Full-Refresh (Rebuild lại toàn bộ bảng)</label>
+                </div>
+
+                <div class="log-stream-box" id="modalLogBox" style="display: none;">
+                    <div class="log-header">Live Execution Logs:</div>
+                    <pre class="log-content" id="modalLogContent">Waiting for stream...</pre>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeTriggerModal()">Đóng</button>
+                <button class="btn-primary" id="btnExecuteTrigger" onclick="executeTriggerPipeline()">Bắt Đầu Chạy</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="/static/app.js"></script>
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>
