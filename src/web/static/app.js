@@ -65,8 +65,7 @@ async function loginUser(email, password) {
 
         setupPortalForUser(data);
         showPortalScreen();
-        await loadActiveTabContent();
-        showToast(`Đăng nhập thành công: ${data.full_name} (${data.tenant_name})`, 'success');
+        showToast(`Đăng nhập thành công: ${data.full_name}`, 'success');
     } catch (err) {
         console.error('Login error:', err);
         showToast(err.message, 'error');
@@ -85,7 +84,6 @@ async function verifyAndLoadUserSession() {
         appState.currentUser = user;
         setupPortalForUser(user);
         showPortalScreen();
-        await loadActiveTabContent();
     } catch (e) {
         handleLogout();
     }
@@ -107,58 +105,73 @@ function setupPortalForUser(user) {
     const isAdmin = user.role === 'platform_admin';
     document.getElementById('headerUserRole').textContent = isAdmin ? '👑 Platform Super Admin' : '🏢 Khách Hàng (Client Owner)';
 
-    // Role-based Tab Visibility
-    document.querySelectorAll('.admin-view-only').forEach(el => {
-        if (isAdmin) {
-            el.classList.remove('hidden');
-        } else {
-            el.classList.add('hidden');
-        }
-    });
-
-    // Custom Header titles
     if (isAdmin) {
-        document.getElementById('analyticsHeaderTitle').textContent = '📊 Bảng Điều Hành Toàn Sàn (DashGrow Super Admin)';
-        document.getElementById('analyticsHeaderSubtitle').textContent = 'Tổng hợp số liệu toàn bộ các doanh nghiệp khách hàng trên Data Marts';
+        document.getElementById('navAdminTabs').classList.remove('hidden');
+        document.getElementById('navAdminTabs').classList.add('flex');
+        document.getElementById('navClientTabs').classList.add('hidden');
+        document.getElementById('navClientTabs').classList.remove('flex');
+        switchAdminTab('admin-users');
     } else {
-        document.getElementById('analyticsHeaderTitle').textContent = `📊 Báo Cáo Doanh Số & P&L - ${user.tenant_name}`;
-        document.getElementById('analyticsHeaderSubtitle').textContent = 'Dữ liệu kinh doanh thời gian thực dành riêng cho doanh nghiệp của bạn';
+        document.getElementById('navClientTabs').classList.remove('hidden');
+        document.getElementById('navClientTabs').classList.add('flex');
+        document.getElementById('navAdminTabs').classList.add('hidden');
+        document.getElementById('navAdminTabs').classList.remove('flex');
+        
+        document.getElementById('clientDashboardTitle').textContent = `📊 Báo Cáo Doanh Số & P&L - ${user.tenant_name}`;
+        switchClientTab('client-analytics');
     }
 }
 
-// ==================== TAB NAVIGATION ====================
-function switchPortalTab(tabId) {
-    document.querySelectorAll('.tab-view').forEach(el => el.classList.add('hidden'));
-    document.querySelectorAll('.tab-btn').forEach(el => {
-        el.classList.remove('bg-white', 'text-dg-dark', 'shadow-sm');
-        el.classList.add('text-slate-600');
+// ==================== ADMIN TAB SWITCHER ====================
+function switchAdminTab(tabId) {
+    document.querySelectorAll('.admin-view').forEach(el => el.classList.add('hidden'));
+    document.querySelectorAll('.client-view').forEach(el => el.classList.add('hidden'));
+
+    document.querySelectorAll('.tab-btn-admin').forEach(btn => {
+        btn.classList.remove('bg-white', 'text-dg-dark', 'shadow-sm');
+        btn.classList.add('text-slate-600');
     });
 
     const targetView = document.getElementById(`view-${tabId}`);
     if (targetView) targetView.classList.remove('hidden');
 
-    const targetBtn = document.getElementById(`tabNav${tabId.charAt(0).toUpperCase() + tabId.slice(1)}`);
-    if (targetBtn) {
-        targetBtn.classList.add('bg-white', 'text-dg-dark', 'shadow-sm');
-        targetBtn.classList.remove('text-slate-600');
+    const btnId = tabId === 'admin-users' ? 'btnAdminTabUsers' : tabId === 'admin-pipelines' ? 'btnAdminTabPipelines' : 'btnAdminTabQuality';
+    const activeBtn = document.getElementById(btnId);
+    if (activeBtn) {
+        activeBtn.classList.add('bg-white', 'text-dg-dark', 'shadow-sm');
+        activeBtn.classList.remove('text-slate-600');
     }
 
-    loadActiveTabContent(tabId);
+    if (tabId === 'admin-users') fetchUsersList();
+    if (tabId === 'admin-pipelines') fetchAuditLogs();
 }
 
-async function loadActiveTabContent(specificTab = null) {
-    const activeView = specificTab ? `view-${specificTab}` : Array.from(document.querySelectorAll('.tab-view')).find(el => !el.classList.contains('hidden'))?.id;
-    const tabName = activeView ? activeView.replace('view-', '') : 'analytics';
+// ==================== CLIENT TAB SWITCHER ====================
+function switchClientTab(tabId) {
+    document.querySelectorAll('.admin-view').forEach(el => el.classList.add('hidden'));
+    document.querySelectorAll('.client-view').forEach(el => el.classList.add('hidden'));
 
-    if (tabName === 'analytics') {
-        await Promise.all([loadKpis(), loadRevenueChart(), loadOrderStatusChart()]);
-    } else if (tabName === 'scd2') {
-        await fetchScdData();
-    } else if (tabName === 'users') {
-        await fetchUsersList();
-    } else if (tabName === 'pipelines') {
-        await fetchAuditLogs();
+    document.querySelectorAll('.tab-btn-client').forEach(btn => {
+        btn.classList.remove('bg-white', 'text-dg-dark', 'shadow-sm');
+        btn.classList.add('text-slate-600');
+    });
+
+    const targetView = document.getElementById(`view-${tabId}`);
+    if (targetView) targetView.classList.remove('hidden');
+
+    const btnId = tabId === 'client-analytics' ? 'btnClientTabAnalytics' : tabId === 'client-scd2' ? 'btnClientTabScd2' : 'btnClientTabHealth';
+    const activeBtn = document.getElementById(btnId);
+    if (activeBtn) {
+        activeBtn.classList.add('bg-white', 'text-dg-dark', 'shadow-sm');
+        activeBtn.classList.remove('text-slate-600');
     }
+
+    if (tabId === 'client-analytics') {
+        loadKpis();
+        loadRevenueChart();
+        loadOrderStatusChart();
+    }
+    if (tabId === 'client-scd2') fetchScdData();
 }
 
 async function fetchWithAuth(endpoint) {
@@ -170,7 +183,7 @@ async function fetchWithAuth(endpoint) {
     });
 }
 
-// ==================== TAB 1: ANALYTICS ====================
+// ==================== CLIENT: ANALYTICS (P&L) ====================
 async function loadKpis() {
     try {
         const res = await fetchWithAuth('/analytics/kpis');
@@ -264,7 +277,7 @@ async function loadOrderStatusChart() {
                 labels: data.labels,
                 datasets: [{
                     data: data.values,
-                    backgroundColor: ['#10b981', '#0284c7', '#f59e0b', '#8b5cf6', '#ef4444'],
+                    backgroundColor: ['#10b981', '#0284c7', '#f59e0b', '#6366f1', '#ef4444'],
                     borderWidth: 0
                 }]
             },
@@ -282,7 +295,7 @@ async function loadOrderStatusChart() {
     }
 }
 
-// ==================== TAB 2: SCD TYPE 2 EXPLORER ====================
+// ==================== CLIENT: SCD TYPE 2 EXPLORER ====================
 async function fetchScdData() {
     const q = document.getElementById('inputScdSearch')?.value || '';
     try {
@@ -318,12 +331,16 @@ async function fetchScdData() {
     }
 }
 
-// ==================== TAB 3: ADMIN USER MANAGER ====================
+// ==================== ADMIN: USER & TENANT MANAGER ====================
 async function fetchUsersList() {
     try {
         const res = await fetchWithAuth('/users');
         if (!res.ok) return;
         const users = await res.json();
+
+        // Update counts
+        const tenantSet = new Set(users.map(u => u.tenant_slug));
+        document.getElementById('valTotalTenants').textContent = `${tenantSet.size} Doanh Nghiệp`;
 
         const tbody = document.getElementById('tbodyUsersList');
         tbody.innerHTML = users.map(u => `
@@ -448,7 +465,7 @@ async function deleteUserAccount(userId) {
     }
 }
 
-// ==================== TAB 4: AUDIT LOGS ====================
+// ==================== ADMIN: AUDIT LOGS ====================
 async function fetchAuditLogs() {
     try {
         const res = await fetchWithAuth('/explorer/audit-logs');

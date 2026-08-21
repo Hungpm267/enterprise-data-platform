@@ -18,10 +18,10 @@
           },
           colors: {
             dg: {
-              blue: '#0284c7',       // Xanh dương tươi (chân mũi tên)
-              teal: '#0d9488',       // Xanh ngọc chuyển màu
-              green: '#10b981',      // Xanh lá tăng trưởng (đầu mũi tên)
-              dark: '#0e3a40',       // Màu chữ DashGrow đậm (xanh cổ vịt tối)
+              blue: '#0284c7',       // Xanh dương tươi
+              teal: '#0d9488',       // Xanh ngọc
+              green: '#10b981',      // Xanh lá tăng trưởng
+              dark: '#0e3a40',       // Chữ đậm xanh cổ vịt
               darker: '#08252a',
             }
           }
@@ -37,24 +37,24 @@
 </head>
 <body class="antialiased selection:bg-teal-600 selection:text-white min-h-screen grid-bg">
 
-  <!-- ==================== 1. DEDICATED AUTH / LOGIN SCREEN ==================== -->
+  <!-- ==================== 1. DEDICATED AUTH SCREEN ==================== -->
   <div id="authScreen" class="min-h-screen flex items-center justify-center p-4">
     <div class="max-w-md w-full bg-white rounded-3xl p-8 sm:p-10 border border-slate-200/80 shadow-2xl">
-      <!-- Official SVG Logo -->
+      <!-- Logo -->
       <div class="flex items-center justify-center gap-3 mb-6">
         <svg class="w-10 h-10 shrink-0" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
           <defs>
-            <linearGradient id="logoGradAuth" x1="15%" y1="90%" x2="85%" y2="10%">
+            <linearGradient id="logoGrad" x1="15%" y1="90%" x2="85%" y2="10%">
               <stop offset="0%" stop-color="#0284c7" />
               <stop offset="50%" stop-color="#0d9488" />
               <stop offset="100%" stop-color="#10b981" />
             </linearGradient>
           </defs>
-          <rect x="25" y="45" width="16" height="40" rx="2" fill="url(#logoGradAuth)"/>
-          <rect x="44" y="32" width="16" height="53" rx="2" fill="url(#logoGradAuth)"/>
-          <rect x="63" y="42" width="16" height="43" rx="2" fill="url(#logoGradAuth)"/>
-          <path d="M15 78 L38 52 L50 63 L78 28" stroke="url(#logoGradAuth)" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M60 20 L88 20 L88 48 Z" fill="url(#logoGradAuth)"/>
+          <rect x="25" y="45" width="16" height="40" rx="2" fill="url(#logoGrad)"/>
+          <rect x="44" y="32" width="16" height="53" rx="2" fill="url(#logoGrad)"/>
+          <rect x="63" y="42" width="16" height="43" rx="2" fill="url(#logoGrad)"/>
+          <path d="M15 78 L38 52 L50 63 L78 28" stroke="url(#logoGrad)" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M60 20 L88 20 L88 48 Z" fill="url(#logoGrad)"/>
         </svg>
         <span class="text-3xl font-extrabold tracking-tight text-dg-dark">
           Dash<span class="text-teal-600">Grow</span>
@@ -78,21 +78,21 @@
         </button>
       </form>
 
-      <!-- Quick Demo Login Buttons -->
+      <!-- Quick Demo Login Helpers -->
       <div class="mt-8 pt-6 border-t border-slate-100">
         <div class="text-[11px] font-bold uppercase tracking-widest text-slate-400 text-center mb-3">Tài Khoản Thử Nghiệm Nhanh</div>
         <div class="grid grid-cols-1 gap-2.5">
           <button onclick="quickFillLogin('admin@dashgrow.io', 'admin123')" class="w-full text-left px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-teal-50 hover:border-teal-200 transition-all flex items-center justify-between text-xs">
             <div>
               <div class="font-bold text-dg-dark">👑 DashGrow Admin (Bên Bán)</div>
-              <div class="text-slate-500 text-[11px]">admin@dashgrow.io (Quản trị User & Pipeline)</div>
+              <div class="text-slate-500 text-[11px]">admin@dashgrow.io (Quản trị User & Hạ tầng SaaS)</div>
             </div>
             <span class="text-teal-600 font-bold">Chọn →</span>
           </button>
           <button onclick="quickFillLogin('owner@olist-store.vn', 'client123')" class="w-full text-left px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-teal-50 hover:border-teal-200 transition-all flex items-center justify-between text-xs">
             <div>
               <div class="font-bold text-dg-dark">🏢 Khách Hàng SMB (Bên Mua)</div>
-              <div class="text-slate-500 text-[11px]">owner@olist-store.vn (Olist Retail Store Dashboard)</div>
+              <div class="text-slate-500 text-[11px]">owner@olist-store.vn (Xem Doanh Số Shop Riêng)</div>
             </div>
             <span class="text-teal-600 font-bold">Chọn →</span>
           </button>
@@ -110,11 +110,11 @@
         <!-- Brand Logo -->
         <div class="flex items-center gap-3">
           <svg class="w-8 h-8 shrink-0" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="25" y="45" width="16" height="40" rx="2" fill="url(#logoGradAuth)"/>
-            <rect x="44" y="32" width="16" height="53" rx="2" fill="url(#logoGradAuth)"/>
-            <rect x="63" y="42" width="16" height="43" rx="2" fill="url(#logoGradAuth)"/>
-            <path d="M15 78 L38 52 L50 63 L78 28" stroke="url(#logoGradAuth)" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M60 20 L88 20 L88 48 Z" fill="url(#logoGradAuth)"/>
+            <rect x="25" y="45" width="16" height="40" rx="2" fill="url(#logoGrad)"/>
+            <rect x="44" y="32" width="16" height="53" rx="2" fill="url(#logoGrad)"/>
+            <rect x="63" y="42" width="16" height="43" rx="2" fill="url(#logoGrad)"/>
+            <path d="M15 78 L38 52 L50 63 L78 28" stroke="url(#logoGrad)" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M60 20 L88 20 L88 48 Z" fill="url(#logoGrad)"/>
           </svg>
           <span class="text-2xl font-extrabold tracking-tight text-dg-dark">
             Dash<span class="text-teal-600">Grow</span>
@@ -145,145 +145,78 @@
     <!-- Main Content Area -->
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       
-      <!-- Navigation Tabs -->
-      <nav class="flex flex-wrap items-center gap-2 bg-slate-200/60 p-1.5 rounded-2xl mb-8 border border-slate-200">
-        <button id="tabNavAnalytics" onclick="switchPortalTab('analytics')" class="tab-btn active px-5 py-2.5 rounded-xl font-bold text-sm text-slate-600 hover:text-dg-dark transition-all flex items-center gap-2">
-          <i data-lucide="bar-chart-3" class="w-4 h-4"></i> Báo Cáo Kinh Doanh (P&L)
+      <!-- ==================== A. TABS FOR ADMIN ==================== -->
+      <nav id="navAdminTabs" class="hidden flex-wrap items-center gap-2 bg-slate-200/60 p-1.5 rounded-2xl mb-8 border border-slate-200">
+        <button id="btnAdminTabUsers" onclick="switchAdminTab('admin-users')" class="tab-btn-admin active px-5 py-2.5 rounded-xl font-bold text-sm bg-white text-dg-dark shadow-sm flex items-center gap-2">
+          <i data-lucide="users" class="w-4 h-4"></i> 👥 Quản Lý Khách Hàng & Doanh Thu Thuê Bao (SaaS)
         </button>
-        <button id="tabNavScd2" onclick="switchPortalTab('scd2')" class="tab-btn px-5 py-2.5 rounded-xl font-bold text-sm text-slate-600 hover:text-dg-dark transition-all flex items-center gap-2">
-          <i data-lucide="history" class="w-4 h-4"></i> Tra Cứu Đơn Hàng (SCD 2)
+        <button id="btnAdminTabPipelines" onclick="switchAdminTab('admin-pipelines')" class="tab-btn-admin px-5 py-2.5 rounded-xl font-bold text-sm text-slate-600 hover:text-dg-dark flex items-center gap-2">
+          <i data-lucide="cpu" class="w-4 h-4"></i> ⚙️ Vận Hành Hạ Tầng & Pipeline
         </button>
-        <button id="tabNavUsers" onclick="switchPortalTab('users')" class="tab-btn admin-view-only px-5 py-2.5 rounded-xl font-bold text-sm text-slate-600 hover:text-dg-dark transition-all flex items-center gap-2">
-          <i data-lucide="users" class="w-4 h-4"></i> 👥 Quản Lý Khách Hàng (User Manager)
-        </button>
-        <button id="tabNavPipelines" onclick="switchPortalTab('pipelines')" class="tab-btn admin-view-only px-5 py-2.5 rounded-xl font-bold text-sm text-slate-600 hover:text-dg-dark transition-all flex items-center gap-2">
-          <i data-lucide="cpu" class="w-4 h-4"></i> ⚙️ Vận Hành Pipeline
-        </button>
-        <button id="tabNavQuality" onclick="switchPortalTab('quality')" class="tab-btn px-5 py-2.5 rounded-xl font-bold text-sm text-slate-600 hover:text-dg-dark transition-all flex items-center gap-2">
-          <i data-lucide="shield-check" class="w-4 h-4"></i> 🛡️ Data Quality (35 Tests)
+        <button id="btnAdminTabQuality" onclick="switchAdminTab('admin-quality')" class="tab-btn-admin px-5 py-2.5 rounded-xl font-bold text-sm text-slate-600 hover:text-dg-dark flex items-center gap-2">
+          <i data-lucide="shield-check" class="w-4 h-4"></i> 🛡️ Giám Sát Chất Lượng Nền Tảng (35 Tests)
         </button>
       </nav>
 
-      <!-- TAB 1: BUSINESS ANALYTICS (P&L) -->
-      <section id="view-analytics" class="tab-view active space-y-6">
+      <!-- ==================== B. TABS FOR CLIENT ==================== -->
+      <nav id="navClientTabs" class="flex flex-wrap items-center gap-2 bg-slate-200/60 p-1.5 rounded-2xl mb-8 border border-slate-200">
+        <button id="btnClientTabAnalytics" onclick="switchClientTab('client-analytics')" class="tab-btn-client active px-5 py-2.5 rounded-xl font-bold text-sm bg-white text-dg-dark shadow-sm flex items-center gap-2">
+          <i data-lucide="bar-chart-3" class="w-4 h-4"></i> 📊 Báo Cáo Doanh Số & P&L Shop
+        </button>
+        <button id="btnClientTabScd2" onclick="switchClientTab('client-scd2')" class="tab-btn-client px-5 py-2.5 rounded-xl font-bold text-sm text-slate-600 hover:text-dg-dark flex items-center gap-2">
+          <i data-lucide="history" class="w-4 h-4"></i> 🔍 Tra Cứu Vòng Đời Đơn Hàng (SCD 2)
+        </button>
+        <button id="btnClientTabHealth" onclick="switchClientTab('client-health')" class="tab-btn-client px-5 py-2.5 rounded-xl font-bold text-sm text-slate-600 hover:text-dg-dark flex items-center gap-2">
+          <i data-lucide="shield-check" class="w-4 h-4"></i> 🛡️ Độ Tin Cậy Dữ Liệu Shop
+        </button>
+      </nav>
+
+      <!-- ------------------------------------------------------------- -->
+      <!-- VIEW ADMIN 1: TENANT & SAAS MRR MANAGER                       -->
+      <!-- ------------------------------------------------------------- -->
+      <section id="view-admin-users" class="admin-view space-y-6">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 class="text-2xl sm:text-3xl font-extrabold text-dg-dark tracking-tight" id="analyticsHeaderTitle">📊 Bảng Điều Hành Doanh Số & Hiệu Quả Kinh Doanh</h1>
-            <p class="text-slate-500 text-sm mt-1" id="analyticsHeaderSubtitle">Dữ liệu được tự động tính toán từ Google BigQuery Data Marts</p>
-          </div>
-          <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-teal-500/20 bg-teal-50 text-teal-800 text-xs font-semibold">
-            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            Realtime Sync (UTC+7)
-          </div>
-        </div>
-
-        <!-- 4 KPI Cards -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-          <div class="bento-card bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm">
-            <div class="text-xs font-bold text-slate-500 uppercase tracking-wider">Tổng Doanh Thu Tích Lũy</div>
-            <div class="text-3xl font-extrabold text-dg-dark mt-2" id="valRevenue">$1,584,290.50</div>
-            <div class="text-xs text-emerald-600 font-bold mt-2 flex items-center gap-1">
-              ↑ +14.2% so với kỳ trước
-            </div>
-          </div>
-
-          <div class="bento-card bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm">
-            <div class="text-xs font-bold text-slate-500 uppercase tracking-wider">Tổng Số Lượng Đơn Hàng</div>
-            <div class="text-3xl font-extrabold text-dg-dark mt-2" id="valOrders">98,450</div>
-            <div class="text-xs text-slate-500 font-semibold mt-2">
-              ● Dedup 100% tự động
-            </div>
-          </div>
-
-          <div class="bento-card bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm">
-            <div class="text-xs font-bold text-slate-500 uppercase tracking-wider">Giá Trị TB / Đơn (AOV)</div>
-            <div class="text-3xl font-extrabold text-dg-dark mt-2" id="valAOV">$160.92</div>
-            <div class="text-xs text-emerald-600 font-bold mt-2">
-              ↑ Tối ưu giỏ hàng tốt
-            </div>
-          </div>
-
-          <div class="bento-card bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm">
-            <div class="text-xs font-bold text-slate-500 uppercase tracking-wider">Tỷ Lệ Giao Thành Công</div>
-            <div class="text-3xl font-extrabold text-dg-dark mt-2" id="valDelivery">96.8%</div>
-            <div class="text-xs text-teal-600 font-bold mt-2">
-              ✓ Đạt chuẩn SLA 95%
-            </div>
-          </div>
-        </div>
-
-        <!-- Charts Grid -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div class="lg:col-span-2 bento-card bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm">
-            <h3 class="text-lg font-bold text-dg-dark mb-4">📈 Xu Hướng Doanh Thu & Số Lượng Đơn Hàng</h3>
-            <div class="h-72 w-full">
-              <canvas id="canvasRevenueTrend"></canvas>
-            </div>
-          </div>
-
-          <div class="bento-card bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm">
-            <h3 class="text-lg font-bold text-dg-dark mb-4">🎯 Cơ Cấu Trạng Thái Đơn Hàng</h3>
-            <div class="h-72 w-full flex items-center justify-center">
-              <canvas id="canvasOrderStatus"></canvas>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- TAB 2: SCD TYPE 2 ORDER EXPLORER -->
-      <section id="view-scd2" class="tab-view hidden space-y-6">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <h1 class="text-2xl sm:text-3xl font-extrabold text-dg-dark tracking-tight">🔍 Tra Cứu Vòng Đời Đơn Hàng (SCD Type 2)</h1>
-            <p class="text-slate-500 text-sm mt-1">Truy vết lịch sử thay đổi trạng thái và phát hiện đơn hàng bị xóa (Hard-Delete)</p>
-          </div>
-          <div class="flex items-center gap-2">
-            <input type="text" id="inputScdSearch" placeholder="Tìm theo Order ID (vd: ORD_DEMO_111)..." class="px-4 py-2.5 rounded-xl border border-slate-200 text-sm w-72 focus:outline-none focus:ring-2 focus:ring-teal-500/20" onkeyup="if(event.key==='Enter') fetchScdData()">
-            <button onclick="fetchScdData()" class="px-5 py-2.5 rounded-xl text-white dg-gradient-bg font-bold text-sm shadow-md hover:opacity-95 transition-all">
-              Tìm Kiếm
-            </button>
-          </div>
-        </div>
-
-        <div class="p-4 rounded-2xl bg-teal-50/70 border border-teal-200/60 text-xs text-teal-900 leading-relaxed">
-          <strong class="font-bold">💡 Nguyên lý SCD Type 2:</strong> Nếu <code>valid_to = NULL</code> ➔ Bản ghi hiện tại đang có hiệu lực. Nếu <code>valid_to NOT NULL</code> và còn dòng mới ➔ Đơn hàng vừa được CẬP NHẬT. Nếu tất cả các dòng của ID đều có <code>valid_to</code> ➔ Đơn hàng đã bị <strong>XÓA HOÀN TOÀN (Hard-Deleted)</strong> khỏi hệ thống nguồn.
-        </div>
-
-        <div class="bento-card bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
-          <div class="overflow-x-auto">
-            <table class="w-full text-left text-sm">
-              <thead class="bg-slate-50 border-b border-slate-200 text-xs font-bold text-slate-500 uppercase tracking-wider">
-                <tr>
-                  <th class="py-3.5 px-4">Snapshot ID</th>
-                  <th class="py-3.5 px-4">Mã Đơn Hàng (Order ID)</th>
-                  <th class="py-3.5 px-4">Khách Hàng</th>
-                  <th class="py-3.5 px-4">Trạng Thái</th>
-                  <th class="py-3.5 px-4">Valid From</th>
-                  <th class="py-3.5 px-4">Valid To</th>
-                  <th class="py-3.5 px-4">Nhận Diện</th>
-                </tr>
-              </thead>
-              <tbody id="tbodyScd2" class="divide-y divide-slate-100">
-                <!-- Injected via JS -->
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </section>
-
-      <!-- TAB 3: ADMIN USER & TENANT MANAGER -->
-      <section id="view-users" class="tab-view hidden space-y-6">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <h1 class="text-2xl sm:text-3xl font-extrabold text-dg-dark tracking-tight">👥 Quản Lý Khách Hàng Doanh Nghiệp (User Manager)</h1>
-            <p class="text-slate-500 text-sm mt-1">Thêm doanh nghiệp mới, cấp phát tài khoản và phân quyền</p>
+            <h1 class="text-2xl sm:text-3xl font-extrabold text-dg-dark tracking-tight">👑 Quản Trị Khách Hàng & Doanh Thu Thuê Bao SaaS</h1>
+            <p class="text-slate-500 text-sm mt-1">Số liệu kinh doanh phần mềm của DashGrow Technologies (Bên Bán)</p>
           </div>
           <button onclick="openCreateUserModal()" class="px-5 py-2.5 rounded-xl text-white dg-gradient-bg font-bold text-sm shadow-md hover:opacity-95 transition-all flex items-center gap-2">
-            <i data-lucide="user-plus" class="w-4 h-4"></i> + Thêm Khách Hàng Mới
+            <i data-lucide="user-plus" class="w-4 h-4"></i> + Thêm Doanh Nghiệp Khách Hàng
           </button>
         </div>
 
+        <!-- Admin SaaS Business Metrics -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          <div class="bento-card bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm">
+            <div class="text-xs font-bold text-slate-500 uppercase tracking-wider">Khách Hàng Doanh Nghiệp (Tenants)</div>
+            <div class="text-3xl font-extrabold text-dg-dark mt-2" id="valTotalTenants">12 Doanh Nghiệp</div>
+            <div class="text-xs text-emerald-600 font-bold mt-2">● Đang hoạt động 100%</div>
+          </div>
+
+          <div class="bento-card bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm">
+            <div class="text-xs font-bold text-slate-500 uppercase tracking-wider">Doanh Thu Thuê Bao Tháng (MRR)</div>
+            <div class="text-3xl font-extrabold text-dg-dark mt-2" id="valMRR">53.880.000 đ</div>
+            <div class="text-xs text-emerald-600 font-bold mt-2">↑ +18.5% so với tháng trước</div>
+          </div>
+
+          <div class="bento-card bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm">
+            <div class="text-xs font-bold text-slate-500 uppercase tracking-wider">Doanh Thu Định Kỳ Năm (ARR)</div>
+            <div class="text-3xl font-extrabold text-dg-dark mt-2" id="valARR">646.560.000 đ</div>
+            <div class="text-xs text-teal-600 font-bold mt-2">Tăng trưởng ổn định</div>
+          </div>
+
+          <div class="bento-card bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm">
+            <div class="text-xs font-bold text-slate-500 uppercase tracking-wider">Tỷ Lệ Duy Trì Gói (Renewal Rate)</div>
+            <div class="text-3xl font-extrabold text-dg-dark mt-2">98.5%</div>
+            <div class="text-xs text-emerald-600 font-bold mt-2">Đạt chuẩn SaaS B2B</div>
+          </div>
+        </div>
+
+        <!-- Tenant / User List Table -->
         <div class="bento-card bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+          <div class="p-4 bg-slate-50 border-b border-slate-200 font-bold text-sm text-dg-dark">
+            📋 Danh Sách Khách Hàng & Tài Khoản Cấp Quyền
+          </div>
           <div class="overflow-x-auto">
             <table class="w-full text-left text-sm">
               <thead class="bg-slate-50 border-b border-slate-200 text-xs font-bold text-slate-500 uppercase tracking-wider">
@@ -305,21 +238,48 @@
         </div>
       </section>
 
-      <!-- TAB 4: PIPELINE OPERATIONS -->
-      <section id="view-pipelines" class="tab-view hidden space-y-6">
+      <!-- ------------------------------------------------------------- -->
+      <!-- VIEW ADMIN 2: INFRASTRUCTURE & PIPELINE OPERATIONS           -->
+      <!-- ------------------------------------------------------------- -->
+      <section id="view-admin-pipelines" class="admin-view hidden space-y-6">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 class="text-2xl sm:text-3xl font-extrabold text-dg-dark tracking-tight">⚙️ Vận Hành Pipeline & Hạ Tầng Dữ Liệu</h1>
-            <p class="text-slate-500 text-sm mt-1">Kích hoạt trích xuất và theo dõi nhật ký vận hành <code>_pipeline_audit_log</code></p>
+            <h1 class="text-2xl sm:text-3xl font-extrabold text-dg-dark tracking-tight">⚙️ Giám Sát Hạ Tầng & Vận Hành Pipeline</h1>
+            <p class="text-slate-500 text-sm mt-1">Quản lý luồng trích xuất dữ liệu, tài nguyên BigQuery & Cloud Postgres</p>
           </div>
           <button onclick="openPipelineModal()" class="px-5 py-2.5 rounded-xl text-white dg-gradient-bg font-bold text-sm shadow-md hover:opacity-95 transition-all flex items-center gap-2">
-            <i data-lucide="play" class="w-4 h-4"></i> Kích Hoạt Pipeline Ngay
+            <i data-lucide="play" class="w-4 h-4"></i> Kích Hoạt Chạy Pipeline
           </button>
         </div>
 
+        <!-- Infrastructure Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          <div class="bento-card bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm">
+            <div class="text-xs font-bold text-slate-500 uppercase tracking-wider">BigQuery Data Warehouse</div>
+            <div class="text-2xl font-extrabold text-emerald-600 mt-2">● CONNECTED</div>
+            <div class="text-xs text-slate-500 mt-2">Project: dt-dev-468007</div>
+          </div>
+          <div class="bento-card bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm">
+            <div class="text-xs font-bold text-slate-500 uppercase tracking-wider">PostgreSQL Database</div>
+            <div class="text-2xl font-extrabold text-emerald-600 mt-2">● ONLINE</div>
+            <div class="text-xs text-slate-500 mt-2">Host: 103.179.186.208</div>
+          </div>
+          <div class="bento-card bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm">
+            <div class="text-xs font-bold text-slate-500 uppercase tracking-wider">GCS Data Lake Storage</div>
+            <div class="text-2xl font-extrabold text-teal-700 mt-2">1.4 GB / 6 Bảng</div>
+            <div class="text-xs text-slate-500 mt-2">Parquet Snappy Compressed</div>
+          </div>
+          <div class="bento-card bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm">
+            <div class="text-xs font-bold text-slate-500 uppercase tracking-wider">Uptime Hệ Thống</div>
+            <div class="text-2xl font-extrabold text-dg-dark mt-2">99.98%</div>
+            <div class="text-xs text-emerald-600 font-bold mt-2">Đạt chuẩn SLA Enterprise</div>
+          </div>
+        </div>
+
+        <!-- Audit Log History -->
         <div class="bento-card bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
           <div class="p-4 bg-slate-50 border-b border-slate-200 font-bold text-sm text-dg-dark">
-            📋 Nhật Ký Vận Hành Gần Nhất (<code>_pipeline_audit_log</code>)
+            📋 Nhật Ký Vận Hành Kỹ Thuật (<code>_pipeline_audit_log</code>)
           </div>
           <div class="overflow-x-auto">
             <table class="w-full text-left text-sm">
@@ -342,12 +302,14 @@
         </div>
       </section>
 
-      <!-- TAB 5: DATA QUALITY -->
-      <section id="view-quality" class="tab-view hidden space-y-6">
+      <!-- ------------------------------------------------------------- -->
+      <!-- VIEW ADMIN 3: PLATFORM DATA QUALITY (35 TESTS)                -->
+      <!-- ------------------------------------------------------------- -->
+      <section id="view-admin-quality" class="admin-view hidden space-y-6">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 class="text-2xl sm:text-3xl font-extrabold text-dg-dark tracking-tight">🛡️ Bảng Kiểm Soát Chất Lượng Dữ Liệu</h1>
-            <p class="text-slate-500 text-sm mt-1">Đảm bảo tính toàn vẹn 100% qua 35 bài kiểm thử dbt tự động</p>
+            <h1 class="text-2xl sm:text-3xl font-extrabold text-dg-dark tracking-tight">🛡️ Giám Sát Chất Lượng Dữ Liệu Toàn Sàn</h1>
+            <p class="text-slate-500 text-sm mt-1">Kiểm soát toàn bộ ràng buộc schema, unique key và foreign key qua dbt test suite</p>
           </div>
           <span class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold">
             ✓ 35/35 Tests Passed (100%)
@@ -392,6 +354,150 @@
                 </tr>
               </tbody>
             </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ------------------------------------------------------------- -->
+      <!-- VIEW CLIENT 1: PRIVATE BUSINESS DASHBOARD (P&L)               -->
+      <!-- ------------------------------------------------------------- -->
+      <section id="view-client-analytics" class="client-view space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h1 class="text-2xl sm:text-3xl font-extrabold text-dg-dark tracking-tight" id="clientDashboardTitle">📊 Báo Cáo Doanh Số & P&L - Olist Retail</h1>
+            <p class="text-slate-500 text-sm mt-1">Dữ liệu kinh doanh thời gian thực dành riêng cho doanh nghiệp của bạn</p>
+          </div>
+          <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-teal-500/20 bg-teal-50 text-teal-800 text-xs font-semibold">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            Realtime Sync (UTC+7)
+          </div>
+        </div>
+
+        <!-- 4 KPI Cards for Client -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          <div class="bento-card bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm">
+            <div class="text-xs font-bold text-slate-500 uppercase tracking-wider">Tổng Doanh Thu Của Shop</div>
+            <div class="text-3xl font-extrabold text-dg-dark mt-2" id="valRevenue">$1,584,290.50</div>
+            <div class="text-xs text-emerald-600 font-bold mt-2 flex items-center gap-1">
+              ↑ +14.2% so với kỳ trước
+            </div>
+          </div>
+
+          <div class="bento-card bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm">
+            <div class="text-xs font-bold text-slate-500 uppercase tracking-wider">Tổng Số Đơn Hàng Của Shop</div>
+            <div class="text-3xl font-extrabold text-dg-dark mt-2" id="valOrders">98,450</div>
+            <div class="text-xs text-slate-500 font-semibold mt-2">
+              ● Dedup 100% tự động
+            </div>
+          </div>
+
+          <div class="bento-card bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm">
+            <div class="text-xs font-bold text-slate-500 uppercase tracking-wider">Giá Trị TB / Đơn (AOV)</div>
+            <div class="text-3xl font-extrabold text-dg-dark mt-2" id="valAOV">$160.92</div>
+            <div class="text-xs text-emerald-600 font-bold mt-2">
+              ↑ Tối ưu giỏ hàng tốt
+            </div>
+          </div>
+
+          <div class="bento-card bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm">
+            <div class="text-xs font-bold text-slate-500 uppercase tracking-wider">Tỷ Lệ Giao Thành Công</div>
+            <div class="text-3xl font-extrabold text-dg-dark mt-2" id="valDelivery">96.8%</div>
+            <div class="text-xs text-teal-600 font-bold mt-2">
+              ✓ Đạt chuẩn SLA 95%
+            </div>
+          </div>
+        </div>
+
+        <!-- Charts Grid for Client -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div class="lg:col-span-2 bento-card bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm">
+            <h3 class="text-lg font-bold text-dg-dark mb-4">📈 Xu Hướng Doanh Thu Shop Theo Tháng</h3>
+            <div class="h-72 w-full">
+              <canvas id="canvasRevenueTrend"></canvas>
+            </div>
+          </div>
+
+          <div class="bento-card bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm">
+            <h3 class="text-lg font-bold text-dg-dark mb-4">🎯 Cơ Cấu Trạng Thái Đơn Hàng Shop</h3>
+            <div class="h-72 w-full flex items-center justify-center">
+              <canvas id="canvasOrderStatus"></canvas>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ------------------------------------------------------------- -->
+      <!-- VIEW CLIENT 2: CLIENT PRIVATE SCD 2 ORDER EXPLORER            -->
+      <!-- ------------------------------------------------------------- -->
+      <section id="view-client-scd2" class="client-view hidden space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h1 class="text-2xl sm:text-3xl font-extrabold text-dg-dark tracking-tight">🔍 Tra Cứu Vòng Đời Đơn Hàng Của Shop (SCD 2)</h1>
+            <p class="text-slate-500 text-sm mt-1">Truy vết lịch sử thay đổi trạng thái và phát hiện đơn hàng bị xóa (Hard-Delete)</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <input type="text" id="inputScdSearch" placeholder="Tìm theo Order ID (vd: ORD_DEMO_111)..." class="px-4 py-2.5 rounded-xl border border-slate-200 text-sm w-72 focus:outline-none focus:ring-2 focus:ring-teal-500/20" onkeyup="if(event.key==='Enter') fetchScdData()">
+            <button onclick="fetchScdData()" class="px-5 py-2.5 rounded-xl text-white dg-gradient-bg font-bold text-sm shadow-md hover:opacity-95 transition-all">
+              Tìm Kiếm
+            </button>
+          </div>
+        </div>
+
+        <div class="p-4 rounded-2xl bg-teal-50/70 border border-teal-200/60 text-xs text-teal-900 leading-relaxed">
+          <strong class="font-bold">💡 Nguyên lý SCD Type 2:</strong> Nếu <code>valid_to = NULL</code> ➔ Bản ghi hiện tại đang có hiệu lực. Nếu <code>valid_to NOT NULL</code> và còn dòng mới ➔ Đơn hàng vừa được CẬP NHẬT. Nếu tất cả các dòng của ID đều có <code>valid_to</code> ➔ Đơn hàng đã bị <strong>XÓA HOÀN TOÀN (Hard-Deleted)</strong> khỏi hệ thống nguồn.
+        </div>
+
+        <div class="bento-card bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm">
+              <thead class="bg-slate-50 border-b border-slate-200 text-xs font-bold text-slate-500 uppercase tracking-wider">
+                <tr>
+                  <th class="py-3.5 px-4">Snapshot ID</th>
+                  <th class="py-3.5 px-4">Mã Đơn Hàng (Order ID)</th>
+                  <th class="py-3.5 px-4">Khách Hàng</th>
+                  <th class="py-3.5 px-4">Trạng Thái</th>
+                  <th class="py-3.5 px-4">Valid From</th>
+                  <th class="py-3.5 px-4">Valid To</th>
+                  <th class="py-3.5 px-4">Nhận Diện</th>
+                </tr>
+              </thead>
+              <tbody id="tbodyScd2" class="divide-y divide-slate-100">
+                <!-- Injected via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ------------------------------------------------------------- -->
+      <!-- VIEW CLIENT 3: CLIENT DATA RELIABILITY & HEALTH               -->
+      <!-- ------------------------------------------------------------- -->
+      <section id="view-client-health" class="client-view hidden space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h1 class="text-2xl sm:text-3xl font-extrabold text-dg-dark tracking-tight">🛡️ Độ Tin Cậy & Tính Toàn Vẹn Dữ Liệu Của Shop</h1>
+            <p class="text-slate-500 text-sm mt-1">Đảm bảo toàn bộ số liệu báo cáo đã qua kiểm định sạch 100%</p>
+          </div>
+          <span class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold">
+            ✓ 100% Data Integrity Verified
+          </span>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
+          <div class="bento-card bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm">
+            <div class="text-xs font-bold text-slate-500 uppercase tracking-wider">Chỉ Số Sạch Dữ Liệu</div>
+            <div class="text-3xl font-extrabold text-emerald-600 mt-2">100%</div>
+            <div class="text-xs text-slate-500 mt-2">Không trùng lặp, không giá trị rác</div>
+          </div>
+          <div class="bento-card bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm">
+            <div class="text-xs font-bold text-slate-500 uppercase tracking-wider">Độ Trễ Đồng Bộ (Latency)</div>
+            <div class="text-3xl font-extrabold text-teal-700 mt-2">&lt; 30 giây</div>
+            <div class="text-xs text-emerald-600 font-bold mt-2">Tự động nạp định kỳ</div>
+          </div>
+          <div class="bento-card bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm">
+            <div class="text-xs font-bold text-slate-500 uppercase tracking-wider">Chuẩn Bảo Mật Dữ Liệu</div>
+            <div class="text-3xl font-extrabold text-dg-dark mt-2">AES-256</div>
+            <div class="text-xs text-slate-500 mt-2">Cô lập dữ liệu Multi-Tenant</div>
           </div>
         </div>
       </section>
