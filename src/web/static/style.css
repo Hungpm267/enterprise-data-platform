@@ -1,79 +1,130 @@
 /* ==============================================================================
-   DASHGROW TECHNOLOGIES - EXACT CSS FROM dashgrow_landing_page.html
+   DASHGROW TECHNOLOGIES - PRODUCT DATA PLATFORM PORTAL CSS
    ============================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+:root {
+  --dg-blue: #0284c7;
+  --dg-blue-hover: #0369a1;
+  --dg-dark: #0e3a40;
+  --dg-teal: #0d9488;
+}
 
 body {
   font-family: 'Plus Jakarta Sans', sans-serif;
-  background-color: #F8FAFC;
-  color: #0e3a40;
+  background-color: #f8fafc;
+  color: #0f172a;
+  -webkit-font-smoothing: antialiased;
 }
 
+/* Background Grid */
 .grid-bg {
-  background-size: 36px 36px;
+  background-size: 32px 32px;
   background-image: 
-    linear-gradient(to right, rgba(14, 58, 64, 0.04) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(14, 58, 64, 0.04) 1px, transparent 1px);
+    linear-gradient(to right, rgba(2, 132, 199, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(2, 132, 199, 0.04) 1px, transparent 1px);
 }
 
+/* Selection Highlight */
+::selection {
+  background-color: #0284c7;
+  color: #ffffff;
+}
+
+/* Gradients */
 .dg-gradient-text {
-  background: linear-gradient(135deg, #0284c7 0%, #0d9488 50%, #10b981 100%);
+  background: linear-gradient(135deg, #0284c7 0%, #0369a1 50%, #0e3a40 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
 .dg-gradient-bg {
-  background: linear-gradient(135deg, #0284c7 0%, #0d9488 50%, #10b981 100%);
+  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
 }
 
+.dg-gradient-bg-subtle {
+  background: linear-gradient(135deg, rgba(2, 132, 199, 0.08) 0%, rgba(14, 58, 64, 0.03) 100%);
+}
+
+/* Bento Card Transitions */
 .bento-card {
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .bento-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 16px 32px -12px rgba(14, 58, 64, 0.12);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px -10px rgba(2, 132, 199, 0.12);
 }
 
-/* Modal and Tab helpers */
+/* Scrollbar Customization */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Modals */
 .modal-backdrop {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(14, 58, 64, 0.6);
+  background: rgba(15, 23, 42, 0.7);
   backdrop-filter: blur(8px);
   display: none;
   align-items: center;
   justify-content: center;
   z-index: 1000;
+  padding: 1rem;
 }
 
 .modal-backdrop.active {
   display: flex;
+  animation: fadeIn 0.2s ease-out;
 }
 
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.98); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* Toast Notifications */
 .toast-wrap {
   position: fixed;
-  bottom: 1.25rem;
-  right: 1.25rem;
+  bottom: 1.5rem;
+  right: 1.5rem;
   z-index: 2000;
   pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
 .toast-msg {
-  background: rgba(14, 58, 64, 0.94);
-  backdrop-filter: blur(8px);
+  background: #0f172a;
+  border: 1px solid rgba(255, 255, 255, 0.15);
   color: #ffffff;
-  padding: 0.5rem 0.9rem;
-  border-radius: 0.65rem;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
-  font-size: 0.8rem;
+  padding: 0.75rem 1.25rem;
+  border-radius: 1rem;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+  font-size: 0.85rem;
   font-weight: 600;
-  margin-top: 0.35rem;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  animation: toastFade 0.15s ease-out;
-  transition: opacity 0.15s ease-out;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  animation: toastSlide 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: opacity 0.2s ease-out;
 }
 
-@keyframes toastFade {
-  from { transform: translateY(4px); opacity: 0; }
+@keyframes toastSlide {
+  from { transform: translateY(12px); opacity: 0; }
   to { transform: translateY(0); opacity: 1; }
 }

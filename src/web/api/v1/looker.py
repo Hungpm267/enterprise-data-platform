@@ -58,6 +58,29 @@ def get_my_dashboards(
         ) for d in dashboards
     ]
 
+@router.get("/tenants/{tenant_id}", response_model=List[LookerDashboardOut])
+def get_tenant_dashboards(
+    tenant_id: str,
+    admin_user: User = Depends(require_platform_admin),
+    db: Session = Depends(get_db)
+):
+    """Admin views all Looker Studio dashboards assigned to a specific tenant."""
+    dashboards = db.query(LookerDashboard).filter(
+        LookerDashboard.tenant_id == tenant_id
+    ).order_by(LookerDashboard.sort_order).all()
+
+    return [
+        LookerDashboardOut(
+            id=str(d.id),
+            tenant_id=str(d.tenant_id),
+            title=d.title,
+            category=d.category or "General",
+            embed_url=normalize_looker_url(d.embed_url),
+            is_default=d.is_default,
+            sort_order=d.sort_order
+        ) for d in dashboards
+    ]
+
 @router.post("/tenants/{tenant_id}", response_model=LookerDashboardOut, status_code=status.HTTP_201_CREATED)
 def assign_looker_dashboard(
     tenant_id: str,
