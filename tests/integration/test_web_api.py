@@ -61,3 +61,37 @@ def test_pipeline_trigger_rbac_protection():
         headers={"Authorization": f"Bearer {admin_token}"}
     )
     assert allowed_res.status_code == 200
+
+def test_admin_user_management_crud():
+    admin_login = client.post("/api/v1/auth/login", json={
+        "email": "admin@dashgrow.io",
+        "password": "admin123"
+    })
+    admin_token = admin_login.json()["access_token"]
+    headers = {"Authorization": f"Bearer {admin_token}"}
+
+    # 1. List Users
+    list_res = client.get("/api/v1/users", headers=headers)
+    assert list_res.status_code == 200
+    assert len(list_res.json()) >= 2
+
+    # 2. Create New Client Tenant & User
+    create_res = client.post("/api/v1/users", json={
+        "company_name": "Highland Coffee VN",
+        "company_slug": "highland-coffee",
+        "plan": "growth_pro",
+        "full_name": "Bình Quản Lý",
+        "email": "binh@highland.vn",
+        "password": "highlandpass123",
+        "role": "client_owner"
+    }, headers=headers)
+    assert create_res.status_code == 201
+    new_user_id = create_res.json()["id"]
+
+    # 3. Toggle Status (Lock)
+    toggle_res = client.put(f"/api/v1/users/{new_user_id}/status", json={"is_active": False}, headers=headers)
+    assert toggle_res.status_code == 200
+
+    # 4. Delete User
+    delete_res = client.delete(f"/api/v1/users/{new_user_id}", headers=headers)
+    assert delete_res.status_code == 200

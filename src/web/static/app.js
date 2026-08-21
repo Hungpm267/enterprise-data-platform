@@ -1,117 +1,153 @@
 // ==============================================================================
-// DASHGROW CLIENT PORTAL - FRONTEND JAVASCRIPT LOGIC
+// DASHGROW CLIENT PORTAL - FULL AUTHENTICATION & MULTI-TENANT LOGIC
 // ==============================================================================
 
 const API_BASE = '/api/v1';
 
-// Global App State
 let appState = {
-    token: null,
-    user: null,
-    currentRole: 'client_owner', // 'platform_admin' or 'client_owner'
-    revenueChartInstance: null,
-    statusChartInstance: null
+    token: localStorage.getItem('dg_token') || null,
+    currentUser: null,
+    chartRevenueInstance: null,
+    chartStatusInstance: null
 };
 
 // ==================== INITIALIZATION ====================
 document.addEventListener('DOMContentLoaded', async () => {
-    // 1. Initialize Demo Authentication (Default to SMB Client)
-    await switchDemoAccount('client');
+    if (appState.token) {
+        await verifyAndLoadUserSession();
+    } else {
+        showAuthScreen();
+    }
 });
 
-// ==================== AUTHENTICATION & SWITCHER ====================
-async function switchDemoAccount(roleType) {
-    const creds = roleType === 'admin' 
-        ? { email: 'admin@dashgrow.io', password: 'admin123' }
-        : { email: 'owner@olist-store.vn', password: 'client123' };
+function showAuthScreen() {
+    document.getElementById('authScreen').style.display = 'flex';
+    document.getElementById('portalScreen').classList.remove('active');
+}
 
+function showPortalScreen() {
+    document.getElementById('authScreen').style.display = 'none';
+    document.getElementById('portalScreen').classList.add('active');
+    lucide.createIcons();
+}
+
+// ==================== AUTHENTICATION FLOW ====================
+async function handleLoginSubmit(e) {
+    e.preventDefault();
+    const email = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPassword').value;
+    await loginUser(email, password);
+}
+
+function quickFillLogin(email, pass) {
+    document.getElementById('loginEmail').value = email;
+    document.getElementById('loginPassword').value = pass;
+    loginUser(email, pass);
+}
+
+async function loginUser(email, password) {
     try {
         const res = await fetch(`${API_BASE}/auth/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(creds)
+            body: JSON.stringify({ email, password })
         });
 
-        if (!res.ok) throw new Error('Login failed');
+        if (!res.ok) {
+            const err = await res.json();
+            throw new Error(err.detail || 'Email hoặc mật khẩu không chính xác.');
+        }
 
         const data = await res.json();
         appState.token = data.access_token;
-        appState.user = data;
-        appState.currentRole = data.role;
+        appState.currentUser = data;
+        localStorage.setItem('dg_token', data.access_token);
 
-        // Update UI
-        updateUserHeaderUI(data);
-        updateRoleViewRestrictions(data.role);
-
-        // Fetch Data for Active View
-        await loadAllDashboardData();
-
-        showToast(`Đã chuyển chế độ: ${data.role === 'platform_admin' ? '👑 DashGrow Admin (Bên Bán)' : '🏢 Doanh Nghiệp SMB (Bên Mua)'}`);
+        setupPortalForUser(data);
+        showPortalScreen();
+        await loadActiveTabContent();
+        showToast(`Đăng nhập thành công: ${data.full_name} (${data.tenant_name})`, 'success');
     } catch (err) {
-        console.error('Error switching demo account:', err);
-        showToast('Không thể đăng nhập tài khoản demo.', 'error');
+        console.error('Login error:', err);
+        showToast(err.message, 'error');
     }
 }
 
-function updateUserHeaderUI(user) {
-    document.getElementById('userNameDisplay').textContent = user.full_name;
-    document.getElementById('tenantNameDisplay').textContent = user.tenant_name;
-    document.getElementById('userRoleBadge').textContent = user.role === 'platform_admin' ? 'Platform Super Admin' : 'Chủ Doanh Nghiệp (Owner)';
-    document.getElementById('userAvatar').textContent = user.full_name.split(' ').map(n => n[0]).slice(0, 2).join('');
+async function verifyAndLoadUserSession() {
+    try {
+        const res = await fetch(`${API_BASE}/auth/me`, {
+            headers: { 'Authorization': `Bearer ${appState.token}` }
+        });
 
-    // Toggle button active classes
-    if (user.role === 'platform_admin') {
-        document.getElementById('btnSwitchAdmin').classList.add('active');
-        document.getElementById('btnSwitchClient').classList.remove('active');
-    } else {
-        document.getElementById('btnSwitchClient').classList.add('active');
-        document.getElementById('btnSwitchAdmin').classList.remove('active');
+        if (!res.ok) throw new Error('Session expired');
+
+        const user = await res.json();
+        appState.currentUser = user;
+        setupPortalForUser(user);
+        showPortalScreen();
+        await loadActiveTabContent();
+    } catch (e) {
+        handleLogout();
     }
 }
 
-function updateRoleViewRestrictions(role) {
-    const adminTab = document.getElementById('tabBtnPipelines');
-    if (role === 'platform_admin') {
-        adminTab.style.display = 'flex';
-    } else {
-        adminTab.style.display = 'none';
-        // If currently on pipeline tab, switch to analytics
-        const activeTab = document.querySelector('.tab-content.active');
-        if (activeTab && activeTab.id === 'tab-pipelines') {
-            switchTab('analytics');
-        }
-    }
+function handleLogout() {
+    appState.token = null;
+    appState.currentUser = null;
+    localStorage.removeItem('dg_token');
+    showAuthScreen();
+    showToast('Đã đăng xuất khỏi tài khoản.');
 }
 
-// ==================== TAB SWITCHING ====================
-function switchTab(tabId) {
-    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-    document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+function setupPortalForUser(user) {
+    document.getElementById('headerUserName').textContent = user.full_name;
+    document.getElementById('headerTenantName').textContent = user.tenant_name;
+    document.getElementById('headerUserAvatar').textContent = user.full_name.split(' ').map(n => n[0]).slice(0, 2).join('');
 
-    const targetContent = document.getElementById(`tab-${tabId}`);
-    if (targetContent) targetContent.classList.add('active');
+    const isAdmin = user.role === 'platform_admin';
+    document.getElementById('headerUserRole').textContent = isAdmin ? '👑 Platform Super Admin' : '🏢 Khách Hàng (Client Owner)';
 
-    // Find tab button
-    const btns = document.querySelectorAll('.tab-btn');
-    btns.forEach(btn => {
-        if (btn.getAttribute('onclick').includes(tabId)) {
-            btn.classList.add('active');
-        }
+    // Role-based Tab Visibility
+    document.querySelectorAll('.admin-view-only').forEach(el => {
+        el.style.display = isAdmin ? 'flex' : 'none';
     });
 
-    if (tabId === 'scd2') loadScd2Data();
-    if (tabId === 'pipelines') loadAuditLogs();
+    // Custom Header titles
+    if (isAdmin) {
+        document.getElementById('analyticsHeaderTitle').textContent = '📊 Bảng Điều Hành Toàn Sàn (DashGrow Super Admin)';
+        document.getElementById('analyticsHeaderSubtitle').textContent = 'Tổng hợp số liệu toàn bộ các doanh nghiệp khách hàng trên Data Marts';
+    } else {
+        document.getElementById('analyticsHeaderTitle').textContent = `📊 Báo Cáo Doanh Số & P&L - ${user.tenant_name}`;
+        document.getElementById('analyticsHeaderSubtitle').textContent = 'Dữ liệu kinh doanh thời gian thực dành riêng cho doanh nghiệp của bạn';
+    }
 }
 
-// ==================== DATA FETCHING ====================
-async function loadAllDashboardData() {
-    await Promise.all([
-        loadKpis(),
-        loadRevenueChart(),
-        loadOrderStatusChart(),
-        loadCryptoMarket(),
-        loadScd2Data()
-    ]);
+// ==================== TAB NAVIGATION ====================
+function switchPortalTab(tabId) {
+    document.querySelectorAll('.tab-view').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+
+    const targetView = document.getElementById(`view-${tabId}`);
+    if (targetView) targetView.classList.add('active');
+
+    const targetBtn = document.getElementById(`tabNav${tabId.charAt(0).toUpperCase() + tabId.slice(1)}`);
+    if (targetBtn) targetBtn.classList.add('active');
+
+    loadActiveTabContent(tabId);
+}
+
+async function loadActiveTabContent(specificTab = null) {
+    const activeTab = specificTab || document.querySelector('.tab-view.active')?.id.replace('view-', '') || 'analytics';
+
+    if (activeTab === 'analytics') {
+        await Promise.all([loadKpis(), loadRevenueChart(), loadOrderStatusChart()]);
+    } else if (activeTab === 'scd2') {
+        await fetchScdData();
+    } else if (activeTab === 'users') {
+        await fetchUsersList();
+    } else if (activeTab === 'pipelines') {
+        await fetchAuditLogs();
+    }
 }
 
 async function fetchWithAuth(endpoint) {
@@ -123,35 +159,32 @@ async function fetchWithAuth(endpoint) {
     });
 }
 
-// 1. KPIs
+// ==================== TAB 1: ANALYTICS ====================
 async function loadKpis() {
     try {
         const res = await fetchWithAuth('/analytics/kpis');
         if (!res.ok) return;
         const data = await res.json();
 
-        document.getElementById('kpiRevenue').textContent = `$${Number(data.total_revenue).toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
-        document.getElementById('kpiOrders').textContent = Number(data.total_orders).toLocaleString('en-US');
-        document.getElementById('kpiAOV').textContent = `$${Number(data.aov).toFixed(2)}`;
-        document.getElementById('kpiDeliveryRate').textContent = `${data.delivery_success_rate}%`;
+        document.getElementById('valRevenue').textContent = `$${Number(data.total_revenue).toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
+        document.getElementById('valOrders').textContent = Number(data.total_orders).toLocaleString('en-US');
+        document.getElementById('valAOV').textContent = `$${Number(data.aov).toFixed(2)}`;
+        document.getElementById('valDelivery').textContent = `${data.delivery_success_rate}%`;
     } catch (e) {
-        console.error('Failed to load KPIs:', e);
+        console.error(e);
     }
 }
 
-// 2. Revenue Trend Chart (Chart.js)
 async function loadRevenueChart() {
     try {
         const res = await fetchWithAuth('/analytics/revenue-trend');
         if (!res.ok) return;
         const data = await res.json();
 
-        const ctx = document.getElementById('revenueTrendChart').getContext('2d');
-        if (appState.revenueChartInstance) {
-            appState.revenueChartInstance.destroy();
-        }
+        const ctx = document.getElementById('canvasRevenueTrend').getContext('2d');
+        if (appState.chartRevenueInstance) appState.chartRevenueInstance.destroy();
 
-        appState.revenueChartInstance = new Chart(ctx, {
+        appState.chartRevenueInstance = new Chart(ctx, {
             type: 'line',
             data: {
                 labels: data.labels,
@@ -183,20 +216,16 @@ async function loadRevenueChart() {
                 maintainAspectRatio: false,
                 interaction: { mode: 'index', intersect: false },
                 plugins: {
-                    legend: { labels: { color: '#94a3b8', font: { family: 'Inter' } } }
+                    legend: { labels: { color: '#94a3b8', font: { family: 'Plus Jakarta Sans', weight: '600' } } }
                 },
                 scales: {
                     x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#64748b' } },
                     y: {
-                        type: 'linear',
-                        display: true,
                         position: 'left',
                         grid: { color: 'rgba(255,255,255,0.05)' },
                         ticks: { color: '#64748b', callback: v => `$${v.toLocaleString()}` }
                     },
                     y1: {
-                        type: 'linear',
-                        display: true,
                         position: 'right',
                         grid: { drawOnChartArea: false },
                         ticks: { color: '#0d9488' }
@@ -205,29 +234,26 @@ async function loadRevenueChart() {
             }
         });
     } catch (e) {
-        console.error('Failed to render revenue chart:', e);
+        console.error(e);
     }
 }
 
-// 3. Order Status Donut Chart
 async function loadOrderStatusChart() {
     try {
         const res = await fetchWithAuth('/analytics/order-status');
         if (!res.ok) return;
         const data = await res.json();
 
-        const ctx = document.getElementById('orderStatusChart').getContext('2d');
-        if (appState.statusChartInstance) {
-            appState.statusChartInstance.destroy();
-        }
+        const ctx = document.getElementById('canvasOrderStatus').getContext('2d');
+        if (appState.chartStatusInstance) appState.chartStatusInstance.destroy();
 
-        appState.statusChartInstance = new Chart(ctx, {
+        appState.chartStatusInstance = new Chart(ctx, {
             type: 'doughnut',
             data: {
                 labels: data.labels,
                 datasets: [{
                     data: data.values,
-                    backgroundColor: ['#10b981', '#0284c7', '#f59e0b', '#8b5cf6', '#ef4444'],
+                    backgroundColor: ['#10b981', '#0284c7', '#f59e0b', '#6366f1', '#ef4444'],
                     borderWidth: 0
                 }]
             },
@@ -235,60 +261,33 @@ async function loadOrderStatusChart() {
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
-                    legend: { position: 'bottom', labels: { color: '#94a3b8', boxWidth: 12 } }
+                    legend: { position: 'bottom', labels: { color: '#94a3b8', boxWidth: 12, font: { family: 'Plus Jakarta Sans' } } }
                 },
-                cutout: '70%'
+                cutout: '68%'
             }
         });
     } catch (e) {
-        console.error('Failed to render status chart:', e);
+        console.error(e);
     }
 }
 
-// 4. Crypto Market List
-async function loadCryptoMarket() {
-    try {
-        const res = await fetchWithAuth('/analytics/crypto-market');
-        if (!res.ok) return;
-        const items = await res.json();
-
-        const container = document.getElementById('cryptoListContainer');
-        container.innerHTML = items.map(c => `
-            <div class="crypto-item">
-                <div class="crypto-name-col">
-                    <span class="crypto-symbol-badge">${c.symbol}</span>
-                    <span style="font-weight: 500;">${c.name}</span>
-                </div>
-                <div style="text-align: right;">
-                    <div class="crypto-price">$${Number(c.price).toLocaleString()}</div>
-                    <div class="${c.change_24h >= 0 ? 'crypto-change-pos' : 'crypto-change-neg'}">
-                        ${c.change_24h >= 0 ? '▲ +' : '▼ '}${c.change_24h}%
-                    </div>
-                </div>
-            </div>
-        `).join('');
-    } catch (e) {
-        console.error('Failed to load crypto data:', e);
-    }
-}
-
-// ==================== SCD TYPE 2 EXPLORER ====================
-async function loadScd2Data() {
-    const q = document.getElementById('scd2SearchInput')?.value || '';
+// ==================== TAB 2: SCD TYPE 2 EXPLORER ====================
+async function fetchScdData() {
+    const q = document.getElementById('inputScdSearch')?.value || '';
     try {
         const endpoint = q ? `/explorer/scd2/orders?query=${encodeURIComponent(q)}` : '/explorer/scd2/orders';
         const res = await fetchWithAuth(endpoint);
         if (!res.ok) return;
         const rows = await res.json();
 
-        const tbody = document.getElementById('scd2TableBody');
+        const tbody = document.getElementById('tbodyScd2');
         tbody.innerHTML = rows.map(r => {
-            let statusTag = r.is_current 
-                ? '<span class="tag-success">🟢 Đang Áp Dụng (Active)</span>' 
-                : '<span class="tag-primary">🟡 Lịch Sử Cũ (Updated)</span>';
+            let statusBadge = r.is_current 
+                ? '<span class="badge-active">🟢 Đang Áp Dụng (Active)</span>' 
+                : '<span class="badge-plan">🟡 Lịch Sử Cũ (Updated)</span>';
             
             if (r.order_id === 'ORD_DEMO_222' && !r.is_current) {
-                statusTag = '<span class="tag-deleted">🔴 Đã Bị Xóa (Hard-Deleted)</span>';
+                statusBadge = '<span class="badge-locked">🔴 Đã Bị Xóa (Hard-Deleted)</span>';
             }
 
             return `
@@ -296,66 +295,170 @@ async function loadScd2Data() {
                     <td><code>${r.dbt_scd_id}</code></td>
                     <td><strong>${r.order_id}</strong></td>
                     <td>${r.customer_id}</td>
-                    <td><span class="tag-primary">${r.order_status}</span></td>
+                    <td><span class="badge-plan">${r.order_status}</span></td>
                     <td><code>${r.dbt_valid_from}</code></td>
                     <td><code>${r.dbt_valid_to || 'NULL (Current)'}</code></td>
-                    <td>${statusTag}</td>
+                    <td>${statusBadge}</td>
                 </tr>
             `;
         }).join('');
     } catch (e) {
-        console.error('Failed to load SCD 2 data:', e);
+        console.error(e);
     }
 }
 
-function handleScdSearch(e) {
-    if (e.key === 'Enter') loadScd2Data();
+// ==================== TAB 3: ADMIN USER & TENANT MANAGER ====================
+async function fetchUsersList() {
+    try {
+        const res = await fetchWithAuth('/users');
+        if (!res.ok) return;
+        const users = await res.json();
+
+        const tbody = document.getElementById('tbodyUsersList');
+        tbody.innerHTML = users.map(u => `
+            <tr>
+                <td><strong>${u.full_name}</strong></td>
+                <td><code>${u.email}</code></td>
+                <td><span style="color: #fff; font-weight: 600;">${u.tenant_name}</span> <br><small style="color: var(--text-dim);">${u.tenant_slug}</small></td>
+                <td><span class="badge-plan">${u.tenant_plan}</span></td>
+                <td>${u.role === 'platform_admin' ? '👑 Platform Admin' : '🏢 Client Owner'}</td>
+                <td>${u.is_active ? '<span class="badge-active">● Hoạt Động</span>' : '<span class="badge-locked">● Bị Khóa</span>'}</td>
+                <td>
+                    <button class="btn-action-small" onclick="toggleUserStatus('${u.id}', ${u.is_active})">
+                        ${u.is_active ? 'Khóa' : 'Mở Khóa'}
+                    </button>
+                    <button class="btn-action-small btn-action-danger" onclick="deleteUserAccount('${u.id}')">
+                        Xóa
+                    </button>
+                </td>
+            </tr>
+        `).join('');
+    } catch (e) {
+        console.error(e);
+    }
 }
 
-// ==================== AUDIT LOGS ====================
-async function loadAuditLogs() {
+function openCreateUserModal() {
+    document.getElementById('modalCreateUser').classList.add('active');
+}
+
+function closeCreateUserModal() {
+    document.getElementById('modalCreateUser').classList.remove('active');
+}
+
+async function handleCreateUserSubmit(e) {
+    e.preventDefault();
+    const payload = {
+        company_name: document.getElementById('newCompanyName').value,
+        company_slug: document.getElementById('newCompanySlug').value,
+        plan: document.getElementById('newCompanyPlan').value,
+        full_name: document.getElementById('newUserFullName').value,
+        email: document.getElementById('newUserEmail').value,
+        password: document.getElementById('newUserPassword').value,
+        role: 'client_owner'
+    };
+
+    try {
+        const res = await fetch(`${API_BASE}/users`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${appState.token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+        });
+
+        if (!res.ok) {
+            const err = await res.json();
+            throw new Error(err.detail || 'Không thể tạo khách hàng.');
+        }
+
+        closeCreateUserModal();
+        showToast(`Đã tạo thành công khách hàng: ${payload.company_name}`, 'success');
+        await fetchUsersList();
+    } catch (err) {
+        showToast(err.message, 'error');
+    }
+}
+
+async function toggleUserStatus(userId, currentStatus) {
+    try {
+        const res = await fetch(`${API_BASE}/users/${userId}/status`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${appState.token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ is_active: !currentStatus })
+        });
+
+        if (!res.ok) {
+            const err = await res.json();
+            throw new Error(err.detail || 'Lỗi cập nhật');
+        }
+
+        showToast('Đã cập nhật trạng thái người dùng.', 'success');
+        await fetchUsersList();
+    } catch (err) {
+        showToast(err.message, 'error');
+    }
+}
+
+async function deleteUserAccount(userId) {
+    if (!confirm('Bạn có chắc chắn muốn xóa vĩnh viễn tài khoản này?')) return;
+    try {
+        const res = await fetch(`${API_BASE}/users/${userId}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${appState.token}` }
+        });
+
+        if (!res.ok) {
+            const err = await res.json();
+            throw new Error(err.detail || 'Lỗi xóa tài khoản');
+        }
+
+        showToast('Đã xóa tài khoản thành công.', 'success');
+        await fetchUsersList();
+    } catch (err) {
+        showToast(err.message, 'error');
+    }
+}
+
+// ==================== TAB 4: AUDIT LOGS & PIPELINE ====================
+async function fetchAuditLogs() {
     try {
         const res = await fetchWithAuth('/explorer/audit-logs');
         if (!res.ok) return;
         const rows = await res.json();
 
-        const tbody = document.getElementById('auditLogsBody');
+        const tbody = document.getElementById('tbodyAuditLogs');
         tbody.innerHTML = rows.map(r => `
             <tr>
                 <td><code>${r.run_id}</code></td>
                 <td><strong>${r.connector_name}</strong></td>
-                <td><span class="badge-conn">${r.run_mode}</span></td>
-                <td><span class="tag-success">✓ ${r.status}</span></td>
+                <td><span class="badge-plan">${r.run_mode}</span></td>
+                <td><span class="badge-active">✓ ${r.status}</span></td>
                 <td>${r.records_extracted.toLocaleString()} dòng</td>
                 <td>${r.duration_sec}s</td>
                 <td><code>${r.executed_at}</code></td>
             </tr>
         `).join('');
     } catch (e) {
-        console.error('Failed to load audit logs:', e);
+        console.error(e);
     }
 }
 
-// ==================== TRIGGER PIPELINE MODAL ====================
-function openTriggerModal() {
-    document.getElementById('triggerModal').classList.add('active');
+function openPipelineModal() {
+    document.getElementById('modalPipeline').classList.add('active');
 }
 
-function closeTriggerModal() {
-    document.getElementById('triggerModal').classList.remove('active');
+function closePipelineModal() {
+    document.getElementById('modalPipeline').classList.remove('active');
 }
 
-async function executeTriggerPipeline() {
-    const connector = document.getElementById('modalConnectorSelect').value;
-    const fullRefresh = document.getElementById('modalFullRefreshCheckbox').checked;
-
-    const logBox = document.getElementById('modalLogBox');
-    const logContent = document.getElementById('modalLogContent');
-    const btn = document.getElementById('btnExecuteTrigger');
-
-    logBox.style.display = 'block';
-    logContent.textContent = `[Init] Requesting trigger for connector: ${connector} (Full Refresh: ${fullRefresh})...\n`;
-    btn.disabled = true;
+async function executePipelineTrigger() {
+    const connector = document.getElementById('selectPipelineConn').value;
+    const fullRefresh = document.getElementById('checkFullRefresh').checked;
 
     try {
         const res = await fetch(`${API_BASE}/pipelines/trigger`, {
@@ -369,43 +472,22 @@ async function executeTriggerPipeline() {
 
         if (!res.ok) {
             const err = await res.json();
-            throw new Error(err.detail || 'Trigger failed');
+            throw new Error(err.detail || 'Không thể trigger');
         }
 
-        showToast('Pipeline đã được kích hoạt chạy ngầm!', 'success');
-        
-        // Poll status for 10 seconds
-        let polls = 0;
-        const interval = setInterval(async () => {
-            polls++;
-            const statusRes = await fetchWithAuth('/pipelines/status');
-            if (statusRes.ok) {
-                const s = await statusRes.json();
-                if (s.logs && s.logs.length > 0) {
-                    logContent.textContent = s.logs.join('\n');
-                    logBox.scrollTop = logBox.scrollHeight;
-                }
-                if (!s.is_running || polls > 20) {
-                    clearInterval(interval);
-                    btn.disabled = false;
-                    loadAuditLogs();
-                }
-            }
-        }, 1500);
-
-    } catch (e) {
-        logContent.textContent += `\n[ERROR] ${e.message}`;
-        btn.disabled = false;
-        showToast(e.message, 'error');
+        closePipelineModal();
+        showToast(`Đã kích hoạt chạy pipeline cho ${connector} ngầm!`, 'success');
+    } catch (err) {
+        showToast(err.message, 'error');
     }
 }
 
 // ==================== TOAST HELPER ====================
 function showToast(msg, type = 'info') {
-    const container = document.getElementById('toastContainer');
-    const toast = document.createElement('div');
-    toast.className = 'toast';
-    toast.textContent = msg;
-    container.appendChild(toast);
-    setTimeout(() => toast.remove(), 4000);
+    const wrap = document.getElementById('toastWrap');
+    const t = document.createElement('div');
+    t.className = 'toast-msg';
+    t.textContent = msg;
+    wrap.appendChild(t);
+    setTimeout(() => t.remove(), 4000);
 }

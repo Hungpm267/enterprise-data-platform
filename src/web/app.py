@@ -9,6 +9,7 @@ from src.web.api.v1.auth import router as auth_router
 from src.web.api.v1.analytics import router as analytics_router
 from src.web.api.v1.explorer import router as explorer_router
 from src.web.api.v1.pipelines import router as pipelines_router
+from src.web.api.v1.users import router as users_router
 
 # Initialize database on startup
 init_app_db()
@@ -33,6 +34,7 @@ app.include_router(auth_router, prefix=WebConfig.API_V1_STR)
 app.include_router(analytics_router, prefix=WebConfig.API_V1_STR)
 app.include_router(explorer_router, prefix=WebConfig.API_V1_STR)
 app.include_router(pipelines_router, prefix=WebConfig.API_V1_STR)
+app.include_router(users_router, prefix=WebConfig.API_V1_STR)
 
 # Static files directory path
 static_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static")

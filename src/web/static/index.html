@@ -3,409 +3,441 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DashGrow Enterprise Data Portal | B2B Multi-Tenant Platform</title>
-    <!-- Google Fonts Inter & JetBrains Mono -->
+    <title>DashGrow - Nền Tảng Phân Tích & Tăng Trưởng Dữ Liệu Doanh Nghiệp (B2B SaaS)</title>
+    <!-- Plus Jakarta Sans Font from Landing Page -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-    <!-- Chart.js CDN -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
-    <div class="app-container">
-        <!-- Top Navigation Bar -->
-        <header class="top-navbar">
-            <div class="brand-section">
-                <div class="brand-logo">
-                    <span class="logo-icon">DG</span>
-                </div>
-                <div class="brand-text">
-                    <div class="brand-title">DashGrow <span class="badge-sub">Data Platform</span></div>
-                    <div class="tenant-badge" id="currentTenantBadge">
-                        <i data-lucide="building-2"></i> <span id="tenantNameDisplay">Olist Retail E-Commerce</span>
-                    </div>
-                </div>
+
+    <!-- ==================== 1. DEDICATED LOGIN SCREEN ==================== -->
+    <div class="auth-screen" id="authScreen">
+        <div class="auth-card">
+            <!-- Official DashGrow Brand Logo -->
+            <div class="auth-logo">
+                <svg class="w-10 h-10 shrink-0" style="width: 44px; height: 44px;" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <linearGradient id="logoGrad" x1="15%" y1="90%" x2="85%" y2="10%">
+                            <stop offset="0%" stop-color="#0284c7" />
+                            <stop offset="50%" stop-color="#0d9488" />
+                            <stop offset="100%" stop-color="#10b981" />
+                        </linearGradient>
+                    </defs>
+                    <rect x="25" y="45" width="16" height="40" rx="2" fill="url(#logoGrad)"/>
+                    <rect x="44" y="32" width="16" height="53" rx="2" fill="url(#logoGrad)"/>
+                    <rect x="63" y="42" width="16" height="43" rx="2" fill="url(#logoGrad)"/>
+                    <path d="M15 78 L38 52 L50 63 L78 28" stroke="url(#logoGrad)" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M60 20 L88 20 L88 48 Z" fill="url(#logoGrad)"/>
+                </svg>
+                <span style="font-size: 1.75rem; font-weight: 800; color: #fff; letter-spacing: -0.03em;">
+                    Dash<span style="color: #0d9488;">Grow</span>
+                </span>
             </div>
 
-            <!-- Health Status Indicators -->
-            <div class="health-indicators">
-                <div class="status-pill status-online">
-                    <span class="status-dot"></span> BigQuery: <strong id="bqStatus">CONNECTED</strong>
-                </div>
-                <div class="status-pill status-online">
-                    <span class="status-dot"></span> Postgres: <strong>ONLINE</strong>
-                </div>
-                <div class="status-pill status-online">
-                    <span class="status-dot"></span> Lake (GCS): <strong>ACTIVE</strong>
-                </div>
-            </div>
+            <h1 class="auth-title">Đăng Nhập Cổng Dữ Liệu</h1>
+            <p class="auth-subtitle">Nhập tài khoản để truy cập bảng điều hành doanh nghiệp của bạn</p>
 
-            <!-- User Profile & Account Switcher -->
-            <div class="user-actions">
-                <div class="demo-switcher">
-                    <span class="switcher-label">Chế độ xem:</span>
-                    <button class="btn-switch" id="btnSwitchAdmin" onclick="switchDemoAccount('admin')">👑 DashGrow Admin</button>
-                    <button class="btn-switch active" id="btnSwitchClient" onclick="switchDemoAccount('client')">🏢 Doanh Nghiệp SMB</button>
+            <form class="auth-form" onsubmit="handleLoginSubmit(event)">
+                <div class="form-group">
+                    <label class="form-label">Email Đăng Nhập</label>
+                    <input type="email" id="loginEmail" class="form-input" placeholder="name@company.com" required>
                 </div>
-                <div class="user-profile-card">
-                    <div class="user-avatar" id="userAvatar">NA</div>
-                    <div class="user-info">
-                        <div class="user-name" id="userNameDisplay">Nguyễn Văn An</div>
-                        <div class="user-role-badge" id="userRoleBadge">Chủ Doanh Nghiệp</div>
-                    </div>
+                <div class="form-group">
+                    <label class="form-label">Mật Khẩu</label>
+                    <input type="password" id="loginPassword" class="form-input" placeholder="••••••••" required>
                 </div>
-            </div>
-        </header>
-
-        <!-- Main Workspace with Tab Navigation -->
-        <main class="main-workspace">
-            <nav class="tab-navigation">
-                <button class="tab-btn active" onclick="switchTab('analytics')">
-                    <i data-lucide="bar-chart-3"></i> Báo Cáo Kinh Doanh (P&L Analytics)
+                <button type="submit" class="btn-auth-submit dg-gradient-bg">
+                    Đăng Nhập Vào Hệ Thống →
                 </button>
-                <button class="tab-btn" onclick="switchTab('scd2')">
-                    <i data-lucide="history"></i> Tra Cứu Vòng Đời Đơn Hàng (SCD 2)
-                </button>
-                <button class="tab-btn admin-only" id="tabBtnPipelines" onclick="switchTab('pipelines')">
-                    <i data-lucide="cpu"></i> Vận Hành Pipeline & Audit Logs
-                </button>
-                <button class="tab-btn" onclick="switchTab('quality')">
-                    <i data-lucide="shield-check"></i> Data Quality & 35 Tests
-                </button>
-            </nav>
+            </form>
 
-            <!-- TAB 1: BUSINESS ANALYTICS -->
-            <section class="tab-content active" id="tab-analytics">
-                <div class="section-header">
-                    <div>
-                        <h2>📊 Bảng Điều Hành Doanh Số & Hiệu Quả Kinh Doanh</h2>
-                        <p class="subtitle">Dữ liệu được tự động tính toán từ kho dữ liệu Google BigQuery Data Marts</p>
-                    </div>
-                    <div class="time-filter">
-                        <span class="pulse-indicator">● Live Sync (UTC+7)</span>
-                    </div>
+            <!-- Quick Demo Login Helpers -->
+            <div class="auth-quick-accounts">
+                <div class="quick-title">Tài Khoản Thử Nghiệm Nhanh</div>
+                <div class="quick-btn-group">
+                    <button class="btn-quick" onclick="quickFillLogin('admin@dashgrow.io', 'admin123')">
+                        <strong>👑 DashGrow Admin</strong>
+                        <span>(Bên Bán - Quản trị User & Pipeline)</span>
+                    </button>
+                    <button class="btn-quick" onclick="quickFillLogin('owner@olist-store.vn', 'client123')">
+                        <strong>🏢 Khách Hàng SMB</strong>
+                        <span>(Bên Mua - Olist Store Dashboard)</span>
+                    </button>
                 </div>
-
-                <!-- KPI Cards Grid -->
-                <div class="kpi-grid">
-                    <div class="glass-card kpi-card">
-                        <div class="kpi-icon icon-revenue"><i data-lucide="dollar-sign"></i></div>
-                        <div class="kpi-body">
-                            <span class="kpi-label">Tổng Doanh Thu Tích Lũy</span>
-                            <div class="kpi-value" id="kpiRevenue">$1,584,290.50</div>
-                            <span class="kpi-subtext text-growth">↑ +14.2% so với kỳ trước</span>
-                        </div>
-                    </div>
-
-                    <div class="glass-card kpi-card">
-                        <div class="kpi-icon icon-orders"><i data-lucide="shopping-bag"></i></div>
-                        <div class="kpi-body">
-                            <span class="kpi-label">Tổng Số Lượng Đơn Hàng</span>
-                            <div class="kpi-value" id="kpiOrders">98,450</div>
-                            <span class="kpi-subtext text-neutral">Tự động dedup 100%</span>
-                        </div>
-                    </div>
-
-                    <div class="glass-card kpi-card">
-                        <div class="kpi-icon icon-aov"><i data-lucide="trending-up"></i></div>
-                        <div class="kpi-body">
-                            <span class="kpi-label">Giá Trị Trung Bình / Đơn (AOV)</span>
-                            <div class="kpi-value" id="kpiAOV">$160.92</div>
-                            <span class="kpi-subtext text-growth">Tối ưu giỏ hàng tốt</span>
-                        </div>
-                    </div>
-
-                    <div class="glass-card kpi-card">
-                        <div class="kpi-icon icon-delivery"><i data-lucide="truck"></i></div>
-                        <div class="kpi-body">
-                            <span class="kpi-label">Tỷ Lệ Giao Thành Công</span>
-                            <div class="kpi-value" id="kpiDeliveryRate">96.8%</div>
-                            <span class="kpi-subtext text-growth">Đạt chuẩn SLA 95%</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Charts Grid -->
-                <div class="charts-grid">
-                    <div class="glass-card chart-card-main">
-                        <div class="card-header">
-                            <h3>📈 Xu Hướng Doanh Thu & Số Lượng Đơn Hàng Theo Tháng</h3>
-                        </div>
-                        <div class="chart-container">
-                            <canvas id="revenueTrendChart"></canvas>
-                        </div>
-                    </div>
-
-                    <div class="glass-card chart-card-side">
-                        <div class="card-header">
-                            <h3>🎯 Cơ Cấu Trạng Thái Đơn Hàng</h3>
-                        </div>
-                        <div class="chart-container donut-container">
-                            <canvas id="orderStatusChart"></canvas>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Bottom Row: Top Categories & Crypto Market Dynamics -->
-                <div class="secondary-grid">
-                    <div class="glass-card table-card">
-                        <div class="card-header">
-                            <h3>🏆 Top 5 Ngành Hàng Đóng Góp Doanh Thu Cao Nhất</h3>
-                        </div>
-                        <div class="table-container">
-                            <table class="data-table">
-                                <thead>
-                                    <tr>
-                                        <th>Ngành Hàng</th>
-                                        <th>Doanh Số ($)</th>
-                                        <th>Tỷ Trọng (%)</th>
-                                        <th>Đánh Giá</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="topCategoriesBody">
-                                    <tr><td>Health & Beauty</td><td>$128,400</td><td>26.2%</td><td><span class="tag-success">Chủ lực</span></td></tr>
-                                    <tr><td>Watches & Gifts</td><td>$112,300</td><td>22.9%</td><td><span class="tag-success">Chủ lực</span></td></tr>
-                                    <tr><td>Bed & Bath Table</td><td>$98,700</td><td>20.1%</td><td><span class="tag-primary">Tăng trưởng</span></td></tr>
-                                    <tr><td>Sports & Leisure</td><td>$89,400</td><td>18.2%</td><td><span class="tag-primary">Ổn định</span></td></tr>
-                                    <tr><td>Computers & Acc</td><td>$76,500</td><td>15.6%</td><td><span class="tag-primary">Tiềm năng</span></td></tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <div class="glass-card crypto-card">
-                        <div class="card-header">
-                            <h3>🪙 Chỉ Số Thị Trường & Tài Sản Số (CoinGecko API)</h3>
-                        </div>
-                        <div class="crypto-list" id="cryptoListContainer">
-                            <!-- Populated dynamically via JS -->
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- TAB 2: SCD TYPE 2 ORDER EXPLORER -->
-            <section class="tab-content" id="tab-scd2">
-                <div class="section-header">
-                    <div>
-                        <h2>🔍 Tra Cứu Vòng Đời Đơn Hàng & Xóa Dữ Liệu (SCD Type 2)</h2>
-                        <p class="subtitle">Minh họa trực quan cách bảng <code>snapshots.snap_orders</code> lưu vết lịch sử cập nhật và phát hiện Hard-Delete</p>
-                    </div>
-                    <div class="search-box">
-                        <i data-lucide="search"></i>
-                        <input type="text" id="scd2SearchInput" placeholder="Tìm kiếm theo mã Order ID (vd: ORD_DEMO_111, ORD_DEMO_222)..." onkeyup="handleScdSearch(event)">
-                        <button class="btn-primary" onclick="loadScd2Data()">Tìm Kiếm</button>
-                    </div>
-                </div>
-
-                <div class="glass-card explanation-banner">
-                    <div class="banner-icon"><i data-lucide="info"></i></div>
-                    <div class="banner-text">
-                        <strong>Quy tắc nhận diện SCD Type 2:</strong> Nếu <code>valid_to = NULL</code> ➔ Bản ghi hiện tại đang có hiệu lực. Nếu <code>valid_to NOT NULL</code> và còn dòng NULL kế tiếp ➔ Đơn hàng vừa được CẬP NHẬT. Nếu tất cả các dòng của ID đều có <code>valid_to</code> ➔ Đơn hàng đã bị <strong>XÓA VĨNH VIỄN (Hard Delete)</strong> khỏi hệ thống nguồn.
-                    </div>
-                </div>
-
-                <div class="glass-card table-card">
-                    <div class="table-container">
-                        <table class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>Snapshot SCD ID</th>
-                                    <th>Order ID</th>
-                                    <th>Khách Hàng</th>
-                                    <th>Trạng Thái</th>
-                                    <th>Có Hiệu Lực Từ (Valid From)</th>
-                                    <th>Hết Hiệu Lực (Valid To)</th>
-                                    <th>Nhận Diện Trạng Thái</th>
-                                </tr>
-                            </thead>
-                            <tbody id="scd2TableBody">
-                                <!-- Populated dynamically via JS -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </section>
-
-            <!-- TAB 3: PIPELINE OPERATIONS (ADMIN ONLY) -->
-            <section class="tab-content" id="tab-pipelines">
-                <div class="section-header">
-                    <div>
-                        <h2>⚙️ Trung Tâm Điều Khiển & Giám Sát Pipeline (DashGrow Admin)</h2>
-                        <p class="subtitle">Kích hoạt trích xuất dữ liệu, chạy dbt transforms và kiểm tra nhật ký vận hành <code>_pipeline_audit_log</code></p>
-                    </div>
-                    <div class="pipeline-actions">
-                        <button class="btn-primary btn-trigger" onclick="openTriggerModal()">
-                            <i data-lucide="play"></i> Bấm Chạy Pipeline Ngay
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Connectors Summary Grid -->
-                <div class="connector-grid">
-                    <div class="glass-card connector-card">
-                        <div class="connector-header">
-                            <span class="badge-conn">RDBMS Connector</span>
-                            <span class="status-tag status-active">● Active</span>
-                        </div>
-                        <div class="connector-title">PostgreSQL E-Commerce Database</div>
-                        <p class="connector-desc">Trích xuất 6 bảng quan hệ (orders, order_items, customers, products, payments, reviews) với NullPool & Multithreading.</p>
-                        <div class="connector-meta">
-                            <span>Chế độ: <strong>Incremental (Watermark)</strong></span>
-                            <span>Chu kỳ: <strong>6 Tiếng / lần</strong></span>
-                        </div>
-                    </div>
-
-                    <div class="glass-card connector-card">
-                        <div class="connector-header">
-                            <span class="badge-conn">API Connector</span>
-                            <span class="status-tag status-active">● Active</span>
-                        </div>
-                        <div class="connector-title">CoinGecko Crypto Market API</div>
-                        <p class="connector-desc">Thu thập dữ liệu thị trường tiền mã hóa toàn cầu & Top Coins với cơ chế tự động Rate-limit & Exponential Backoff.</p>
-                        <div class="connector-meta">
-                            <span>Chế độ: <strong>Full Refresh Snap</strong></span>
-                            <span>Chu kỳ: <strong>6 Tiếng / lần</strong></span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Audit Log History -->
-                <div class="glass-card table-card" style="margin-top: 1.5rem;">
-                    <div class="card-header">
-                        <h3>📋 Nhật Ký Thực Thi Gần Nhất (<code>_pipeline_audit_log</code>)</h3>
-                    </div>
-                    <div class="table-container">
-                        <table class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>Run ID</th>
-                                    <th>Connector</th>
-                                    <th>Chế Độ</th>
-                                    <th>Trạng Thái</th>
-                                    <th>Bản Ghi Nạp</th>
-                                    <th>Thời Gian Chạy</th>
-                                    <th>Thời Điểm Thực Thi (UTC+7)</th>
-                                </tr>
-                            </thead>
-                            <tbody id="auditLogsBody">
-                                <!-- Populated dynamically via JS -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </section>
-
-            <!-- TAB 4: DATA QUALITY & TESTING -->
-            <section class="tab-content" id="tab-quality">
-                <div class="section-header">
-                    <div>
-                        <h2>🛡️ Bảng Kiểm Soát Chất Lượng Dữ Liệu (35 dbt Data Tests)</h2>
-                        <p class="subtitle">Đảm bảo tính toàn vẹn 100% trước khi dữ liệu được chuyển lên các bảng Data Marts</p>
-                    </div>
-                    <div class="quality-badge-total">
-                        <i data-lucide="check-circle-2"></i> 100% Tests Passed
-                    </div>
-                </div>
-
-                <div class="quality-summary-grid">
-                    <div class="glass-card test-stat-card">
-                        <div class="stat-num">35</div>
-                        <div class="stat-desc">Tổng số bài kiểm thử dbt tự động</div>
-                    </div>
-                    <div class="glass-card test-stat-card text-success">
-                        <div class="stat-num">35</div>
-                        <div class="stat-desc">Bài test đạt chuẩn (PASSED)</div>
-                    </div>
-                    <div class="glass-card test-stat-card text-muted">
-                        <div class="stat-num">0</div>
-                        <div class="stat-desc">Vi phạm ràng buộc (FAILED)</div>
-                    </div>
-                </div>
-
-                <div class="glass-card table-card" style="margin-top: 1.5rem;">
-                    <div class="card-header">
-                        <h3>🔍 Chi Tiết Phân Bổ Các Quy Tắc Kiểm Định</h3>
-                    </div>
-                    <div class="table-container">
-                        <table class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>Nhóm Ràng Buộc</th>
-                                    <th>Số Lượng Test</th>
-                                    <th>Mục Đích Kiểm Soát</th>
-                                    <th>Kết Quả</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td><strong>Khóa Chính Độc Nhất (Unique Keys)</strong></td>
-                                    <td>12 models</td>
-                                    <td>Chống trùng lặp ID (order_id, customer_id, product_id)</td>
-                                    <td><span class="tag-success">✓ 100% PASSED</span></td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Không Được Rỗng (Not Null)</strong></td>
-                                    <td>14 columns</td>
-                                    <td>Đảm bảo không thiếu sót trường quan trọng (price, timestamps)</td>
-                                    <td><span class="tag-success">✓ 100% PASSED</span></td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Giá Trị Hợp Lệ (Accepted Values)</strong></td>
-                                    <td>4 rules</td>
-                                    <td>Kiểm tra order_status chỉ thuộc các giá trị chuẩn</td>
-                                    <td><span class="tag-success">✓ 100% PASSED</span></td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Ràng Buộc Khóa Ngoại (Relationships)</strong></td>
-                                    <td>5 foreign keys</td>
-                                    <td>Đảm bảo khớp nối 1-n giữa order_items và orders, products</td>
-                                    <td><span class="tag-success">✓ 100% PASSED</span></td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </section>
-        </main>
-    </div>
-
-    <!-- Trigger Pipeline Modal -->
-    <div class="modal-overlay" id="triggerModal">
-        <div class="modal-card">
-            <div class="modal-header">
-                <h3>🚀 Kích Hoạt Pipeline Thủ Công</h3>
-                <button class="btn-close" onclick="closeTriggerModal()">&times;</button>
-            </div>
-            <div class="modal-body">
-                <label class="form-label">Chọn Connector:</label>
-                <select class="form-select" id="modalConnectorSelect">
-                    <option value="postgres_db">PostgreSQL E-Commerce Database</option>
-                    <option value="crypto_api">CoinGecko Crypto Market API</option>
-                </select>
-
-                <div class="form-checkbox-group">
-                    <input type="checkbox" id="modalFullRefreshCheckbox">
-                    <label for="modalFullRefreshCheckbox">Buộc chạy Full-Refresh (Rebuild lại toàn bộ bảng)</label>
-                </div>
-
-                <div class="log-stream-box" id="modalLogBox" style="display: none;">
-                    <div class="log-header">Live Execution Logs:</div>
-                    <pre class="log-content" id="modalLogContent">Waiting for stream...</pre>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn-secondary" onclick="closeTriggerModal()">Đóng</button>
-                <button class="btn-primary" id="btnExecuteTrigger" onclick="executeTriggerPipeline()">Bắt Đầu Chạy</button>
             </div>
         </div>
     </div>
 
-    <!-- Toast Notification -->
-    <div class="toast-container" id="toastContainer"></div>
+    <!-- ==================== 2. MAIN APPLICATION PORTAL ==================== -->
+    <div class="portal-screen" id="portalScreen">
+        <!-- Portal Header -->
+        <header class="portal-header">
+            <div class="brand-section">
+                <!-- SVG Logo -->
+                <svg style="width: 34px; height: 34px;" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="25" y="45" width="16" height="40" rx="2" fill="url(#logoGrad)"/>
+                    <rect x="44" y="32" width="16" height="53" rx="2" fill="url(#logoGrad)"/>
+                    <rect x="63" y="42" width="16" height="43" rx="2" fill="url(#logoGrad)"/>
+                    <path d="M15 78 L38 52 L50 63 L78 28" stroke="url(#logoGrad)" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M60 20 L88 20 L88 48 Z" fill="url(#logoGrad)"/>
+                </svg>
+                <div>
+                    <span class="brand-title">Dash<span style="color: #0d9488;">Grow</span></span>
+                    <span class="tenant-pill" id="headerTenantPill">
+                        <i data-lucide="building-2" style="width: 14px; height: 14px;"></i> <span id="headerTenantName">Olist Retail</span>
+                    </span>
+                </div>
+            </div>
+
+            <div class="portal-user-section">
+                <div class="user-badge-group">
+                    <div class="user-avatar-circle" id="headerUserAvatar">NA</div>
+                    <div class="user-details">
+                        <div class="user-fullname" id="headerUserName">Nguyễn Văn An</div>
+                        <div class="user-role-tag" id="headerUserRole">Chủ Doanh Nghiệp</div>
+                    </div>
+                </div>
+                <button class="btn-logout" onclick="handleLogout()">
+                    <i data-lucide="log-out" style="width: 14px; height: 14px;"></i> Đăng Xuất
+                </button>
+            </div>
+        </header>
+
+        <!-- Navigation Tabs -->
+        <nav class="portal-tabs" id="portalTabsNav">
+            <button class="tab-btn active" id="tabNavAnalytics" onclick="switchPortalTab('analytics')">
+                <i data-lucide="bar-chart-3"></i> Báo Cáo Kinh Doanh (P&L)
+            </button>
+            <button class="tab-btn" id="tabNavScd2" onclick="switchPortalTab('scd2')">
+                <i data-lucide="history"></i> Tra Cứu Đơn Hàng (SCD 2)
+            </button>
+            <button class="tab-btn admin-view-only" id="tabNavUsers" onclick="switchPortalTab('users')">
+                <i data-lucide="users"></i> 👥 Quản Lý Khách Hàng (User Manager)
+            </button>
+            <button class="tab-btn admin-view-only" id="tabNavPipelines" onclick="switchPortalTab('pipelines')">
+                <i data-lucide="cpu"></i> ⚙️ Vận Hành Pipeline & Audit Logs
+            </button>
+            <button class="tab-btn" id="tabNavQuality" onclick="switchPortalTab('quality')">
+                <i data-lucide="shield-check"></i> 🛡️ Data Quality (35 Tests)
+            </button>
+        </nav>
+
+        <!-- TAB 1: BUSINESS ANALYTICS (P&L) -->
+        <section class="tab-view active" id="view-analytics">
+            <div class="section-head">
+                <div>
+                    <h2 id="analyticsHeaderTitle">📊 Bảng Điều Hành Doanh Số & Hiệu Quả Kinh Doanh</h2>
+                    <p id="analyticsHeaderSubtitle">Dữ liệu được tự động đồng bộ và tính toán từ Google BigQuery Data Marts</p>
+                </div>
+                <span class="badge-active">● Live BigQuery Sync (UTC+7)</span>
+            </div>
+
+            <!-- KPI Row -->
+            <div class="kpi-row">
+                <div class="glass-panel kpi-box">
+                    <div class="kpi-icon-wrap icon-rev"><i data-lucide="dollar-sign"></i></div>
+                    <div>
+                        <div class="kpi-title">Tổng Doanh Thu Tích Lũy</div>
+                        <div class="kpi-num" id="valRevenue">$1,584,290.50</div>
+                        <div class="kpi-status">↑ +14.2% so với kỳ trước</div>
+                    </div>
+                </div>
+
+                <div class="glass-panel kpi-box">
+                    <div class="kpi-icon-wrap icon-ord"><i data-lucide="shopping-bag"></i></div>
+                    <div>
+                        <div class="kpi-title">Tổng Số Đơn Hàng</div>
+                        <div class="kpi-num" id="valOrders">98,450</div>
+                        <div class="kpi-status" style="color: var(--text-dim);">Dedup 100% tự động</div>
+                    </div>
+                </div>
+
+                <div class="glass-panel kpi-box">
+                    <div class="kpi-icon-wrap icon-aov"><i data-lucide="trending-up"></i></div>
+                    <div>
+                        <div class="kpi-title">Giá Trị TB / Đơn (AOV)</div>
+                        <div class="kpi-num" id="valAOV">$160.92</div>
+                        <div class="kpi-status">Tối ưu giỏ hàng tốt</div>
+                    </div>
+                </div>
+
+                <div class="glass-panel kpi-box">
+                    <div class="kpi-icon-wrap icon-del"><i data-lucide="truck"></i></div>
+                    <div>
+                        <div class="kpi-title">Tỷ Lệ Giao Thành Công</div>
+                        <div class="kpi-num" id="valDelivery">96.8%</div>
+                        <div class="kpi-status">Đạt SLA chuẩn 95%</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Row -->
+            <div class="charts-row">
+                <div class="glass-panel">
+                    <div class="section-head" style="margin-bottom: 1rem;">
+                        <h3 style="font-size: 1.05rem; font-weight: 700; color: #fff;">📈 Xu Hướng Doanh Thu & Số Lượng Đơn Hàng Theo Tháng</h3>
+                    </div>
+                    <div class="chart-box">
+                        <canvas id="canvasRevenueTrend"></canvas>
+                    </div>
+                </div>
+
+                <div class="glass-panel">
+                    <div class="section-head" style="margin-bottom: 1rem;">
+                        <h3 style="font-size: 1.05rem; font-weight: 700; color: #fff;">🎯 Cơ Cấu Trạng Thái Đơn Hàng</h3>
+                    </div>
+                    <div class="chart-box" style="height: 270px;">
+                        <canvas id="canvasOrderStatus"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 2: SCD TYPE 2 ORDER EXPLORER -->
+        <section class="tab-view" id="view-scd2">
+            <div class="section-head">
+                <div>
+                    <h2>🔍 Tra Cứu Vòng Đời Đơn Hàng & Lịch Sử Xóa (SCD Type 2)</h2>
+                    <p>Tra cứu dữ liệu từ bảng <code>snapshots.snap_orders</code> để xem toàn bộ lịch sử cập nhật và phát hiện Hard-Delete</p>
+                </div>
+                <div class="search-wrapper">
+                    <i data-lucide="search"></i>
+                    <input type="text" id="inputScdSearch" placeholder="Tìm theo Order ID (vd: ORD_DEMO_111, ORD_DEMO_222)..." onkeyup="if(event.key==='Enter') fetchScdData()">
+                    <button class="btn-dg-primary" onclick="fetchScdData()">Tìm Kiếm</button>
+                </div>
+            </div>
+
+            <div class="glass-panel" style="margin-bottom: 1.5rem; background: rgba(2, 132, 199, 0.1); border-color: rgba(2, 132, 199, 0.3);">
+                <strong style="color: var(--dg-sky);">💡 Quy tắc nhận diện SCD Type 2:</strong>
+                <span style="color: var(--text-muted); font-size: 0.85rem;"> Nếu <code>valid_to = NULL</code> ➔ Bản ghi hiện tại đang có hiệu lực. Nếu <code>valid_to NOT NULL</code> và còn dòng NULL mới ➔ Đơn hàng vừa được CẬP NHẬT. Nếu tất cả các dòng của ID đều có <code>valid_to</code> ➔ Đơn hàng đã bị <strong>XÓA HOÀN TOÀN (Hard-Deleted)</strong> khỏi hệ thống nguồn.</span>
+            </div>
+
+            <div class="glass-panel">
+                <div class="table-responsive">
+                    <table class="dash-table">
+                        <thead>
+                            <tr>
+                                <th>Snapshot ID</th>
+                                <th>Mã Đơn Hàng (Order ID)</th>
+                                <th>Khách Hàng</th>
+                                <th>Trạng Thái</th>
+                                <th>Có Hiệu Lực Từ (Valid From)</th>
+                                <th>Hết Hiệu Lực (Valid To)</th>
+                                <th>Nhận Diện Trạng Thái</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbodyScd2">
+                            <!-- Injected dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 3: ADMIN USER & TENANT MANAGER (ADMIN ONLY) -->
+        <section class="tab-view" id="view-users">
+            <div class="section-head">
+                <div>
+                    <h2>👥 Quản Lý Khách Hàng Doanh Nghiệp (User & Tenant Manager)</h2>
+                    <p>Thêm doanh nghiệp mới, cấp phát tài khoản và quản lý trạng thái hoạt động của khách hàng</p>
+                </div>
+                <button class="btn-dg-primary" onclick="openCreateUserModal()">
+                    <i data-lucide="user-plus"></i> + Thêm Khách Hàng Mới
+                </button>
+            </div>
+
+            <div class="glass-panel">
+                <div class="table-responsive">
+                    <table class="dash-table">
+                        <thead>
+                            <tr>
+                                <th>Họ & Tên</th>
+                                <th>Email Đăng Nhập</th>
+                                <th>Doanh Nghiệp (Tenant)</th>
+                                <th>Gói Dịch Vụ</th>
+                                <th>Vai Trò (Role)</th>
+                                <th>Trạng Thái</th>
+                                <th>Hành Động</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbodyUsersList">
+                            <!-- Injected dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 4: PIPELINE OPERATIONS & AUDIT LOGS (ADMIN ONLY) -->
+        <section class="tab-view" id="view-pipelines">
+            <div class="section-head">
+                <div>
+                    <h2>⚙️ Vận Hành Pipeline & Hạ Tầng Dữ Liệu (DashGrow HQ)</h2>
+                    <p>Kích hoạt chạy trích xuất dữ liệu, thực thi dbt transform và theo dõi <code>_pipeline_audit_log</code></p>
+                </div>
+                <button class="btn-dg-primary" onclick="openPipelineModal()">
+                    <i data-lucide="play"></i> Kích Hoạt Pipeline Ngay
+                </button>
+            </div>
+
+            <div class="glass-panel">
+                <div class="section-head" style="margin-bottom: 1rem;">
+                    <h3 style="font-size: 1.05rem; font-weight: 700; color: #fff;">📋 Nhật Ký Vận Hành Gần Nhất (<code>_pipeline_audit_log</code>)</h3>
+                </div>
+                <div class="table-responsive">
+                    <table class="dash-table">
+                        <thead>
+                            <tr>
+                                <th>Run ID</th>
+                                <th>Connector</th>
+                                <th>Chế Độ</th>
+                                <th>Trạng Thái</th>
+                                <th>Số Dòng Nạp</th>
+                                <th>Thời Gian Chạy</th>
+                                <th>Thời Điểm Thực Thi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbodyAuditLogs">
+                            <!-- Injected dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 5: DATA QUALITY HUB -->
+        <section class="tab-view" id="view-quality">
+            <div class="section-head">
+                <div>
+                    <h2>🛡️ Bảng Kiểm Soát Chất Lượng Dữ Liệu (35 dbt Tests)</h2>
+                    <p>Kiểm tra tính toàn vẹn 100% trước khi phục vụ báo cáo kinh doanh</p>
+                </div>
+                <span class="badge-active">✓ 35/35 Tests Passed (100%)</span>
+            </div>
+
+            <div class="glass-panel">
+                <div class="table-responsive">
+                    <table class="dash-table">
+                        <thead>
+                            <tr>
+                                <th>Nhóm Ràng Buộc</th>
+                                <th>Số Lượng Test</th>
+                                <th>Mục Đích Kiểm Soát</th>
+                                <th>Kết Quả</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Khóa Chính Độc Nhất (Unique Keys)</strong></td>
+                                <td>12 models</td>
+                                <td>Chống trùng lặp ID (order_id, customer_id, product_id)</td>
+                                <td><span class="badge-active">✓ PASSED</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Không Được Rỗng (Not Null)</strong></td>
+                                <td>14 columns</td>
+                                <td>Đảm bảo không thiếu sót trường quan trọng (price, timestamps)</td>
+                                <td><span class="badge-active">✓ PASSED</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Giá Trị Hợp Lệ (Accepted Values)</strong></td>
+                                <td>4 rules</td>
+                                <td>Kiểm tra order_status chỉ thuộc các giá trị chuẩn</td>
+                                <td><span class="badge-active">✓ PASSED</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Ràng Buộc Khóa Ngoại (Relationships)</strong></td>
+                                <td>5 foreign keys</td>
+                                <td>Đảm bảo khớp nối 1-n giữa order_items và orders, products</td>
+                                <td><span class="badge-active">✓ PASSED</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- ==================== MODALS ==================== -->
+    <!-- 1. Create User Modal -->
+    <div class="modal-backdrop" id="modalCreateUser">
+        <div class="modal-box">
+            <div class="modal-head">
+                <h3>+ Thêm Doanh Nghiệp & Cấp Tài Khoản Mới</h3>
+                <button class="modal-close" onclick="closeCreateUserModal()">&times;</button>
+            </div>
+            <form onsubmit="handleCreateUserSubmit(event)" style="display: flex; flex-direction: column; gap: 1rem;">
+                <div class="form-group">
+                    <label class="form-label">Tên Doanh Nghiệp SMB</label>
+                    <input type="text" id="newCompanyName" class="form-input" placeholder="vd: Chuỗi Cafe Highland" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Mã Doanh Nghiệp (Slug)</label>
+                    <input type="text" id="newCompanySlug" class="form-input" placeholder="vd: highland-cafe" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Gói Dịch Vụ</label>
+                    <select id="newCompanyPlan" class="form-input">
+                        <option value="starter">Starter (1.990.000 đ/tháng)</option>
+                        <option value="growth_pro" selected>Growth Pro (4.490.000 đ/tháng)</option>
+                        <option value="enterprise">Enterprise (8.990.000 đ/tháng)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Họ & Tên Người Quản Trị</label>
+                    <input type="text" id="newUserFullName" class="form-input" placeholder="vd: Trần Văn Bình" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Email Đăng Nhập</label>
+                    <input type="email" id="newUserEmail" class="form-input" placeholder="binh@highland.vn" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Mật Khẩu Ban Đầu</label>
+                    <input type="password" id="newUserPassword" class="form-input" placeholder="••••••••" required>
+                </div>
+                <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 0.5rem;">
+                    <button type="button" class="btn-action-small" onclick="closeCreateUserModal()">Hủy</button>
+                    <button type="submit" class="btn-dg-primary">Tạo Khách Hàng</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 2. Trigger Pipeline Modal -->
+    <div class="modal-backdrop" id="modalPipeline">
+        <div class="modal-box">
+            <div class="modal-head">
+                <h3>🚀 Kích Hoạt Chạy Pipeline</h3>
+                <button class="modal-close" onclick="closePipelineModal()">&times;</button>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 1rem;">
+                <div class="form-group">
+                    <label class="form-label">Chọn Connector:</label>
+                    <select id="selectPipelineConn" class="form-input">
+                        <option value="postgres_db">PostgreSQL E-Commerce Database</option>
+                        <option value="crypto_api">CoinGecko Crypto Market API</option>
+                    </select>
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; color: var(--text-muted);">
+                    <input type="checkbox" id="checkFullRefresh">
+                    <label for="checkFullRefresh">Buộc chạy Full-Refresh</label>
+                </div>
+                <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 0.5rem;">
+                    <button type="button" class="btn-action-small" onclick="closePipelineModal()">Đóng</button>
+                    <button type="button" class="btn-dg-primary" onclick="executePipelineTrigger()">Bắt Đầu Chạy</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div class="toast-wrap" id="toastWrap"></div>
 
     <script src="/static/app.js"></script>
     <script>
