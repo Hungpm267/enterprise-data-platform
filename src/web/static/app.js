@@ -21,13 +21,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 function showAuthScreen() {
-    document.getElementById('authScreen').style.display = 'flex';
-    document.getElementById('portalScreen').classList.remove('active');
+    document.getElementById('authScreen').classList.remove('hidden');
+    document.getElementById('portalScreen').classList.add('hidden');
 }
 
 function showPortalScreen() {
-    document.getElementById('authScreen').style.display = 'none';
-    document.getElementById('portalScreen').classList.add('active');
+    document.getElementById('authScreen').classList.add('hidden');
+    document.getElementById('portalScreen').classList.remove('hidden');
     lucide.createIcons();
 }
 
@@ -109,7 +109,11 @@ function setupPortalForUser(user) {
 
     // Role-based Tab Visibility
     document.querySelectorAll('.admin-view-only').forEach(el => {
-        el.style.display = isAdmin ? 'flex' : 'none';
+        if (isAdmin) {
+            el.classList.remove('hidden');
+        } else {
+            el.classList.add('hidden');
+        }
     });
 
     // Custom Header titles
@@ -124,28 +128,35 @@ function setupPortalForUser(user) {
 
 // ==================== TAB NAVIGATION ====================
 function switchPortalTab(tabId) {
-    document.querySelectorAll('.tab-view').forEach(el => el.classList.remove('active'));
-    document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.tab-view').forEach(el => el.classList.add('hidden'));
+    document.querySelectorAll('.tab-btn').forEach(el => {
+        el.classList.remove('bg-white', 'text-dg-dark', 'shadow-sm');
+        el.classList.add('text-slate-600');
+    });
 
     const targetView = document.getElementById(`view-${tabId}`);
-    if (targetView) targetView.classList.add('active');
+    if (targetView) targetView.classList.remove('hidden');
 
     const targetBtn = document.getElementById(`tabNav${tabId.charAt(0).toUpperCase() + tabId.slice(1)}`);
-    if (targetBtn) targetBtn.classList.add('active');
+    if (targetBtn) {
+        targetBtn.classList.add('bg-white', 'text-dg-dark', 'shadow-sm');
+        targetBtn.classList.remove('text-slate-600');
+    }
 
     loadActiveTabContent(tabId);
 }
 
 async function loadActiveTabContent(specificTab = null) {
-    const activeTab = specificTab || document.querySelector('.tab-view.active')?.id.replace('view-', '') || 'analytics';
+    const activeView = specificTab ? `view-${specificTab}` : Array.from(document.querySelectorAll('.tab-view')).find(el => !el.classList.contains('hidden'))?.id;
+    const tabName = activeView ? activeView.replace('view-', '') : 'analytics';
 
-    if (activeTab === 'analytics') {
+    if (tabName === 'analytics') {
         await Promise.all([loadKpis(), loadRevenueChart(), loadOrderStatusChart()]);
-    } else if (activeTab === 'scd2') {
+    } else if (tabName === 'scd2') {
         await fetchScdData();
-    } else if (activeTab === 'users') {
+    } else if (tabName === 'users') {
         await fetchUsersList();
-    } else if (activeTab === 'pipelines') {
+    } else if (tabName === 'pipelines') {
         await fetchAuditLogs();
     }
 }
@@ -193,7 +204,7 @@ async function loadRevenueChart() {
                         label: 'Doanh Thu ($)',
                         data: data.revenue,
                         borderColor: '#0284c7',
-                        backgroundColor: 'rgba(2, 132, 199, 0.15)',
+                        backgroundColor: 'rgba(2, 132, 199, 0.08)',
                         borderWidth: 3,
                         fill: true,
                         tension: 0.35,
@@ -216,13 +227,13 @@ async function loadRevenueChart() {
                 maintainAspectRatio: false,
                 interaction: { mode: 'index', intersect: false },
                 plugins: {
-                    legend: { labels: { color: '#94a3b8', font: { family: 'Plus Jakarta Sans', weight: '600' } } }
+                    legend: { labels: { color: '#0e3a40', font: { family: 'Plus Jakarta Sans', weight: '600' } } }
                 },
                 scales: {
-                    x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#64748b' } },
+                    x: { grid: { color: 'rgba(14, 58, 64, 0.05)' }, ticks: { color: '#64748b' } },
                     y: {
                         position: 'left',
-                        grid: { color: 'rgba(255,255,255,0.05)' },
+                        grid: { color: 'rgba(14, 58, 64, 0.05)' },
                         ticks: { color: '#64748b', callback: v => `$${v.toLocaleString()}` }
                     },
                     y1: {
@@ -253,7 +264,7 @@ async function loadOrderStatusChart() {
                 labels: data.labels,
                 datasets: [{
                     data: data.values,
-                    backgroundColor: ['#10b981', '#0284c7', '#f59e0b', '#6366f1', '#ef4444'],
+                    backgroundColor: ['#10b981', '#0284c7', '#f59e0b', '#8b5cf6', '#ef4444'],
                     borderWidth: 0
                 }]
             },
@@ -261,9 +272,9 @@ async function loadOrderStatusChart() {
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
-                    legend: { position: 'bottom', labels: { color: '#94a3b8', boxWidth: 12, font: { family: 'Plus Jakarta Sans' } } }
+                    legend: { position: 'bottom', labels: { color: '#0e3a40', boxWidth: 12, font: { family: 'Plus Jakarta Sans', weight: '600' } } }
                 },
-                cutout: '68%'
+                cutout: '70%'
             }
         });
     } catch (e) {
@@ -283,22 +294,22 @@ async function fetchScdData() {
         const tbody = document.getElementById('tbodyScd2');
         tbody.innerHTML = rows.map(r => {
             let statusBadge = r.is_current 
-                ? '<span class="badge-active">🟢 Đang Áp Dụng (Active)</span>' 
-                : '<span class="badge-plan">🟡 Lịch Sử Cũ (Updated)</span>';
+                ? '<span class="px-2.5 py-1 rounded-md bg-emerald-50 text-emerald-700 font-bold text-xs">🟢 Đang Áp Dụng (Active)</span>' 
+                : '<span class="px-2.5 py-1 rounded-md bg-sky-50 text-sky-700 font-bold text-xs">🟡 Lịch Sử Cũ (Updated)</span>';
             
             if (r.order_id === 'ORD_DEMO_222' && !r.is_current) {
-                statusBadge = '<span class="badge-locked">🔴 Đã Bị Xóa (Hard-Deleted)</span>';
+                statusBadge = '<span class="px-2.5 py-1 rounded-md bg-rose-50 text-rose-700 font-bold text-xs">🔴 Đã Bị Xóa (Hard-Deleted)</span>';
             }
 
             return `
-                <tr>
-                    <td><code>${r.dbt_scd_id}</code></td>
-                    <td><strong>${r.order_id}</strong></td>
-                    <td>${r.customer_id}</td>
-                    <td><span class="badge-plan">${r.order_status}</span></td>
-                    <td><code>${r.dbt_valid_from}</code></td>
-                    <td><code>${r.dbt_valid_to || 'NULL (Current)'}</code></td>
-                    <td>${statusBadge}</td>
+                <tr class="hover:bg-slate-50 transition-colors">
+                    <td class="py-3.5 px-4 font-mono text-xs text-teal-700">${r.dbt_scd_id}</td>
+                    <td class="py-3.5 px-4 font-bold text-dg-dark">${r.order_id}</td>
+                    <td class="py-3.5 px-4 text-slate-600">${r.customer_id}</td>
+                    <td class="py-3.5 px-4"><span class="px-2 py-0.5 rounded bg-slate-100 text-slate-700 text-xs font-semibold">${r.order_status}</span></td>
+                    <td class="py-3.5 px-4 font-mono text-xs text-slate-500">${r.dbt_valid_from}</td>
+                    <td class="py-3.5 px-4 font-mono text-xs text-slate-500">${r.dbt_valid_to || 'NULL (Current)'}</td>
+                    <td class="py-3.5 px-4">${statusBadge}</td>
                 </tr>
             `;
         }).join('');
@@ -307,7 +318,7 @@ async function fetchScdData() {
     }
 }
 
-// ==================== TAB 3: ADMIN USER & TENANT MANAGER ====================
+// ==================== TAB 3: ADMIN USER MANAGER ====================
 async function fetchUsersList() {
     try {
         const res = await fetchWithAuth('/users');
@@ -316,20 +327,33 @@ async function fetchUsersList() {
 
         const tbody = document.getElementById('tbodyUsersList');
         tbody.innerHTML = users.map(u => `
-            <tr>
-                <td><strong>${u.full_name}</strong></td>
-                <td><code>${u.email}</code></td>
-                <td><span style="color: #fff; font-weight: 600;">${u.tenant_name}</span> <br><small style="color: var(--text-dim);">${u.tenant_slug}</small></td>
-                <td><span class="badge-plan">${u.tenant_plan}</span></td>
-                <td>${u.role === 'platform_admin' ? '👑 Platform Admin' : '🏢 Client Owner'}</td>
-                <td>${u.is_active ? '<span class="badge-active">● Hoạt Động</span>' : '<span class="badge-locked">● Bị Khóa</span>'}</td>
-                <td>
-                    <button class="btn-action-small" onclick="toggleUserStatus('${u.id}', ${u.is_active})">
-                        ${u.is_active ? 'Khóa' : 'Mở Khóa'}
-                    </button>
-                    <button class="btn-action-small btn-action-danger" onclick="deleteUserAccount('${u.id}')">
-                        Xóa
-                    </button>
+            <tr class="hover:bg-slate-50 transition-colors">
+                <td class="py-3.5 px-4 font-bold text-dg-dark">${u.full_name}</td>
+                <td class="py-3.5 px-4 font-mono text-xs text-slate-600">${u.email}</td>
+                <td class="py-3.5 px-4">
+                    <div class="font-bold text-dg-dark">${u.tenant_name}</div>
+                    <div class="text-[11px] text-slate-400 font-mono">${u.tenant_slug}</div>
+                </td>
+                <td class="py-3.5 px-4">
+                    <span class="px-2.5 py-1 rounded-md bg-teal-50 text-teal-800 text-xs font-bold uppercase">${u.tenant_plan}</span>
+                </td>
+                <td class="py-3.5 px-4 text-xs font-semibold text-slate-700">
+                    ${u.role === 'platform_admin' ? '👑 Platform Admin' : '🏢 Client Owner'}
+                </td>
+                <td class="py-3.5 px-4">
+                    ${u.is_active 
+                        ? '<span class="px-2.5 py-1 rounded-md bg-emerald-50 text-emerald-700 text-xs font-bold">● Hoạt Động</span>' 
+                        : '<span class="px-2.5 py-1 rounded-md bg-rose-50 text-rose-700 text-xs font-bold">● Bị Khóa</span>'}
+                </td>
+                <td class="py-3.5 px-4">
+                    <div class="flex items-center gap-2">
+                        <button onclick="toggleUserStatus('${u.id}', ${u.is_active})" class="px-2.5 py-1 rounded-lg border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-100">
+                            ${u.is_active ? 'Khóa' : 'Mở Khóa'}
+                        </button>
+                        <button onclick="deleteUserAccount('${u.id}')" class="px-2.5 py-1 rounded-lg border border-rose-200 text-xs font-semibold text-rose-600 hover:bg-rose-50">
+                            Xóa
+                        </button>
+                    </div>
                 </td>
             </tr>
         `).join('');
@@ -424,7 +448,7 @@ async function deleteUserAccount(userId) {
     }
 }
 
-// ==================== TAB 4: AUDIT LOGS & PIPELINE ====================
+// ==================== TAB 4: AUDIT LOGS ====================
 async function fetchAuditLogs() {
     try {
         const res = await fetchWithAuth('/explorer/audit-logs');
@@ -433,14 +457,14 @@ async function fetchAuditLogs() {
 
         const tbody = document.getElementById('tbodyAuditLogs');
         tbody.innerHTML = rows.map(r => `
-            <tr>
-                <td><code>${r.run_id}</code></td>
-                <td><strong>${r.connector_name}</strong></td>
-                <td><span class="badge-plan">${r.run_mode}</span></td>
-                <td><span class="badge-active">✓ ${r.status}</span></td>
-                <td>${r.records_extracted.toLocaleString()} dòng</td>
-                <td>${r.duration_sec}s</td>
-                <td><code>${r.executed_at}</code></td>
+            <tr class="hover:bg-slate-50 transition-colors">
+                <td class="py-3.5 px-4 font-mono text-xs text-teal-700">${r.run_id}</td>
+                <td class="py-3.5 px-4 font-bold text-dg-dark">${r.connector_name}</td>
+                <td class="py-3.5 px-4"><span class="px-2 py-0.5 rounded bg-teal-50 text-teal-800 text-xs font-semibold">${r.run_mode}</span></td>
+                <td class="py-3.5 px-4"><span class="px-2.5 py-1 rounded-md bg-emerald-50 text-emerald-700 text-xs font-bold">✓ ${r.status}</span></td>
+                <td class="py-3.5 px-4 font-semibold text-slate-700">${r.records_extracted.toLocaleString()} dòng</td>
+                <td class="py-3.5 px-4 text-slate-500">${r.duration_sec}s</td>
+                <td class="py-3.5 px-4 font-mono text-xs text-slate-500">${r.executed_at}</td>
             </tr>
         `).join('');
     } catch (e) {
@@ -477,6 +501,7 @@ async function executePipelineTrigger() {
 
         closePipelineModal();
         showToast(`Đã kích hoạt chạy pipeline cho ${connector} ngầm!`, 'success');
+        await fetchAuditLogs();
     } catch (err) {
         showToast(err.message, 'error');
     }
