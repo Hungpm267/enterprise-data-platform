@@ -1,0 +1,43 @@
+services:
+  - type: web
+    name: dashgrow-data-portal
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn src.web.app:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      # --- App auth (REQUIRED, no default — set your own random value) ---
+      - key: JWT_SECRET_KEY
+        sync: false
+
+      # --- Portal app database (Aiven Postgres) ---
+      - key: APP_DB_HOST
+        sync: false
+      - key: APP_DB_PORT
+        sync: false
+      - key: APP_DB_NAME
+        sync: false
+      - key: APP_DB_USER
+        sync: false
+      - key: APP_DB_PASSWORD
+        sync: false
+      - key: APP_DB_SSL_MODE
+        value: require
+
+      # --- GCP (BigQuery + GCS) ---
+      - key: GCP_PROJECT_ID
+        sync: false
+      - key: GCP_GCS_BUCKET
+        sync: false
+      - key: GCP_STAGING_DATASET
+        sync: false
+      - key: GCP_MARTS_DATASET
+        sync: false
+      - key: GCP_SA_KEY
+        sync: false
+
+      # --- CORS: comma-separated list of allowed origins, e.g.
+      # https://your-domain.com,https://your-app.onrender.com ---
+      - key: ALLOWED_ORIGINS
+        sync: false

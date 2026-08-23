@@ -22,9 +22,18 @@ app = FastAPI(
 )
 
 # CORS Middleware
+# ALLOWED_ORIGINS: comma-separated list of allowed origins, e.g.
+# "https://your-domain.com,https://your-app.onrender.com". Unset -> "*"
+# for local development only; production deploys must set this explicitly.
+_allowed_origins_raw = os.getenv("ALLOWED_ORIGINS", "*")
+_allowed_origins = (
+    ["*"] if _allowed_origins_raw == "*"
+    else [origin.strip() for origin in _allowed_origins_raw.split(",") if origin.strip()]
+)
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=_allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
