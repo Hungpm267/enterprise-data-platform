@@ -106,6 +106,22 @@ def load_gcs_to_bigquery_staging(
                 target_exists = False
 
             if (mode == RunMode.FULL_REFRESH and not is_backfill) or not target_exists:
+                if target_exists and mode == RunMode.FULL_REFRESH and not is_backfill:
+                    # WRITE_TRUNCATE against a pre-existing table does not
+                    # reliably replace its schema (observed in production:
+                    # a source column added to the parquet was silently
+                    # dropped for tables that already existed, while newly
+                    # created tables picked up the new schema correctly).
+                    # Full-refresh must guarantee a clean schema, so drop
+                    # the table first rather than relying on WRITE_TRUNCATE's
+                    # schema-merge behavior.
+                    logger.info(
+                        f"Full-refresh: dropping existing table "
+                        f"'{staging_dataset_id}.{target_table}' before reload "
+                        f"to guarantee its schema is rebuilt from source."
+                    )
+                    client.delete_table(target_table_ref, not_found_ok=True)
+
                 # Full refresh mode or initial table creation: load directly
                 job_config = bigquery.LoadJobConfig(
                     source_format=bigquery.SourceFormat.PARQUET,
