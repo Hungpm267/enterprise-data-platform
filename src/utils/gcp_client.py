@@ -92,3 +92,18 @@ def get_bigquery_client():
     if creds:
         return bigquery.Client(credentials=creds, project=Config.GCP_PROJECT_ID)
     return bigquery.Client(project=Config.GCP_PROJECT_ID)
+
+def get_bigquery_client_or_none():
+    """Returns a BigQuery client, or None when credentials are unavailable.
+
+    On CI runners and credential-less environments, bigquery.Client() raises
+    DefaultCredentialsError at construction. Web services (analytics, pipeline
+    explorer) are designed to degrade to demo data when BigQuery is absent —
+    this helper gives them that contract. Pipeline loaders must keep calling
+    get_bigquery_client() directly so a missing credential fails loudly there.
+    """
+    try:
+        return get_bigquery_client()
+    except Exception as e:
+        logger.warning(f"BigQuery client unavailable, callers degrade to fallback data: {e}")
+        return None

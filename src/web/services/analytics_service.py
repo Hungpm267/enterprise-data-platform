@@ -1,7 +1,7 @@
 import time
 from typing import Dict, Any, List, Optional
 from google.cloud import bigquery
-from src.utils.gcp_client import get_bigquery_client
+from src.utils.gcp_client import get_bigquery_client_or_none
 from src.utils.config import Config
 
 # Fast in-memory cache to make data queries lightning fast (< 2ms)
@@ -17,23 +17,6 @@ def _get_cached(key: str):
 
 def _set_cached(key: str, data: Any):
     _MEMORY_CACHE[key] = (data, time.time())
-
-def _get_client_or_none():
-    """Returns a BigQuery client, or None when credentials are unavailable.
-
-    On CI runners and credential-less environments, bigquery.Client() raises
-    DefaultCredentialsError at construction — before the per-query try/except
-    can catch it. Degrading to None here lets every method fall back to demo
-    data, which is this service's designed behaviour when BigQuery is absent.
-    The pipeline's own loaders still call get_bigquery_client() directly and
-    fail loudly, as they should.
-    """
-    try:
-        return get_bigquery_client()
-    except Exception as e:
-        print(f"[WARN] BigQuery client unavailable, serving fallback data: {e}")
-        return None
-
 
 def _tenant_clause(tenant_slug: Optional[str], keyword: str = "WHERE") -> str:
     """Returns a parameterized tenant filter, or empty string for platform admins.
@@ -63,7 +46,7 @@ class AnalyticsService:
         if cached:
             return cached
 
-        client = _get_client_or_none()
+        client = get_bigquery_client_or_none()
         if client:
             try:
                 query = f"""
@@ -108,7 +91,7 @@ class AnalyticsService:
         if cached:
             return cached
 
-        client = _get_client_or_none()
+        client = get_bigquery_client_or_none()
         if client:
             try:
                 query = f"""
@@ -151,7 +134,7 @@ class AnalyticsService:
         if cached:
             return cached
 
-        client = _get_client_or_none()
+        client = get_bigquery_client_or_none()
         if client:
             try:
                 query = f"""
@@ -195,7 +178,7 @@ class AnalyticsService:
         if cached:
             return cached
 
-        client = _get_client_or_none()
+        client = get_bigquery_client_or_none()
         if client:
             try:
                 query = f"""

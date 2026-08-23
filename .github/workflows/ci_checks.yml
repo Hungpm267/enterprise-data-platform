@@ -39,6 +39,11 @@ jobs:
           pip install --prefer-binary -r requirements.txt
 
       - name: Run Full Testing Suite (Unit & Integration Tests)
+        env:
+          # Repo secret (empty on fork PRs). gcp_client.py Case 1 picks this up
+          # so tests exercise real BigQuery paths like local dev; without it,
+          # web services degrade gracefully to demo data and tests still pass.
+          GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
         run: |
           python -m pytest tests/ -v
 
