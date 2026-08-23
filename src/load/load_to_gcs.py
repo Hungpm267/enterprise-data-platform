@@ -29,20 +29,32 @@ def upload_landing_to_gcs(
         logger.warning(f"Bucket check notice: {e}")
         bucket = client.bucket(bucket_name)
 
-    files_to_upload = []
+    # Build the upload plan keyed by DESTINATION blob path, never as a flat
+    # list. Two local locations can map to the same destination — the
+    # namespaced landing/<connector>/ directory the extractor writes to today,
+    # and legacy root-level files from before namespacing existed. Appending
+    # both to a list meant uploading two different files to one blob path
+    # concurrently, so whichever finished last silently won: in production,
+    # stale pre-tenant_slug root files randomly overwrote fresh ones, and a
+    # different subset of staging tables lost the column on every run.
+    # Namespaced files win; a root-level file is only used when nothing
+    # namespaced claims that destination.
+    namespaced_plan = {}
+    fallback_plan = {}
 
     if connector_name and connector_name != "all":
-        # Specific connector directory
+        # Specific connector directory (authoritative source)
         conn_dir = os.path.join(base_landing, connector_name)
         if os.path.exists(conn_dir):
             for f in glob.glob(os.path.join(conn_dir, "*.parquet")):
-                files_to_upload.append((f, f"landing/{connector_name}/{os.path.basename(f)}"))
-        # Also check root landing for fallback
+                namespaced_plan[f"landing/{connector_name}/{os.path.basename(f)}"] = f
+        # Legacy root-level landing files, used only where no namespaced file exists
         for f in glob.glob(os.path.join(base_landing, "*.parquet")):
-            if connector_name == "postgres_db" and "raw_" in os.path.basename(f):
-                files_to_upload.append((f, f"landing/postgres_db/{os.path.basename(f)}"))
-            elif connector_name == "crypto_api" and "crypto_" in os.path.basename(f):
-                files_to_upload.append((f, f"landing/crypto_api/{os.path.basename(f)}"))
+            basename = os.path.basename(f)
+            if connector_name == "postgres_db" and "raw_" in basename:
+                fallback_plan[f"landing/postgres_db/{basename}"] = f
+            elif connector_name == "crypto_api" and "crypto_" in basename:
+                fallback_plan[f"landing/crypto_api/{basename}"] = f
     else:
         # Upload all subdirectories and files
         for root, _, files in os.walk(base_landing):
@@ -51,13 +63,24 @@ def upload_landing_to_gcs(
                     full_path = os.path.join(root, f)
                     rel_dir = os.path.relpath(root, base_landing)
                     if rel_dir == ".":
-                        # Guess connector from filename prefix
+                        # Guess connector from filename prefix (legacy layout)
                         conn_sub = "crypto_api" if f.startswith("crypto_") else "postgres_db"
-                        blob_path = f"landing/{conn_sub}/{f}"
+                        fallback_plan[f"landing/{conn_sub}/{f}"] = full_path
                     else:
                         clean_rel_dir = rel_dir.replace("\\", "/")
-                        blob_path = f"landing/{clean_rel_dir}/{f}"
-                    files_to_upload.append((full_path, blob_path))
+                        namespaced_plan[f"landing/{clean_rel_dir}/{f}"] = full_path
+
+    for blob_path, local_path in fallback_plan.items():
+        if blob_path in namespaced_plan:
+            logger.warning(
+                f"Ignoring stale legacy landing file '{local_path}': "
+                f"'{namespaced_plan[blob_path]}' already provides "
+                f"'{blob_path}'. Delete the legacy copy to silence this."
+            )
+            continue
+        namespaced_plan[blob_path] = local_path
+
+    files_to_upload = [(local_path, blob_path) for blob_path, local_path in namespaced_plan.items()]
 
     if not files_to_upload:
         logger.warning(f"No Parquet files found in '{base_landing}' for connector '{connector_name or 'all'}'.")
