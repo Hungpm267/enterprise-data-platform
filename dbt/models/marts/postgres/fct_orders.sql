@@ -12,7 +12,7 @@
 ) }}
 
 WITH orders AS (
-    SELECT * FROM {{ ref('stg_orders') }}
+    SELECT * FROM {{ ref('stg_orders') }} AS so
     {% if is_incremental() %}
         {% if var('start_date', none) and var('end_date', none) %}
             WHERE order_purchase_timestamp >= '{{ var("start_date") }}'
@@ -20,9 +20,20 @@ WITH orders AS (
         {% elif var('start_date', none) %}
             WHERE order_purchase_timestamp >= '{{ var("start_date") }}'
         {% else %}
-            WHERE order_purchase_timestamp >= (
-                SELECT TIMESTAMP_SUB(MAX(order_purchase_timestamp), INTERVAL 3 DAY)
-                FROM {{ this }}
+            -- Per-tenant watermark: each tenant's cutoff is derived only from
+            -- that tenant's own max timestamp in {{ this }}, never the global
+            -- max, so a lagging tenant's new rows are never silently skipped.
+            -- A brand-new tenant (no rows yet in {{ this }}) has no watermark
+            -- row at all, so the correlated subquery returns NULL and
+            -- COALESCE falls back to an epoch sentinel, letting its first
+            -- load land unconditionally instead of being excluded forever.
+            WHERE so.order_purchase_timestamp >= COALESCE(
+                (
+                    SELECT TIMESTAMP_SUB(MAX(t.order_purchase_timestamp), INTERVAL 3 DAY)
+                    FROM {{ this }} AS t
+                    WHERE t.tenant_slug = so.tenant_slug
+                ),
+                TIMESTAMP('1970-01-01')
             )
         {% endif %}
     {% endif %}

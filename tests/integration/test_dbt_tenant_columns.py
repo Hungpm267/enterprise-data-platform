@@ -28,22 +28,39 @@ MARTS_DIR = Path(__file__).resolve().parents[2] / "dbt" / "models" / "marts" / "
 def assert_tenant_slug_is_projected_column(sql, model_file):
     """Verify tenant_slug appears as a projected column in a SELECT list.
 
-    This strips SQL line comments (`--`) and dbt Jinja config/depends_on
-    blocks so that a `tenant_slug` mention only inside a comment (or inside
-    a `{{ config(...) }}` block, or in a `FROM`/`JOIN` clause) does not
-    satisfy the assertion. It then requires `tenant_slug` to be immediately
-    followed by a comma or a newline (allowing trailing whitespace), which
-    is the shape of a bare column reference in a SELECT projection list.
+    This strips dbt Jinja blocks (`{{ ... }}`), SQL block comments
+    (`/* ... */`), and SQL line comments (`--`), so a `tenant_slug`
+    mention only inside a comment or a Jinja config block cannot satisfy
+    the check. It then inspects each remaining line individually: a line
+    only counts as a projected column if, once stripped of surrounding
+    whitespace and an optional single leading/trailing comma, its ENTIRE
+    content is just `tenant_slug` or `<alias>.tenant_slug` (e.g.
+    `o.tenant_slug,`). That tight per-line shape is what distinguishes a
+    bare column reference in a SELECT projection list from a
+    `tenant_slug` mention that is merely part of a JOIN predicate
+    (`AND o.tenant_slug = i.tenant_slug`) or a `GROUP BY tenant_slug,
+    order_id` clause: those lines carry extra tokens (`=`, another
+    column, keywords) and so never match the tight pattern, even though
+    they contain the substring `tenant_slug`. This function does NOT
+    attempt to parse SQL structurally (no SELECT/FROM boundary
+    detection) — it is a line-shape heuristic, good enough for this
+    project's simply-formatted, one-column-per-line model files.
+
+    Raises AssertionError if no line qualifies.
     """
     # Strip Jinja blocks like {{ config(...) }} or {{ ref(...) }} etc.
     no_jinja = re.sub(r"\{\{.*?\}\}", "", sql, flags=re.DOTALL)
-    # Strip SQL line comments.
-    no_comments = re.sub(r"--[^\n]*", "", no_jinja)
+    # Strip SQL block comments, then SQL line comments.
+    no_block_comments = re.sub(r"/\*.*?\*/", "", no_jinja, flags=re.DOTALL)
+    no_comments = re.sub(r"--[^\n]*", "", no_block_comments)
 
-    pattern = re.compile(r"\btenant_slug\b[ \t]*(,|\r?\n)")
-    assert pattern.search(no_comments), (
-        f"{model_file} must select tenant_slug as a projected column, "
-        "not merely reference it in a comment or non-projection clause"
+    projected_column_line = re.compile(r",?\s*(?:\w+\.)?tenant_slug\s*,?")
+    for line in no_comments.splitlines():
+        if projected_column_line.fullmatch(line.strip()):
+            return
+    raise AssertionError(
+        f"{model_file} must select tenant_slug as a projected column, not "
+        "merely reference it in a comment, JOIN predicate, or GROUP BY clause"
     )
 
 
@@ -62,6 +79,60 @@ def test_mart_model_selects_tenant_slug(model_file):
 @pytest.mark.parametrize("model_file", ["fct_orders.sql", "fct_order_items.sql"])
 def test_incremental_facts_use_composite_tenant_key(model_file):
     sql = (MARTS_DIR / model_file).read_text(encoding="utf-8")
-    assert "unique_key=['tenant_slug'" in sql.replace('"', "'"), (
+    composite_key_pattern = re.compile(r"unique_key\s*=\s*\[\s*['\"]tenant_slug")
+    assert composite_key_pattern.search(sql), (
         f"{model_file} must include tenant_slug in its composite unique_key"
     )
+
+
+def test_helper_rejects_tenant_slug_only_in_join_predicate():
+    """Regression guard: a tenant-aware JOIN alone must not satisfy the check."""
+    sql = """
+    SELECT
+        order_id,
+        customer_id
+    FROM orders o
+    LEFT JOIN items i
+        ON o.order_id = i.order_id
+       AND o.tenant_slug = i.tenant_slug
+    """
+    with pytest.raises(AssertionError):
+        assert_tenant_slug_is_projected_column(sql, "fake_model.sql")
+
+
+def test_helper_rejects_tenant_slug_only_in_group_by():
+    """Regression guard: a bare GROUP BY tenant_slug alone must not satisfy the check."""
+    sql = """
+    SELECT
+        order_id,
+        COUNT(*) AS n
+    FROM items
+    GROUP BY tenant_slug, order_id
+    """
+    with pytest.raises(AssertionError):
+        assert_tenant_slug_is_projected_column(sql, "fake_model.sql")
+
+
+def test_helper_accepts_qualified_projected_column():
+    """Sanity check: an aliased projected column (e.g. o.tenant_slug,) is accepted."""
+    sql = """
+    SELECT
+        o.tenant_slug,
+        o.order_id
+    FROM orders o
+    """
+    assert_tenant_slug_is_projected_column(sql, "fake_model.sql")
+
+
+def test_helper_rejects_tenant_slug_only_in_comment():
+    """Regression guard for the original Task 4 finding: a comment mention doesn't count."""
+    sql = """{{ config(materialized='table', schema='marts') }}
+    -- tenant_slug is used for tenant isolation
+    SELECT
+        customer_id,
+        customer_city,
+        customer_state
+    FROM x
+    """
+    with pytest.raises(AssertionError):
+        assert_tenant_slug_is_projected_column(sql, "fake_model.sql")

@@ -33,7 +33,7 @@ SELECT
     customer_id,
     price,
     freight_value
-FROM items
+FROM items it
 {% if is_incremental() %}
     {% if var('start_date', none) and var('end_date', none) %}
         WHERE order_purchase_timestamp >= '{{ var("start_date") }}'
@@ -41,9 +41,20 @@ FROM items
     {% elif var('start_date', none) %}
         WHERE order_purchase_timestamp >= '{{ var("start_date") }}'
     {% else %}
-        WHERE order_purchase_timestamp >= (
-            SELECT TIMESTAMP_SUB(MAX(order_purchase_timestamp), INTERVAL 3 DAY)
-            FROM {{ ref('fct_orders') }}
+        -- Per-tenant watermark: each tenant's cutoff is derived only from
+        -- that tenant's own max order_purchase_timestamp in fct_orders,
+        -- never the global max, so a lagging tenant's new rows are never
+        -- silently skipped. A brand-new tenant (no rows yet in fct_orders)
+        -- has no watermark row at all, so the correlated subquery returns
+        -- NULL and COALESCE falls back to an epoch sentinel, letting its
+        -- first load land unconditionally instead of being excluded forever.
+        WHERE it.order_purchase_timestamp >= COALESCE(
+            (
+                SELECT TIMESTAMP_SUB(MAX(fo.order_purchase_timestamp), INTERVAL 3 DAY)
+                FROM {{ ref('fct_orders') }} AS fo
+                WHERE fo.tenant_slug = it.tenant_slug
+            ),
+            TIMESTAMP('1970-01-01')
         )
     {% endif %}
 {% endif %}
