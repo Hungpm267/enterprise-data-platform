@@ -1,5 +1,6 @@
 import time
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
+from google.cloud import bigquery
 from src.utils.gcp_client import get_bigquery_client
 from src.utils.config import Config
 
@@ -17,11 +18,25 @@ def _get_cached(key: str):
 def _set_cached(key: str, data: Any):
     _MEMORY_CACHE[key] = (data, time.time())
 
+def _tenant_clause(tenant_slug: Optional[str], keyword: str = "WHERE") -> str:
+    """Returns a parameterized tenant filter, or empty string for platform admins."""
+    return f" {keyword} tenant_slug = @tenant_slug" if tenant_slug else ""
+
+def _tenant_job_config(tenant_slug: Optional[str]):
+    """Binds tenant_slug as a query parameter so it is never interpolated into SQL."""
+    if not tenant_slug:
+        return bigquery.QueryJobConfig()
+    return bigquery.QueryJobConfig(
+        query_parameters=[
+            bigquery.ScalarQueryParameter("tenant_slug", "STRING", tenant_slug)
+        ]
+    )
+
 class AnalyticsService:
     @staticmethod
-    def get_kpis(tenant_id: str) -> Dict[str, Any]:
+    def get_kpis(tenant_slug: Optional[str]) -> Dict[str, Any]:
         """Calculates executive KPI metrics from BigQuery Data Marts with in-memory caching."""
-        cache_key = f"kpis_{tenant_id}"
+        cache_key = f"kpis_{tenant_slug or 'ALL'}"
         cached = _get_cached(cache_key)
         if cached:
             return cached
@@ -30,14 +45,15 @@ class AnalyticsService:
         if client:
             try:
                 query = f"""
-                SELECT 
+                SELECT
                     ROUND(COALESCE(SUM(total_order_value), 0), 2) AS total_revenue,
                     COUNT(DISTINCT order_id) AS total_orders,
                     ROUND(COALESCE(AVG(total_order_value), 0), 2) AS aov,
                     ROUND(COALESCE(COUNTIF(order_status = 'delivered') * 100.0 / NULLIF(COUNT(*), 0), 0), 1) AS delivery_success_rate
                 FROM `{Config.GCP_PROJECT_ID}.{Config.GCP_MARTS_DATASET}.fct_orders`
+                {_tenant_clause(tenant_slug)}
                 """
-                df = client.query(query).to_dataframe()
+                df = client.query(query, job_config=_tenant_job_config(tenant_slug)).to_dataframe()
                 if not df.empty and df["total_orders"].iloc[0] > 0:
                     row = df.iloc[0]
                     res = {
@@ -63,9 +79,9 @@ class AnalyticsService:
         return res
 
     @staticmethod
-    def get_revenue_trend(tenant_id: str) -> Dict[str, Any]:
+    def get_revenue_trend(tenant_slug: Optional[str]) -> Dict[str, Any]:
         """Returns monthly revenue and order volume for Chart.js timeline."""
-        cache_key = f"trend_{tenant_id}"
+        cache_key = f"trend_{tenant_slug or 'ALL'}"
         cached = _get_cached(cache_key)
         if cached:
             return cached
@@ -74,17 +90,18 @@ class AnalyticsService:
         if client:
             try:
                 query = f"""
-                SELECT 
+                SELECT
                     FORMAT_DATE('%Y-%m', DATE(order_purchase_timestamp)) AS month,
                     ROUND(SUM(total_order_value), 2) AS revenue,
                     COUNT(DISTINCT order_id) AS orders
                 FROM `{Config.GCP_PROJECT_ID}.{Config.GCP_MARTS_DATASET}.fct_orders`
                 WHERE order_purchase_timestamp IS NOT NULL
+                {_tenant_clause(tenant_slug, keyword="AND")}
                 GROUP BY month
                 ORDER BY month ASC
                 LIMIT 12
                 """
-                df = client.query(query).to_dataframe()
+                df = client.query(query, job_config=_tenant_job_config(tenant_slug)).to_dataframe()
                 if not df.empty:
                     res = {
                         "labels": df["month"].tolist(),
@@ -105,9 +122,9 @@ class AnalyticsService:
         return res
 
     @staticmethod
-    def get_order_status_distribution(tenant_id: str) -> Dict[str, Any]:
+    def get_order_status_distribution(tenant_slug: Optional[str]) -> Dict[str, Any]:
         """Returns distribution of order statuses for donut chart."""
-        cache_key = f"status_{tenant_id}"
+        cache_key = f"status_{tenant_slug or 'ALL'}"
         cached = _get_cached(cache_key)
         if cached:
             return cached
@@ -118,10 +135,11 @@ class AnalyticsService:
                 query = f"""
                 SELECT order_status, COUNT(*) AS count
                 FROM `{Config.GCP_PROJECT_ID}.{Config.GCP_MARTS_DATASET}.fct_orders`
+                {_tenant_clause(tenant_slug)}
                 GROUP BY order_status
                 ORDER BY count DESC
                 """
-                df = client.query(query).to_dataframe()
+                df = client.query(query, job_config=_tenant_job_config(tenant_slug)).to_dataframe()
                 if not df.empty:
                     res = {
                         "labels": [str(s).capitalize() for s in df["order_status"]],
@@ -140,7 +158,7 @@ class AnalyticsService:
         return res
 
     @staticmethod
-    def get_top_categories(tenant_id: str) -> Dict[str, Any]:
+    def get_top_categories(tenant_slug: Optional[str]) -> Dict[str, Any]:
         """Returns top product categories by sales volume."""
         return {
             "labels": ["Health & Beauty", "Watches & Gifts", "Bed & Bath", "Sports & Leisure", "Computers & Acc"],
