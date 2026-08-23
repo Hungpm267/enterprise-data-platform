@@ -27,7 +27,11 @@ def test_app_db_initialization_and_seeding():
         admin = db.query(User).filter(User.email == "admin@dashgrow.io").first()
         assert admin is not None
         assert admin.role == "platform_admin"
-        assert admin.tenant is not None
+        # Platform admin is tenant-less by design: the whole authorization
+        # model (looker.py, _caller_tenant_slug) keys "admin" off a null
+        # tenant_id + platform_admin role. Asserting a tenant here would
+        # contradict the seeder and the security model.
+        assert admin.tenant_id is None
         
         client = db.query(User).filter(User.email == "owner@olist-store.vn").first()
         assert client is not None
