@@ -1,3 +1,4 @@
+import time
 from typing import List, Optional, Dict, Tuple
 from google.cloud import bigquery
 from google.cloud.exceptions import NotFound
@@ -5,6 +6,38 @@ from src.utils.gcp_client import get_bigquery_client, get_storage_client
 from src.utils.config import Config
 from src.utils.logger import logger
 from connectors._base.schemas import RunMode
+
+def wait_for_table_schema(
+    client, table_ref, expected_columns: set, table_label: str,
+    max_attempts: int = 5, delay_sec: float = 3.0
+) -> None:
+    """Polls a table's schema via the Tables API (not the query engine) until
+    it contains every expected column, or raises after exhausting retries.
+
+    Observed in production: BigQuery's query engine can plan a SEPARATE query
+    job (a dbt CREATE VIEW, or a CREATE OR REPLACE TABLE ... AS SELECT) against
+    a table moments after a Load/Copy job reports DONE, and silently omit a
+    column that was just added — a metadata-propagation lag between the Jobs
+    API (immediately consistent) and the query engine's own schema cache. The
+    Tables API itself (client.get_table) has been reliable in every
+    observation so far, so polling it is the trustworthy check.
+    """
+    for attempt in range(1, max_attempts + 1):
+        actual_columns = {f.name for f in client.get_table(table_ref).schema}
+        if expected_columns.issubset(actual_columns):
+            return
+        missing = expected_columns - actual_columns
+        if attempt == max_attempts:
+            raise RuntimeError(
+                f"{table_label}: schema still missing {missing} after "
+                f"{max_attempts} verification attempts ({(max_attempts - 1) * delay_sec:.0f}s). "
+                f"Refusing to proceed with a stale/incomplete schema."
+            )
+        logger.warning(
+            f"{table_label}: schema missing {missing} on attempt {attempt}/{max_attempts}, "
+            f"retrying in {delay_sec}s..."
+        )
+        time.sleep(delay_sec)
 
 CONNECTOR_TABLE_MAPPING: Dict[str, Dict[str, Tuple[str, str]]] = {
     "postgres_db": {
@@ -106,19 +139,29 @@ def load_gcs_to_bigquery_staging(
                 target_exists = False
 
             if target_exists and mode == RunMode.FULL_REFRESH and not is_backfill:
-                # WRITE_TRUNCATE against a pre-existing table does not
-                # reliably replace its schema (a source column added to the
-                # parquet can be silently dropped). Deleting the table and
-                # immediately reloading under the SAME NAME was tried and
-                # made things worse (observed in production: freshly
-                # "recreated" tables randomly came back with 0 rows or a
-                # stale/empty-inferred schema) — that races BigQuery's own
-                # eventual consistency for same-name table delete+recreate.
-                # Load into a differently-named temp table instead, then
-                # atomically replace via CREATE OR REPLACE TABLE ... AS
-                # SELECT — a single DDL operation with proper consistency
-                # guarantees, and the same temp-table pattern already used
-                # by the incremental merge path below.
+                # Two prior approaches both failed intermittently in
+                # production for 2 of 6 tables each time (a different pair
+                # each run): (1) WRITE_TRUNCATE directly against the
+                # pre-existing table kept its old schema; (2) deleting the
+                # table then reloading under the SAME NAME, and later,
+                # loading to a temp table then `CREATE OR REPLACE TABLE ...
+                # AS SELECT` from it — both of which hand a freshly-written
+                # table to a SEPARATE QUERY JOB moments later. The common
+                # thread across every failure is a query-engine read
+                # (a dbt CREATE VIEW, or our own CREATE OR REPLACE ... AS
+                # SELECT) of a table another job just finished writing,
+                # which the Tables API (get_table) has never once shown
+                # stale in on-the-spot diagnosis — only the query engine's
+                # own schema cache has lagged.
+                #
+                # Fix: load into a temp table, then use the Table Copy API
+                # (client.copy_table) to replace the destination — a
+                # metadata/storage-level operation, not a query-engine read
+                # of the temp table's rows — and verify both the temp
+                # table's and the destination's schema via the Tables API
+                # (with retry) before proceeding, so any remaining
+                # propagation lag surfaces as a loud, actionable error
+                # instead of a silently incomplete schema.
                 temp_table_name = f"{target_table}_full_refresh_temp"
                 temp_table_ref = dataset_ref.table(temp_table_name)
                 temp_job_config = bigquery.LoadJobConfig(
@@ -133,15 +176,26 @@ def load_gcs_to_bigquery_staging(
                 load_job = client.load_table_from_uri(selected_uri, temp_table_ref, job_config=temp_job_config)
                 load_job.result()
 
+                temp_columns = {f.name for f in client.get_table(temp_table_ref).schema}
+                wait_for_table_schema(
+                    client, temp_table_ref, temp_columns,
+                    table_label=f"{staging_dataset_id}.{temp_table_name}"
+                )
+
                 logger.info(
-                    f"Full-refresh: atomically replacing "
-                    f"'{staging_dataset_id}.{target_table}' from temp table..."
+                    f"Full-refresh: copying temp table into "
+                    f"'{staging_dataset_id}.{target_table}' via Table Copy API..."
                 )
-                replace_sql = (
-                    f"CREATE OR REPLACE TABLE `{project_id}.{staging_dataset_id}.{target_table}` AS "
-                    f"SELECT * FROM `{project_id}.{staging_dataset_id}.{temp_table_name}`"
+                copy_job_config = bigquery.CopyJobConfig(
+                    write_disposition=bigquery.WriteDisposition.WRITE_TRUNCATE
                 )
-                client.query(replace_sql).result()
+                copy_job = client.copy_table(temp_table_ref, target_table_ref, job_config=copy_job_config)
+                copy_job.result()
+
+                wait_for_table_schema(
+                    client, target_table_ref, temp_columns,
+                    table_label=f"{staging_dataset_id}.{target_table}"
+                )
                 client.delete_table(temp_table_ref, not_found_ok=True)
             elif (mode == RunMode.FULL_REFRESH and not is_backfill) or not target_exists:
                 # Full refresh with no pre-existing table, or initial table
