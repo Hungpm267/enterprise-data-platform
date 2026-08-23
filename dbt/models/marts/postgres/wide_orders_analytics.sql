@@ -1,6 +1,9 @@
 {{ config(materialized='view', schema='marts') }}
 
 SELECT
+    -- Tenant Identity
+    o.tenant_slug,
+
     -- Order Header Info
     o.order_id,
     o.customer_id,
@@ -24,6 +27,12 @@ SELECT
     p.product_category_name
 
 FROM {{ ref('fct_orders') }} o
-LEFT JOIN {{ ref('dim_customers') }} c ON o.customer_id = c.customer_id
-LEFT JOIN {{ ref('fct_order_items') }} oi ON o.order_id = oi.order_id
-LEFT JOIN {{ ref('dim_products') }} p ON oi.product_id = p.product_id
+LEFT JOIN {{ ref('dim_customers') }} c
+    ON o.customer_id = c.customer_id
+   AND o.tenant_slug = c.tenant_slug
+LEFT JOIN {{ ref('fct_order_items') }} oi
+    ON o.order_id = oi.order_id
+   AND o.tenant_slug = oi.tenant_slug
+LEFT JOIN {{ ref('dim_products') }} p
+    ON oi.product_id = p.product_id
+   AND oi.tenant_slug = p.tenant_slug

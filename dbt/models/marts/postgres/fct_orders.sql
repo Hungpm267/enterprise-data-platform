@@ -1,14 +1,14 @@
 {{ config(
     materialized='incremental',
     incremental_strategy='merge',
-    unique_key='order_id',
+    unique_key=['tenant_slug', 'order_id'],
     schema='marts',
     partition_by={
       "field": "order_purchase_timestamp",
       "data_type": "timestamp",
       "granularity": "day"
     },
-    cluster_by=["order_status", "customer_id"]
+    cluster_by=["tenant_slug", "order_status", "customer_id"]
 ) }}
 
 WITH orders AS (
@@ -29,15 +29,17 @@ WITH orders AS (
 ),
 items AS (
     SELECT
+        tenant_slug,
         order_id,
         COUNT(order_item_id) AS total_items,
         SUM(price) AS total_order_value,
         SUM(freight_value) AS total_freight_value
     FROM {{ ref('stg_order_items') }}
-    GROUP BY order_id
+    GROUP BY tenant_slug, order_id
 )
 
 SELECT
+    o.tenant_slug,
     o.order_id,
     o.customer_id,
     o.order_status,
@@ -46,4 +48,6 @@ SELECT
     COALESCE(i.total_order_value, 0.0) AS total_order_value,
     COALESCE(i.total_freight_value, 0.0) AS total_freight_value
 FROM orders o
-LEFT JOIN items i ON o.order_id = i.order_id
+LEFT JOIN items i
+    ON o.order_id = i.order_id
+   AND o.tenant_slug = i.tenant_slug

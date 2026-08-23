@@ -1,6 +1,7 @@
 {{ config(materialized='table', schema='marts') }}
 
 SELECT
+    tenant_slug,
     payment_id,
     order_id,
     payment_type,

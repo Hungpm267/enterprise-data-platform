@@ -5,12 +5,13 @@
 {{ config(
     materialized='incremental',
     incremental_strategy='merge',
-    unique_key='order_item_id',
+    unique_key=['tenant_slug', 'order_item_id'],
     schema='marts'
 ) }}
 
 WITH items AS (
     SELECT
+        oi.tenant_slug,
         oi.order_item_id,
         oi.order_id,
         oi.product_id,
@@ -19,10 +20,13 @@ WITH items AS (
         oi.freight_value,
         o.order_purchase_timestamp
     FROM {{ ref('stg_order_items') }} oi
-    LEFT JOIN {{ ref('stg_orders') }} o ON oi.order_id = o.order_id
+    LEFT JOIN {{ ref('stg_orders') }} o
+        ON oi.order_id = o.order_id
+       AND oi.tenant_slug = o.tenant_slug
 )
 
 SELECT
+    tenant_slug,
     order_item_id,
     order_id,
     product_id,
