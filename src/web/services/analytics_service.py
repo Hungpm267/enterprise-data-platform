@@ -41,7 +41,7 @@ class AnalyticsService:
     @staticmethod
     def get_kpis(tenant_slug: Optional[str]) -> Dict[str, Any]:
         """Calculates executive KPI metrics from BigQuery Data Marts with in-memory caching."""
-        cache_key = f"kpis_{tenant_slug or 'ALL'}"
+        cache_key = f"kpis_{'ALL' if tenant_slug is None else tenant_slug}"
         cached = _get_cached(cache_key)
         if cached:
             return cached
@@ -86,7 +86,7 @@ class AnalyticsService:
     @staticmethod
     def get_revenue_trend(tenant_slug: Optional[str]) -> Dict[str, Any]:
         """Returns monthly revenue and order volume for Chart.js timeline."""
-        cache_key = f"trend_{tenant_slug or 'ALL'}"
+        cache_key = f"trend_{'ALL' if tenant_slug is None else tenant_slug}"
         cached = _get_cached(cache_key)
         if cached:
             return cached
@@ -129,7 +129,7 @@ class AnalyticsService:
     @staticmethod
     def get_order_status_distribution(tenant_slug: Optional[str]) -> Dict[str, Any]:
         """Returns distribution of order statuses for donut chart."""
-        cache_key = f"status_{tenant_slug or 'ALL'}"
+        cache_key = f"status_{'ALL' if tenant_slug is None else tenant_slug}"
         cached = _get_cached(cache_key)
         if cached:
             return cached

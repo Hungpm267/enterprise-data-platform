@@ -1,5 +1,6 @@
 import pytest
 from fastapi import HTTPException
+from pydantic import ValidationError
 from src.web.db.session import init_app_db, SessionLocal
 from src.web.services.auth_service import AuthService
 from src.web.schemas.auth import LoginRequest, RegisterRequest
@@ -38,3 +39,31 @@ def test_auth_login_invalid_password():
         assert exc_info.value.status_code == 401
     finally:
         db.close()
+
+
+def test_register_rejects_whitespace_only_company_slug():
+    """
+    Regression guard for the unauthenticated-registration exploit chain:
+    a company_slug of only whitespace must be rejected at the schema layer,
+    before it ever reaches auth_service.register_client (which would
+    otherwise .strip().lower() it into a real tenant row with slug="").
+    """
+    with pytest.raises(ValidationError):
+        RegisterRequest(
+            company_name="Acme Co",
+            company_slug="   ",
+            email="new-owner@example.com",
+            password="secret123",
+            full_name="New Owner",
+        )
+
+
+def test_register_rejects_empty_company_slug():
+    with pytest.raises(ValidationError):
+        RegisterRequest(
+            company_name="Acme Co",
+            company_slug="",
+            email="new-owner@example.com",
+            password="secret123",
+            full_name="New Owner",
+        )
