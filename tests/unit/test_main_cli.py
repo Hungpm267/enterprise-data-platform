@@ -40,6 +40,26 @@ def test_omitting_tenant_slug_defaults_run_args_to_configured_tenant():
         assert run_args.tenant_slug == "olist-retail"
 
 
+def test_empty_string_tenant_slug_is_not_defaulted():
+    """
+    An explicitly-passed empty string must NOT be treated the same as an
+    omitted flag. It must flow through to RunArgs verbatim (as "") rather than
+    falling back to the configured default, so the connector's own guard
+    (extract_single_table's `if not tenant_slug` check) can reject it loudly.
+    """
+    with _patch_pipeline_dependencies():
+        main.run_elt_pipeline.fn(
+            connector_name="postgres_db",
+            full_refresh=True,
+            tenant_slug="",
+        )
+
+        assert main.extract_connector_task.call_count == 1
+        _, run_args = main.extract_connector_task.call_args[0]
+        assert run_args.tenant_slug == ""
+        assert run_args.tenant_slug != Config.DEFAULT_TENANT_SLUG
+
+
 def test_tenant_slug_argument_propagates_into_run_args():
     """
     Passing --tenant-slug acme-coffee (threaded through as the tenant_slug

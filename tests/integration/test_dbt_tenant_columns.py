@@ -24,6 +24,8 @@ MARTS_MODELS = [
 
 MARTS_DIR = Path(__file__).resolve().parents[2] / "dbt" / "models" / "marts" / "postgres"
 
+SNAPSHOTS_DIR = Path(__file__).resolve().parents[2] / "dbt" / "snapshots"
+
 
 def assert_tenant_slug_is_projected_column(sql, model_file):
     """Verify tenant_slug appears as a projected column in a SELECT list.
@@ -122,6 +124,21 @@ def test_helper_accepts_qualified_projected_column():
     FROM orders o
     """
     assert_tenant_slug_is_projected_column(sql, "fake_model.sql")
+
+
+def test_snap_orders_selects_tenant_slug():
+    sql = (SNAPSHOTS_DIR / "snap_orders.sql").read_text(encoding="utf-8")
+    assert_tenant_slug_is_projected_column(sql, "snap_orders.sql")
+
+
+def test_snap_orders_uses_composite_tenant_unique_key():
+    """Regression guard for Finding 1: two tenants' identically-numbered orders
+    must not collide on the snapshot key. unique_key must include tenant_slug."""
+    sql = (SNAPSHOTS_DIR / "snap_orders.sql").read_text(encoding="utf-8")
+    composite_key_pattern = re.compile(r"unique_key\s*=\s*\[\s*['\"]tenant_slug")
+    assert composite_key_pattern.search(sql), (
+        "snap_orders.sql must include tenant_slug in its composite unique_key"
+    )
 
 
 def test_helper_rejects_tenant_slug_only_in_comment():

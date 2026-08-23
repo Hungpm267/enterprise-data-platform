@@ -134,7 +134,7 @@ def run_elt_pipeline(
         end_date=end_date,
         mode=mode,
         clean_landing=True,
-        **({"tenant_slug": tenant_slug} if tenant_slug else {})
+        **({"tenant_slug": tenant_slug} if tenant_slug is not None else {})
     )
 
     logger.info("==================================================")

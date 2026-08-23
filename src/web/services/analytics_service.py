@@ -19,12 +19,17 @@ def _set_cached(key: str, data: Any):
     _MEMORY_CACHE[key] = (data, time.time())
 
 def _tenant_clause(tenant_slug: Optional[str], keyword: str = "WHERE") -> str:
-    """Returns a parameterized tenant filter, or empty string for platform admins."""
-    return f" {keyword} tenant_slug = @tenant_slug" if tenant_slug else ""
+    """Returns a parameterized tenant filter, or empty string for platform admins.
+
+    Only `None` means unfiltered/admin access. An explicit empty string still
+    produces a filter clause (binding tenant_slug = ''), which yields zero rows
+    rather than silently granting cross-tenant access.
+    """
+    return f" {keyword} tenant_slug = @tenant_slug" if tenant_slug is not None else ""
 
 def _tenant_job_config(tenant_slug: Optional[str]):
     """Binds tenant_slug as a query parameter so it is never interpolated into SQL."""
-    if not tenant_slug:
+    if tenant_slug is None:
         return bigquery.QueryJobConfig()
     return bigquery.QueryJobConfig(
         query_parameters=[

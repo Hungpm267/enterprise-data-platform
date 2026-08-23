@@ -12,7 +12,7 @@ NO_TENANT_SENTINEL = "__no_tenant__"
 
 def _caller_tenant_slug(current_user: User) -> Optional[str]:
     """Resolves the tenant filter for a caller. None means platform admin (see all)."""
-    if not current_user.tenant_id:
+    if not current_user.tenant_id and current_user.role == "platform_admin":
         return None
     if not current_user.tenant:
         return NO_TENANT_SENTINEL

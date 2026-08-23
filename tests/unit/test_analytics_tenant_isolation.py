@@ -54,3 +54,17 @@ def test_two_tenants_get_distinct_results():
 
     assert first["total_revenue"] == 1000.0
     assert second["total_revenue"] == 5000.0
+
+
+def test_empty_string_tenant_slug_produces_a_filter_not_unfiltered_access():
+    # An empty string must NOT be treated like None (admin/unfiltered). It
+    # must still bind a tenant_slug filter parameter (yielding zero rows for
+    # a slug no tenant has), never fall through to an unfiltered query.
+    assert svc._tenant_clause("") == " WHERE tenant_slug = @tenant_slug"
+    assert svc._tenant_clause(None) == ""
+
+    job_config = svc._tenant_job_config("")
+    assert job_config.query_parameters[0].value == ""
+
+    admin_job_config = svc._tenant_job_config(None)
+    assert admin_job_config.query_parameters == []

@@ -1,5 +1,46 @@
 version: 2
 
+models:
+  - name: stg_customers
+    description: "Staged customer records from Postgres source."
+    columns:
+      - name: tenant_slug
+        description: "Tenant identifier owning this row (multi-tenant isolation key)."
+        tests:
+          - not_null
+
+  - name: stg_orders
+    description: "Staged order records from Postgres source."
+    columns:
+      - name: tenant_slug
+        description: "Tenant identifier owning this row (multi-tenant isolation key)."
+        tests:
+          - not_null
+
+  - name: stg_order_items
+    description: "Staged order line-item records from Postgres source."
+    columns:
+      - name: tenant_slug
+        description: "Tenant identifier owning this row (multi-tenant isolation key)."
+        tests:
+          - not_null
+
+  - name: stg_payments
+    description: "Staged payment records from Postgres source."
+    columns:
+      - name: tenant_slug
+        description: "Tenant identifier owning this row (multi-tenant isolation key)."
+        tests:
+          - not_null
+
+  - name: stg_products
+    description: "Staged product records from Postgres source."
+    columns:
+      - name: tenant_slug
+        description: "Tenant identifier owning this row (multi-tenant isolation key)."
+        tests:
+          - not_null
+
 sources:
   - name: staging
     database: "{{ env_var('GCP_PROJECT_ID', 'data-engineering-504901') }}"
