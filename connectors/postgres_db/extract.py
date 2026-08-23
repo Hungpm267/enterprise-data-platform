@@ -32,13 +32,20 @@ def extract_single_table(
     engine,
     table_name: str,
     start_date: Optional[str] = None,
-    end_date: Optional[str] = None
+    end_date: Optional[str] = None,
+    tenant_slug: str = "olist-retail"
 ) -> str:
     """
     Extracts a single table from PostgreSQL using secure parameterized queries.
     Uses pd.read_sql_query to preserve exact schema datatypes even on empty delta batches.
     Saves to namespaced landing path: data/landing/postgres_db/{table_name}.parquet
     """
+    if not tenant_slug or not tenant_slug.strip():
+        raise ValueError(
+            f"tenant_slug is required for extraction of '{table_name}' — "
+            "refusing to write untenanted rows into the warehouse."
+        )
+
     params: Dict[str, Any] = {}
     
     if table_name == "raw_orders" and (start_date or end_date):
@@ -65,6 +72,9 @@ def extract_single_table(
     if "order_estimated_delivery_date" in df.columns:
         df["order_estimated_delivery_date"] = pd.to_datetime(df["order_estimated_delivery_date"])
 
+    # Stamp tenant identity onto every row so downstream marts can isolate by tenant
+    df["tenant_slug"] = tenant_slug
+
     logger.info(f"Extracted {len(df)} rows from table '{table_name}'.")
 
     target_dir = os.path.join(Config.LANDING_DIR, "postgres_db")
@@ -83,6 +93,7 @@ def extract_postgres_tables(args: RunArgs) -> List[str]:
         clear_landing_zone()
 
     tables = args.tables if args.tables else TABLES_LIST
+    logger.info(f"--- POSTGRES CONNECTOR: Tenant '{args.tenant_slug}' ---")
     if args.start_date or args.end_date:
         logger.info(f"--- POSTGRES CONNECTOR: Filter Range [{args.start_date or 'BEGIN'} -> {args.end_date or 'NOW'}] ---")
 
@@ -100,7 +111,8 @@ def extract_postgres_tables(args: RunArgs) -> List[str]:
                     engine,
                     t,
                     args.start_date,
-                    args.end_date
+                    args.end_date,
+                    args.tenant_slug
                 ): t for t in tables
             }
             for future in as_completed(future_to_table):

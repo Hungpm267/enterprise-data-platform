@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import Optional
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, field_validator
 
 class LoginRequest(BaseModel):
     email: str
@@ -31,7 +31,19 @@ class UserOut(BaseModel):
 
 class RegisterRequest(BaseModel):
     company_name: str
-    company_slug: str
+    company_slug: str = Field(min_length=1)
     email: str
     password: str
     full_name: str
+
+    @field_validator("company_slug")
+    @classmethod
+    def company_slug_must_not_be_blank(cls, value: str) -> str:
+        # A length check on the raw string alone doesn't stop "   " — the
+        # strip happens downstream in auth_service.register_client, which
+        # would otherwise create a real tenant row with slug="". Reject
+        # whitespace-only values here so an empty tenant slug can never be
+        # created.
+        if not value.strip():
+            raise ValueError("company_slug must not be blank")
+        return value

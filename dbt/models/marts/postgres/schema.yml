@@ -4,6 +4,10 @@ models:
   - name: fct_orders
     description: "Central Fact table for e-commerce orders at order-header granularity."
     columns:
+      - name: tenant_slug
+        description: "Tenant identifier owning this row (multi-tenant isolation key)."
+        tests:
+          - not_null
       - name: order_id
         description: "Primary key of the order."
         tests:
@@ -30,6 +34,10 @@ models:
   - name: fct_order_items
     description: "Fact table containing line-item detail for every product in an order."
     columns:
+      - name: tenant_slug
+        description: "Tenant identifier owning this row (multi-tenant isolation key)."
+        tests:
+          - not_null
       - name: order_item_id
         description: "Primary key for the order item record."
         tests:
@@ -50,15 +58,39 @@ models:
   - name: dim_customers
     description: "Dimension table containing customer geographic profiles."
     columns:
+      - name: tenant_slug
+        description: "Tenant identifier owning this row (multi-tenant isolation key)."
+        tests:
+          - not_null
       - name: customer_id
         description: "Primary key identifying unique customers."
         tests:
           - unique
           - not_null
 
+  - name: fct_payments
+    description: "Fact table containing payment transactions for each order."
+    columns:
+      - name: tenant_slug
+        description: "Tenant identifier owning this row (multi-tenant isolation key)."
+        tests:
+          - not_null
+      - name: payment_id
+        description: "Primary key for the payment record."
+        tests:
+          - not_null
+      - name: order_id
+        description: "Foreign key referencing fct_orders."
+        tests:
+          - not_null
+
   - name: dim_products
     description: "Dimension table containing product categorization."
     columns:
+      - name: tenant_slug
+        description: "Tenant identifier owning this row (multi-tenant isolation key)."
+        tests:
+          - not_null
       - name: product_id
         description: "Primary key identifying unique products."
         tests:

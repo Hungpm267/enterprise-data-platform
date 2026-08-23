@@ -1,4 +1,5 @@
 SELECT
+    tenant_slug,
     order_item_id,
     order_id,
     product_id,

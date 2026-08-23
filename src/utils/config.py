@@ -16,6 +16,9 @@ class Config:
     
     LANDING_DIR = os.getenv("LANDING_DIR") or "data/landing"
 
+    # Tenant identity stamped onto every extracted row (multi-tenant data isolation)
+    DEFAULT_TENANT_SLUG = os.getenv("DEFAULT_TENANT_SLUG") or "olist-retail"
+
     # GCP Settings
     GCP_PROJECT_ID = os.getenv("GCP_PROJECT_ID") or "data-engineering-504901"
     GCP_GCS_BUCKET = os.getenv("GCP_GCS_BUCKET") or "ecommerce-data-lake-504901"

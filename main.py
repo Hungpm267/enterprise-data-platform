@@ -108,7 +108,8 @@ def run_elt_pipeline(
     connector_name: str = "postgres_db",
     start_date: Optional[str] = None,
     end_date: Optional[str] = None,
-    full_refresh: bool = False
+    full_refresh: bool = False,
+    tenant_slug: Optional[str] = None
 ):
     start_exec_time = time.time()
     mode = RunMode.FULL_REFRESH if full_refresh else RunMode.INCREMENTAL
@@ -132,12 +133,14 @@ def run_elt_pipeline(
         start_date=start_date,
         end_date=end_date,
         mode=mode,
-        clean_landing=True
+        clean_landing=True,
+        **({"tenant_slug": tenant_slug} if tenant_slug is not None else {})
     )
 
     logger.info("==================================================")
     logger.info(f"  ENTERPRISE DATA PLATFORM (Connector: {connector_name})")
     logger.info(f"  Mode: {mode.value.upper()} | Backfill: {is_backfill}")
+    logger.info(f"  Tenant: {run_args.tenant_slug}")
     logger.info(f"  Effective Range: [{start_date or 'BEGIN'} -> {end_date or 'NOW'}]")
     logger.info("==================================================")
 
@@ -215,6 +218,7 @@ if __name__ == "__main__":
     parser.add_argument("--start-date", type=str, default=None, help="Start date for backfill (YYYY-MM-DD or YYYY-MM-DD HH:MM:SS)")
     parser.add_argument("--end-date", type=str, default=None, help="End date for backfill (YYYY-MM-DD or YYYY-MM-DD HH:MM:SS)")
     parser.add_argument("--full-refresh", action="store_true", help="Force full-refresh rebuild of incremental models")
+    parser.add_argument("--tenant-slug", type=str, default=None, help="Tenant identifier stamped onto extracted rows (default: DEFAULT_TENANT_SLUG env var)")
     parser.add_argument("--serve", action="store_true", help="Register deployment and serve flow on Prefect Cloud")
     
     args = parser.parse_args()
@@ -227,5 +231,6 @@ if __name__ == "__main__":
             connector_name=args.connector,
             start_date=args.start_date,
             end_date=args.end_date,
-            full_refresh=args.full_refresh
+            full_refresh=args.full_refresh,
+            tenant_slug=args.tenant_slug
         )
