@@ -106,7 +106,8 @@ def load_gcs_to_bigquery_staging(
                 target_exists = False
 
             if (mode == RunMode.FULL_REFRESH and not is_backfill) or not target_exists:
-                # Full refresh mode or initial table creation: load directly
+                # WRITE_TRUNCATE with autodetect replaces both the data and
+                # the schema, which is exactly what a full refresh wants.
                 job_config = bigquery.LoadJobConfig(
                     source_format=bigquery.SourceFormat.PARQUET,
                     write_disposition=bigquery.WriteDisposition.WRITE_TRUNCATE,
