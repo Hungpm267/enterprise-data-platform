@@ -4,7 +4,8 @@ import subprocess
 import threading
 from datetime import datetime
 from typing import Dict, Any, List, Optional
-from src.utils.gcp_client import get_bigquery_client
+from google.cloud import bigquery
+from src.utils.gcp_client import get_bigquery_client_or_none
 from src.utils.config import Config
 from src.utils.timezone import get_vietnam_now_str
 
@@ -38,7 +39,7 @@ class PipelineService:
         cached = _get_pipe_cache(cache_key)
         if cached:
             return cached
-        client = get_bigquery_client()
+        client = get_bigquery_client_or_none()
         if client:
             try:
                 query = f"""
@@ -101,16 +102,21 @@ class PipelineService:
         if cached:
             return cached
 
-        client = get_bigquery_client()
+        client = get_bigquery_client_or_none()
         if client:
             try:
+                # User input is bound as a query parameter — never interpolated
+                # into the SQL string (SQL injection guard).
                 where_clause = ""
+                params = []
                 if query_str and query_str.strip():
-                    clean_q = query_str.strip()
-                    where_clause = f"WHERE order_id LIKE '%{clean_q}%' OR customer_id LIKE '%{clean_q}%'"
-                
+                    where_clause = "WHERE order_id LIKE @search_pattern OR customer_id LIKE @search_pattern"
+                    params.append(bigquery.ScalarQueryParameter(
+                        "search_pattern", "STRING", f"%{query_str.strip()}%"
+                    ))
+
                 query = f"""
-                SELECT 
+                SELECT
                     dbt_scd_id, order_id, customer_id, order_status,
                     dbt_valid_from, dbt_valid_to, dbt_updated_at
                 FROM `{Config.GCP_PROJECT_ID}.snapshots.snap_orders`
@@ -118,7 +124,8 @@ class PipelineService:
                 ORDER BY order_id, dbt_valid_from DESC
                 LIMIT {limit}
                 """
-                df = client.query(query).to_dataframe()
+                job_config = bigquery.QueryJobConfig(query_parameters=params)
+                df = client.query(query, job_config=job_config).to_dataframe()
                 if not df.empty:
                     records = []
                     for _, r in df.iterrows():

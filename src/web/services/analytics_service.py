@@ -1,7 +1,7 @@
 import time
 from typing import Dict, Any, List, Optional
 from google.cloud import bigquery
-from src.utils.gcp_client import get_bigquery_client
+from src.utils.gcp_client import get_bigquery_client_or_none
 from src.utils.config import Config
 
 # Fast in-memory cache to make data queries lightning fast (< 2ms)
@@ -46,7 +46,7 @@ class AnalyticsService:
         if cached:
             return cached
 
-        client = get_bigquery_client()
+        client = get_bigquery_client_or_none()
         if client:
             try:
                 query = f"""
@@ -91,7 +91,7 @@ class AnalyticsService:
         if cached:
             return cached
 
-        client = get_bigquery_client()
+        client = get_bigquery_client_or_none()
         if client:
             try:
                 query = f"""
@@ -134,7 +134,7 @@ class AnalyticsService:
         if cached:
             return cached
 
-        client = get_bigquery_client()
+        client = get_bigquery_client_or_none()
         if client:
             try:
                 query = f"""
@@ -178,7 +178,7 @@ class AnalyticsService:
         if cached:
             return cached
 
-        client = get_bigquery_client()
+        client = get_bigquery_client_or_none()
         if client:
             try:
                 query = f"""

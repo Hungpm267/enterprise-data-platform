@@ -27,7 +27,7 @@ def setup_function():
 
 def test_tenant_query_is_parameterized_not_interpolated():
     client = _fake_client(_kpi_rows(1000.0))
-    with patch.object(svc, "get_bigquery_client", return_value=client):
+    with patch.object(svc, "get_bigquery_client_or_none", return_value=client):
         AnalyticsService.get_kpis("acme-coffee")
 
     sql = client.query.call_args.args[0]
@@ -39,7 +39,7 @@ def test_tenant_query_is_parameterized_not_interpolated():
 
 def test_admin_none_tenant_runs_unfiltered_query():
     client = _fake_client(_kpi_rows(9999.0))
-    with patch.object(svc, "get_bigquery_client", return_value=client):
+    with patch.object(svc, "get_bigquery_client_or_none", return_value=client):
         AnalyticsService.get_kpis(None)
 
     sql = client.query.call_args.args[0]
@@ -47,9 +47,9 @@ def test_admin_none_tenant_runs_unfiltered_query():
 
 
 def test_two_tenants_get_distinct_results():
-    with patch.object(svc, "get_bigquery_client", return_value=_fake_client(_kpi_rows(1000.0))):
+    with patch.object(svc, "get_bigquery_client_or_none", return_value=_fake_client(_kpi_rows(1000.0))):
         first = AnalyticsService.get_kpis("tenant-a")
-    with patch.object(svc, "get_bigquery_client", return_value=_fake_client(_kpi_rows(5000.0))):
+    with patch.object(svc, "get_bigquery_client_or_none", return_value=_fake_client(_kpi_rows(5000.0))):
         second = AnalyticsService.get_kpis("tenant-b")
 
     assert first["total_revenue"] == 1000.0
@@ -68,7 +68,7 @@ def test_empty_string_tenant_does_not_share_cache_with_admin():
     caller does NOT receive the admin's cross-tenant payload.
     """
     admin_client = _fake_client(_kpi_rows(999999.0))
-    with patch.object(svc, "get_bigquery_client", return_value=admin_client):
+    with patch.object(svc, "get_bigquery_client_or_none", return_value=admin_client):
         admin_result = AnalyticsService.get_kpis(None)
     assert admin_result["total_revenue"] == 999999.0
 
@@ -76,7 +76,7 @@ def test_empty_string_tenant_does_not_share_cache_with_admin():
     # the empty-string caller shares the admin's cache key, this client is
     # never even queried and the stale admin payload leaks through instead.
     empty_tenant_client = _fake_client(_kpi_rows(0.0))
-    with patch.object(svc, "get_bigquery_client", return_value=empty_tenant_client):
+    with patch.object(svc, "get_bigquery_client_or_none", return_value=empty_tenant_client):
         empty_tenant_result = AnalyticsService.get_kpis("")
 
     assert empty_tenant_result["total_revenue"] != admin_result["total_revenue"], (
