@@ -16,15 +16,13 @@ from src.load.load_to_bigquery import load_gcs_to_bigquery_staging
 from src.transform.run_transform import run_in_warehouse_transformations
 from src.utils.state_manager import StateManager
 from src.utils.logger import logger
-from src.utils.timezone import get_vietnam_now, get_vietnam_now_str
+from src.utils.timezone import get_vietnam_now
 from src.utils.metrics_tracker import record_pipeline_metrics, calculate_extracted_rows
 
 # Active Connectors Registry
 AVAILABLE_CONNECTORS = {
     "postgres_db": PostgresConnector(),
-    "postgres": PostgresConnector(),
     "crypto_api": CryptoConnector(),
-    "crypto": CryptoConnector(),
 }
 
 @task(name="1. Connector Extract Step", retries=2, retry_delay_seconds=10)
@@ -41,16 +39,14 @@ def extract_connector_task(connector_name: str, args: RunArgs) -> List[str]:
 @task(name="2. Load GCS Step", retries=2, retry_delay_seconds=10)
 def load_gcs_step_task(connector_name: str = "postgres_db"):
     logger.info(f"\n--- STEP 2A: LOAD GCS (Parquet -> GCS Data Lake / landing/{connector_name}/) ---")
-    canonical_name = "crypto_api" if "crypto" in connector_name else "postgres_db"
-    gcs_uris = upload_landing_to_gcs(connector_name=canonical_name)
+    gcs_uris = upload_landing_to_gcs(connector_name=connector_name)
     logger.info(f"GCS Load finished for '{connector_name}'. {len(gcs_uris)} Parquet files uploaded to GCS Bucket.")
     return gcs_uris
 
 @task(name="3. Load BigQuery Step", retries=2, retry_delay_seconds=10)
 def load_bigquery_step_task(mode: RunMode = RunMode.INCREMENTAL, is_backfill: bool = False, connector_name: str = "postgres_db"):
     logger.info(f"\n--- STEP 2B: LOAD BIGQUERY (Connector: '{connector_name}', Mode: {mode.value.upper()}, Backfill: {is_backfill}) ---")
-    canonical_name = "crypto_api" if "crypto" in connector_name else "postgres_db"
-    loaded_tables = load_gcs_to_bigquery_staging(mode=mode, is_backfill=is_backfill, connector_name=canonical_name)
+    loaded_tables = load_gcs_to_bigquery_staging(mode=mode, is_backfill=is_backfill, connector_name=connector_name)
     logger.info(f"BigQuery Staging Load finished for '{connector_name}'. Synchronized {len(loaded_tables)} staging tables.")
     return loaded_tables
 
@@ -214,7 +210,7 @@ def run_elt_pipeline(
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Enterprise Data Platform Master Orchestrator")
-    parser.add_argument("--connector", type=str, default="postgres_db", help="Target connector name (default: postgres_db, crypto_api)")
+    parser.add_argument("--connector", type=str, default="postgres_db", choices=list(AVAILABLE_CONNECTORS), help="Target connector name")
     parser.add_argument("--start-date", type=str, default=None, help="Start date for backfill (YYYY-MM-DD or YYYY-MM-DD HH:MM:SS)")
     parser.add_argument("--end-date", type=str, default=None, help="End date for backfill (YYYY-MM-DD or YYYY-MM-DD HH:MM:SS)")
     parser.add_argument("--full-refresh", action="store_true", help="Force full-refresh rebuild of incremental models")

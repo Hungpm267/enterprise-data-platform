@@ -6,7 +6,7 @@ from sqlalchemy import text
 from src.utils.db_connector import PostgresConnector
 from src.utils.config import Config
 from src.utils.logger import logger
-from connectors._base.schemas import RunArgs, RunMode
+from connectors._base.schemas import RunArgs
 
 TABLES_LIST = [
     "raw_customers",

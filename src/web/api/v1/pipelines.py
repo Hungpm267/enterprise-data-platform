@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Body
+from fastapi import APIRouter, Depends
 from src.web.core.dependencies import get_current_user, require_platform_admin
 from src.web.db.models import User
 from src.web.services.pipeline_service import PipelineService

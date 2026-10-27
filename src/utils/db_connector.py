@@ -1,4 +1,3 @@
-import psycopg2
 from sqlalchemy import create_engine
 from sqlalchemy.pool import NullPool
 from src.utils.config import Config
@@ -26,16 +25,6 @@ class PostgresConnector:
                 }
             )
         return PostgresConnector._engine
-
-    def get_raw_connection(self):
-        return psycopg2.connect(
-            host=Config.DB_HOST,
-            port=Config.DB_PORT,
-            dbname=Config.DB_NAME,
-            user=Config.DB_USER,
-            password=Config.DB_PASSWORD,
-            connect_timeout=15
-        )
 
     def close(self):
         if PostgresConnector._engine is not None:

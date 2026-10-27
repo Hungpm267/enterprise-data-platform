@@ -129,7 +129,7 @@ python main.py --connector postgres_db
 # Run historical backfill by date range (with safe staging merge & dbt vars)
 python main.py --connector postgres_db --start-date 2026-05-01 --end-date 2026-05-31
 
-# Force full-refresh rebuild of marts and reset watermark
+# Force full-refresh rebuild of marts and re-baseline the watermark to the current run
 python main.py --full-refresh
 ```
 

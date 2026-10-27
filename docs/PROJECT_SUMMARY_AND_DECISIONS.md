@@ -65,7 +65,7 @@ graph LR
 ### 2.2. Cơ Sở Dữ Liệu Quản Trị Hệ Thống (Aiven.io PostgreSQL - `dashgrow_app_db`)
 - **Quyết định:** Sử dụng database thật trên cloud **Aiven.io PostgreSQL** để quản lý metadata, người dùng, gói cước và cấu hình Looker URL.
 - **Cấu hình kết nối:**
-  - **Host:** `pg-1fafec1a-hngphm-bb38.d.aivencloud.com:24878`
+  - **Host / Port / Credentials:** cấu hình qua biến môi trường (xem `.env.example`), không ghi vào tài liệu.
   - **Database:** `dashgrow_app_db` | **SSL Mode:** `require`
 - **Cấu trúc DDL 5 bảng cốt lõi (Không cần extension, dùng native `gen_random_uuid()`):**
   1. `tenants`: Quản lý hồ sơ công ty/shop khách hàng SMB.
@@ -88,7 +88,7 @@ graph LR
 ---
 
 ### 2.4. Thiết Kế Giao Diện UI/UX & Tối Ưu Hiệu Năng
-- **Quy chuẩn CSS:** Đồng bộ 100% với thiết kế từ `dashgrow_landing_page.html` (Tailwind CSS, phông chữ `Plus Jakarta Sans`, nền lưới `grid-bg`, bảng màu `#0284c7`, `#0d9488`, `#10b981`, `#0e3a40`).
+- **Quy chuẩn CSS:** Đồng bộ 100% với thiết kế từ `docs/design/dashgrow_landing_page.html` (Tailwind CSS, phông chữ `Plus Jakarta Sans`, nền lưới `grid-bg`, bảng màu `#0284c7`, `#0d9488`, `#10b981`, `#0e3a40`).
 - **Lược bỏ icon trùng lặp:** Loại bỏ toàn bộ emoji thừa trong thanh điều hướng và tiêu đề bảng; chỉ giữ lại duy nhất 1 icon Lucide SVG thanh mảnh bên trái.
 - **Tùy biến Header:** Ẩn avatar cho tài khoản Client, chỉ giữ lại tên người dùng và vai trò; tài khoản Admin hiển thị huy hiệu `HQ`.
 - **Toast thông báo:** Thu gọn kích thước, chỉ xuất hiện trong **0.5 giây (500ms)** và tự động mờ dần để không che khuất thao tác.
@@ -133,13 +133,8 @@ Chạy lệnh sau tại thư mục gốc:
 python -m uvicorn src.web.app:app --port 8000 --reload
 ```
 
-### 4.2. Thông tin đăng nhập mặc định (Lưu trên Aiven DB)
-- **Tài khoản Admin (DashGrow HQ):**
-  - **Email:** `admin@dashgrow.io`
-  - **Mật khẩu:** `admin123`
-- **Tài khoản Khách hàng (Olist Retail):**
-  - **Email:** `owner@olist-store.vn`
-  - **Mật khẩu:** `client123`
+### 4.2. Tài khoản mặc định
+Tài khoản Admin (DashGrow HQ) và Client (Olist Retail) được seed tự động bởi `src/web/db/session.py`. Mật khẩu không được ghi trong tài liệu; đổi mật khẩu ngay sau lần đăng nhập đầu tiên trên môi trường production.
 
 ---
 *Tài liệu được tạo tự động để lưu trữ toàn bộ lịch sử thiết kế, quyết định kiến trúc và hướng dẫn vận hành của dự án DashGrow.*
