@@ -29,4 +29,4 @@ class Config:
     @classmethod
     def get_db_url(cls) -> str:
         ssl_param = "?sslmode=require" if ("aivencloud.com" in cls.DB_HOST or "cockroachlabs.cloud" in cls.DB_HOST) else ""
-        return f"postgresql://{cls.DB_USER}:{cls.DB_PASSWORD}@{cls.DB_HOST}:{cls.DB_PORT}/{cls.DB_NAME}{ssl_param}"
+        return f"postgresql+psycopg2://{cls.DB_USER}:{cls.DB_PASSWORD}@{cls.DB_HOST}:{cls.DB_PORT}/{cls.DB_NAME}{ssl_param}"
