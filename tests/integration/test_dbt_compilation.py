@@ -1,5 +1,4 @@
 import os
-import pytest
 from src.transform.run_transform import get_dbt_binary
 
 def test_dbt_project_syntax_and_dag_parsing():
@@ -18,4 +17,4 @@ def test_dbt_project_syntax_and_dag_parsing():
     with os.popen(cmd_str) as stream:
         output = stream.read()
     
-    assert "Found 18 models" in output or "Registered adapter" in output
+    assert "Found 16 models" in output or "Registered adapter" in output

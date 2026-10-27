@@ -208,22 +208,3 @@ class StateManager:
             logger.info(f"Audit log persisted in '{self.audit_table_id}' [Run ID: {run_id}, Status: {status}]")
         except Exception as e:
             logger.warning(f"Could not persist audit log to BigQuery: {e}")
-
-    def reset_watermark(self, connector_name: str):
-        """
-        Resets/deletes the watermark for full-refresh resets.
-        """
-        delete_query = f"""
-        DELETE FROM `{self.state_table_id}` WHERE connector_name = @connector_name
-        """
-        job_config = bigquery.QueryJobConfig(
-            query_parameters=[
-                bigquery.ScalarQueryParameter("connector_name", "STRING", connector_name)
-            ]
-        )
-        try:
-            query_job = self.client.query(delete_query, job_config=job_config, location=self.location)
-            query_job.result()
-            logger.info(f"Watermark reset for connector '{connector_name}'.")
-        except Exception as e:
-            logger.warning(f"Failed to reset watermark for '{connector_name}': {e}")

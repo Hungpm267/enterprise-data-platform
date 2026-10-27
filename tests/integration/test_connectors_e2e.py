@@ -1,8 +1,6 @@
 import os
 import pandas as pd
-import pytest
 from unittest.mock import patch, MagicMock
-from connectors._base.schemas import RunArgs, RunMode
 from connectors.postgres_db.extract import extract_single_table
 
 def test_postgres_extract_single_table_schema(tmp_path, monkeypatch):

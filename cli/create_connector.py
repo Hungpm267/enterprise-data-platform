@@ -94,15 +94,15 @@ sources:
     with open(os.path.join(staging_dbt_dir, "sources.yml"), "w", encoding="utf-8") as f:
         f.write(sources_dbt_code)
 
-    print(f"\n========================================================")
+    print("\n========================================================")
     print(f" Successfully created connector: '{slug}'")
     print(f" Class Name: {camel_name}")
     print(f" Connector path: connectors/{slug}/")
     print(f" dbt staging path: dbt/models/staging/{slug}/")
-    print(f"========================================================")
-    print(f"To run this connector:")
+    print("========================================================")
+    print("To run this connector:")
     print(f"  python main.py --connector {slug}")
-    print(f"========================================================\n")
+    print("========================================================\n")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Scaffold a new data connector for Enterprise Data Platform")

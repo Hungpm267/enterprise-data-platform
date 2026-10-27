@@ -80,18 +80,11 @@ def load_gcs_to_bigquery_staging(
     for conn_name, table_map in connectors_to_process.items():
         logger.info(f"Processing GCS ingestion for connector '{conn_name}'...")
         for parquet_file, (target_table, primary_key) in table_map.items():
-            # Check namespaced path first, then flat landing path as fallback
-            namespaced_blob_path = f"landing/{conn_name}/{parquet_file}"
-            flat_blob_path = f"landing/{parquet_file}"
-            
-            selected_uri = None
-            if bucket.blob(namespaced_blob_path).exists():
-                selected_uri = f"gs://{bucket_name}/{namespaced_blob_path}"
-            elif bucket.blob(flat_blob_path).exists():
-                selected_uri = f"gs://{bucket_name}/{flat_blob_path}"
-            else:
+            blob_path = f"landing/{conn_name}/{parquet_file}"
+            if not bucket.blob(blob_path).exists():
                 logger.warning(f"File '{parquet_file}' not found in GCS for connector '{conn_name}'. Skipping.")
                 continue
+            selected_uri = f"gs://{bucket_name}/{blob_path}"
 
             target_table_ref = dataset_ref.table(target_table)
 

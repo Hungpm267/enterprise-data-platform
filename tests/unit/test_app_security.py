@@ -1,6 +1,6 @@
 from src.web.core.security import get_password_hash, verify_password, create_access_token, decode_access_token
 from src.web.db.session import init_app_db, SessionLocal
-from src.web.db.models import User, Tenant
+from src.web.db.models import User
 
 def test_password_hashing_and_verification():
     raw = "super_secure_pass_2026"

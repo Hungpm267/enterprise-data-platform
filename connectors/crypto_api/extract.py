@@ -1,10 +1,8 @@
 import os
-import glob
 import time
 import requests
 import pandas as pd
-from typing import List, Optional, Dict, Any
-from datetime import datetime
+from typing import List, Optional
 from requests.adapters import HTTPAdapter
 from urllib3.util import Retry
 from src.utils.config import Config

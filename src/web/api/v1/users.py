@@ -5,7 +5,7 @@ from src.web.db.session import get_db
 from src.web.db.models import User, Tenant, Subscription
 from src.web.core.dependencies import require_platform_admin
 from src.web.core.security import get_password_hash
-from src.web.schemas.auth import RegisterRequest, UserOut
+from src.web.schemas.auth import UserOut
 from pydantic import BaseModel
 
 class CreateUserTenantRequest(BaseModel):

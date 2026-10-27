@@ -1,4 +1,4 @@
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 from src.web.api.v1.analytics import _caller_tenant_slug
 

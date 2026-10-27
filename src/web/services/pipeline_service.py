@@ -1,8 +1,6 @@
-import os
 import time
 import subprocess
 import threading
-from datetime import datetime
 from typing import Dict, Any, List, Optional
 from google.cloud import bigquery
 from src.utils.gcp_client import get_bigquery_client_or_none
@@ -194,12 +192,10 @@ class PipelineService:
     @staticmethod
     def trigger_pipeline_async(connector: str = "postgres_db", full_refresh: bool = False):
         """Asynchronously triggers the platform pipeline via main.py."""
-        global execution_state
         if execution_state["is_running"]:
             return {"status": "error", "message": "A pipeline is already currently running."}
 
         def _run():
-            global execution_state
             execution_state["is_running"] = True
             execution_state["current_connector"] = connector
             execution_state["last_run_time"] = get_vietnam_now_str()
@@ -252,5 +248,4 @@ class PipelineService:
 
     @staticmethod
     def get_execution_status() -> Dict[str, Any]:
-        global execution_state
         return execution_state

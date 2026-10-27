@@ -1,6 +1,6 @@
 """Regression test for a silent data-corruption bug found in production.
 
-`upload_landing_to_gcs` scanned TWO local locations for a connector's parquet
+`upload_landing_to_gcs` used to scan TWO local locations for a connector's parquet
 files and mapped both to the SAME GCS blob path:
 
   1. data/landing/<connector>/raw_x.parquet  -> landing/<connector>/raw_x.parquet
@@ -13,9 +13,9 @@ randomly overwrote them — which is why a different, seemingly random subset of
 staging tables came out missing `tenant_slug` on every pipeline run, while the
 local files always looked correct.
 
-The upload plan must never map two different local files onto one blob path.
-When both a namespaced and a legacy root-level file exist, the namespaced one
-wins (it is the path the extractor actually writes to today).
+The fix: only namespaced landing/<connector>/ files are uploaded; root-level
+files are always stale leftovers and are ignored, so no two local files can
+ever map onto one blob path.
 """
 import os
 from unittest.mock import MagicMock, patch
@@ -82,13 +82,12 @@ def test_namespaced_file_wins_over_stale_root_level_duplicate(landing_with_stale
     )
 
 
-def test_root_level_file_still_uploads_when_no_namespaced_counterpart(tmp_path):
-    """The legacy root-level fallback must keep working when it is the only
-    copy — removing duplicates must not remove legitimate files."""
+@pytest.mark.parametrize("connector_name", ["postgres_db", "all"])
+def test_root_level_files_are_never_uploaded(tmp_path, connector_name):
+    """Extractors only write to landing/<connector>/, so a root-level file is
+    always a stale leftover and must never reach GCS."""
     (tmp_path / "postgres_db").mkdir()
-    orphan = tmp_path / "raw_orders.parquet"
-    orphan.write_bytes(b"only-copy")
+    (tmp_path / "raw_orders.parquet").write_bytes(b"stale-root-copy")
 
-    uploads = _capture_uploads(str(tmp_path), "postgres_db")
-    blob_paths = [blob for _local, blob in uploads]
-    assert "landing/postgres_db/raw_orders.parquet" in blob_paths
+    uploads = _capture_uploads(str(tmp_path), connector_name)
+    assert uploads == []

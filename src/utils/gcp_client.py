@@ -2,7 +2,7 @@ import os
 import json
 import ast
 import base64
-from typing import Optional, Dict, Any
+from typing import Dict, Any
 from google.cloud import storage, bigquery
 from google.oauth2 import service_account
 from src.utils.config import Config

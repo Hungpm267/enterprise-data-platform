@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta, timezone
-from typing import Optional, Any
+from typing import Optional
 import jwt
 import bcrypt
 from src.web.core.config import WebConfig
